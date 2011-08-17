@@ -1,0 +1,295 @@
+//===--- TokenKinds.def - Fortran Family Token Kind Database ----*- C++ -*-===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines the TokenKind database. This includes normal tokens like
+// tok::amp (corresponding to the & token) as well as keywords for various
+// languages.  Users of this file must optionally #define the TOK or KEYWORD
+// macros to make use of this file.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef TOK
+#define TOK(X)
+#endif
+#ifndef KEYWORD
+#define KEYWORD(X,Y) TOK(kw_ ## X)
+#endif
+#ifndef BUILTIN
+#define BUILTIN(X,Y) TOK(bi_ ## X)
+#endif
+
+//===----------------------------------------------------------------------===//
+// Language keywords.
+//===----------------------------------------------------------------------===//
+
+// These define members of the tok::* namespace.
+
+TOK(error)               // Error occurred.
+TOK(unknown)             // Not a token.
+TOK(eof)                 // End of file.
+
+// [FIXME]: Comments.
+TOK(comment)             // Comment (only in -E -C[C] mode)
+
+// [FIXME]: Identifiers.
+TOK(identifier)          // abcde123
+
+// [3.2.5] R312: Statement Labels
+TOK(statement_label)     // 12345
+
+// [FIXME]: Integer Constants
+// [FIXME]: Floating Constants
+TOK(numeric_constant)    // 123, 3.4e-5
+
+TOK(binary_boz_constant) // B"0100"
+TOK(octal_boz_constant)  // O"7231"
+TOK(hex_boz_constant)    // Z"927A"
+
+// [FIXME]: Character Literal Constants
+TOK(char_literal_constant) // "foo", 'foo', 'a'
+
+// [7.1.2.8] R723: Defined Operators.
+TOK(defined_operator)    // .EQ., .LT., .NEQV.
+
+// [FIXME]: Punctuators.
+TOK(equal)               // =
+TOK(equalequal)          // ==
+TOK(equalgreater)        // =>
+TOK(plus)                // +
+TOK(minus)               // -
+TOK(star)                // *
+TOK(starstar)            // **
+TOK(slash)               // /
+TOK(slashslash)          // //
+TOK(slashequal)          // /=
+TOK(backslash)           // <backslash>
+TOK(l_parenslash)        // (/
+TOK(slashr_paren)        // /)
+TOK(l_paren)             // (
+TOK(r_paren)             // )
+TOK(l_square)            // [
+TOK(r_square)            // ]
+TOK(l_brace)             // {
+TOK(r_brace)             // }
+TOK(comma)               // ,
+TOK(period)              // .
+TOK(colon)               // :
+TOK(coloncolon)          // ::
+TOK(semicolon)           // ;
+TOK(exclaim)             // !
+TOK(percent)             // %
+TOK(ampersand)           // &
+TOK(tilde)               // ~
+TOK(less)                // <
+TOK(lessequal)           // <=
+TOK(greater)             // >
+TOK(greaterequal)        // >=
+TOK(question)            // ?
+TOK(backtick)            // `
+TOK(caret)               // ^
+TOK(pipe)                // |
+TOK(dollar)              // $
+TOK(hash)                // #
+TOK(at)                  // @
+
+// [FIXME]: Keywords. These turn into kw_* tokens. All keywords may be
+// redefined. So these are `keywords' only in a context where they need to be a
+// keyword.
+//
+// Flags allowed:
+//   KEYALL    - This is a keyword in all variants of Fortran.
+//   KEYNOTF77 - This is a keyword for all variants of Fortran except 77.
+//   KEYF77    - This is a keyword for Fortran 77.
+//   KEYF90    - This is a keyword for Fortran 90.
+//   KEYF95    - This is a keyword for Fortran 90/95.
+//   KEYF2003  - This is a keyword for Fortran 2003.
+//   KEYF2008  - This is a keyword for Fortran 2003/2008.
+//
+KEYWORD(PROGRAM                , KEYALL)
+KEYWORD(END                    , KEYALL)
+KEYWORD(IF                     , KEYALL)
+KEYWORD(ELSE                   , KEYALL)
+KEYWORD(DO                     , KEYALL)
+KEYWORD(INTEGER                , KEYALL)
+KEYWORD(CHARACTER              , KEYALL)
+KEYWORD(REAL                   , KEYALL) // A function based on context.
+KEYWORD(DOUBLE                 , KEYALL)
+KEYWORD(PRECISION              , KEYALL)
+KEYWORD(COMPLEX                , KEYALL)
+KEYWORD(LOGICAL                , KEYALL)
+
+KEYWORD(ASSOCIATE              , KEYALL)
+KEYWORD(FILE                   , KEYALL)
+KEYWORD(FUNCTION               , KEYALL)
+KEYWORD(INTERFACE              , KEYALL)
+KEYWORD(SUBPROGRAM             , KEYALL)
+KEYWORD(SELECT                 , KEYALL)
+KEYWORD(CASE                   , KEYALL)
+KEYWORD(IN                     , KEYALL)
+KEYWORD(OUT                    , KEYALL)
+KEYWORD(GO                     , KEYALL)
+KEYWORD(TO                     , KEYALL)
+KEYWORD(ENTRY                  , KEYALL)
+KEYWORD(ENUM                   , KEYALL)
+KEYWORD(MODULE                 , KEYNOTF77)
+KEYWORD(BLOCK                  , KEYALL) // DATA defined below.
+
+KEYWORD(CLASS                  , KEYNOTF77) // [5.2]    declaration-type-spec
+KEYWORD(TYPE                   , KEYNOTF77) //   ''
+
+KEYWORD(ACCESS                 , KEYALL)    // [5.2.1]  access-stmt
+KEYWORD(ALLOCATABLE            , KEYNOTF77) // [5.2.2]  allocatable-stmt
+KEYWORD(ASYNCHRONOUS           , KEYF90)    // [5.2.3]  asynchronous-stmt
+KEYWORD(BIND                   , KEYALL)    // [5.2.4]  bind-stmt
+KEYWORD(DATA                   , KEYALL)    // [5.2.5]  data-stmt
+KEYWORD(DIMENSION              , KEYALL)    // [5.2.6]  dimension-stmt
+KEYWORD(INTENT                 , KEYALL)    // [5.2.7]  intent-stmt
+KEYWORD(OPTIONAL               , KEYALL)    // [5.2.8]  optional-stmt
+KEYWORD(PARAMETER              , KEYALL)    // [5.2.9]  parameter-stmt
+KEYWORD(POINTER                , KEYNOTF77) // [5.2.10] pointer-stmt
+KEYWORD(PROTECTED              , KEYNOTF77) // [5.2.11] protected-stmt
+KEYWORD(SAVE                   , KEYALL)    // [5.2.12] save-stmt
+KEYWORD(TARGET                 , KEYALL)    // [5.2.13] target-stmt
+KEYWORD(VALUE                  , KEYALL)    // [5.2.14] value-stmt
+KEYWORD(VOLATILE               , KEYALL)    // [5.2.15] volatile-stmt
+
+KEYWORD(PUBLIC                 , KEYALL)    // [5.1.2.1] access-spec
+KEYWORD(PRIVATE                , KEYALL)    //    ''
+
+KEYWORD(IMPLICIT               , KEYALL)    // [5.3]    implicit-stmt
+KEYWORD(NONE                   , KEYALL)    //   ''
+KEYWORD(NAMELIST               , KEYALL)    // [5.4]    namelist-stmt
+KEYWORD(EQUIVALENCE            , KEYALL)    // [5.5.1]  equivalence-stmt
+KEYWORD(COMMON                 , KEYALL)    // [5.5.2]  common-stmt
+
+KEYWORD(ALLOCATE               , KEYNOTF77) // [6.3.1]  allocate-stmt
+KEYWORD(STAT                   , KEYNOTF77) //   ''
+KEYWORD(ERRMSG                 , KEYNOTF77) //   ''
+KEYWORD(SOURCE                 , KEYNOTF77) //   ''
+KEYWORD(NULLIFY                , KEYNOTF77) // [6.3.2]  nullify-stmt
+KEYWORD(DEALLOCATE             , KEYNOTF77) // [6.3.3]  deallocate-stmt
+
+KEYWORD(WHERE                  , KEYALL)    // [7.4.3.1] where-stmt
+
+KEYWORD(FORALL                 , KEYNOTF77) // [7.4.4]  forall-construct
+
+// [???] R???
+KEYWORD(OPERATOR               , KEYALL)
+
+KEYWORD(USE                    , KEYALL)    // [11.2.1] use-stmt
+KEYWORD(ONLY                   , KEYALL)    // [11.2.1] use-stmt
+KEYWORD(NONINTRINSIC           , KEYALL)    // [11.2.1] module-nature
+
+KEYWORD(EXTERNAL               , KEYALL)    // [12.3.2.2] external-stmt
+KEYWORD(IMPORT                 , KEYALL)    // [12.3.2.1] import-stmt
+KEYWORD(INTRINSIC              , KEYALL)    // [12.3.2.4] intrinsic-stmt
+
+KEYWORD(KIND                   , KEYALL)
+KEYWORD(LEN                    , KEYALL)
+
+KEYWORD(READ                   , KEYF90)
+KEYWORD(WRITE                  , KEYF90)
+KEYWORD(PRINT                  , KEYF90)
+
+// [3.3.1] Blanks are optional in free source form for these keywords.
+// BLOCK DATA:
+KEYWORD(BLOCKDATA              , KEYALL)
+// ELSE IF: 
+KEYWORD(ELSEIF                 , KEYALL)
+// END ASSOCIATE:
+KEYWORD(ENDASSOCIATE           , KEYALL)
+// END DO:
+KEYWORD(ENDDO                  , KEYALL)
+// END FILE:
+KEYWORD(ENDFILE                , KEYALL)
+// END FUNCTION:
+KEYWORD(ENDFUNCTION            , KEYALL)
+// END INTERFACE:
+KEYWORD(ENDINTERFACE           , KEYALL)
+// END PROGRAM:
+KEYWORD(ENDPROGRAM             , KEYALL)
+// END SUBPROGRAM:
+KEYWORD(ENDSUBPROGRAM          , KEYALL)
+// END WHERE:
+KEYWORD(ENDWHERE               , KEYALL)
+// IN OUT:
+KEYWORD(INOUT                  , KEYALL)
+// SELECT TYPE:
+KEYWORD(SELECTTYPE             , KEYNOTF77)
+// DOUBLE PRECISION:
+KEYWORD(DOUBLEPRECISION        , KEYALL)
+// ELSE WHERE:
+KEYWORD(ELSEWHERE              , KEYALL)
+// END BLOCK DATA:
+KEYWORD(ENDBLOCKDATA           , KEYALL)
+KEYWORD(ENDBLOCK               , KEYALL)
+// END ENUM:
+KEYWORD(ENDENUM                , KEYALL)
+// END FORALL:
+KEYWORD(ENDFORALL              , KEYNOTF77)
+// END IF:
+KEYWORD(ENDIF                  , KEYALL)
+// END MODULE:
+KEYWORD(ENDMODULE              , KEYNOTF77)
+// END SELECT:
+KEYWORD(ENDSELECT              , KEYALL)
+// END TYPE:
+KEYWORD(ENDTYPE                , KEYNOTF77)
+// GO TO:
+KEYWORD(GOTO                   , KEYALL)
+// SELECT CASE:
+KEYWORD(SELECTCASE             , KEYALL)
+
+// [3.2.4] R309: Intrinsic Operators
+// [3.2.4] R713: rel-op
+KEYWORD(EQ                     , KEYALL)
+KEYWORD(NE                     , KEYALL)
+KEYWORD(LT                     , KEYALL)
+KEYWORD(LE                     , KEYALL)
+KEYWORD(GT                     , KEYALL)
+KEYWORD(GE                     , KEYALL)
+// [3.2.4] R718: not-op
+KEYWORD(NOT                    , KEYALL)
+// [3.2.4] R719: and-op
+KEYWORD(AND                    , KEYALL)
+// [3.2.4] R720: or-op
+KEYWORD(OR                     , KEYALL)
+// [3.2.4] R721: equiv-op
+KEYWORD(EQV                    , KEYALL)
+KEYWORD(NEQV                   , KEYALL)
+
+// [4.4.4] R424: logical-literal-constant
+KEYWORD(TRUE                   , KEYALL)
+KEYWORD(FALSE                  , KEYALL)
+
+// [FIXME]: Builtins. These turn into bi_* tokens. All builtins may be
+// redefined.
+
+// Type conversion
+BUILTIN(dble                   , KEYALL)
+BUILTIN(int                    , KEYALL)
+BUILTIN(cmplx                  , KEYALL)
+BUILTIN(count                  , KEYALL)
+BUILTIN(sum                    , KEYALL)
+
+// Conversion between characters and integers
+BUILTIN(char                   , KEYALL)
+BUILTIN(ichar                  , KEYALL)
+BUILTIN(achar                  , KEYALL)
+BUILTIN(iachar                 , KEYALL)
+
+// String comparisons
+BUILTIN(lgt                    , KEYALL)
+BUILTIN(lge                    , KEYALL)
+BUILTIN(lle                    , KEYALL)
+BUILTIN(llt                    , KEYALL)
+
+#undef BUILTIN
+#undef KEYWORD
+#undef TOK
