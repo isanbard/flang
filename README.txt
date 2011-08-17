@@ -5,7 +5,7 @@
 flang:
   n. 1. A miner's two-pointed pick.
 
-Flang is a Fortran front-end which is built upon the LLVM infrastructure.
+Flang is a Fortran front-end.
 
 //===----------------------------------------------------------------------===//
 // To Do List
