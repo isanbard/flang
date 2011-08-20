@@ -195,9 +195,9 @@ KEYWORD(INTRINSIC              , KEYALL)    // [12.3.2.4] intrinsic-stmt
 KEYWORD(KIND                   , KEYALL)
 KEYWORD(LEN                    , KEYALL)
 
-KEYWORD(READ                   , KEYF90)
-KEYWORD(WRITE                  , KEYF90)
-KEYWORD(PRINT                  , KEYF90)
+KEYWORD(READ                   , KEYF90)    // R910: read-stmt
+KEYWORD(WRITE                  , KEYF90)    // R911: write-stmt
+KEYWORD(PRINT                  , KEYF90)    // R912: print-stmt
 
 // [3.3.1] Blanks are optional in free source form for these keywords.
 // BLOCK DATA:

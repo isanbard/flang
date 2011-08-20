@@ -156,15 +156,21 @@ private:
   bool ParseSubroutineSubprogram();
   bool ParseModule();
   bool ParseBlockData();
+
   bool ParseSpecificationPart();
   bool ParseImplicitPartList();
   bool ParseImplicitPart();
+  bool ParseExecutionPart();
+
   bool ParseDeclarationConstructList();
   bool ParseDeclarationConstruct();
   bool ParseForAllConstruct();
+  bool ParseExecutableConstruct();
+
   bool ParseTypeDeclarationStmt();
   bool ParseProcedureDeclStmt();
   bool ParseSpecificationStmt();
+  bool ParseActionStmt();
 
   // Stmt-level parsing methods.
   StmtResult ParsePROGRAMStmt();

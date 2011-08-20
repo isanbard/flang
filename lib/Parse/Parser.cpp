@@ -226,7 +226,7 @@ void Parser::ParseStatementLabel() {
   Lex();
 }
 
-// [1.7.4] Assumed syntax rules
+// Assumed syntax rules
 //
 //   R101 xyz-list        :=  xyz [, xyz] ...
 //   R102 xyz-name        :=  name
@@ -249,7 +249,7 @@ bool Parser::ParseTranslationUnit() {
 
 /// ParseProgramUnit - Parse a program unit.
 ///
-///   [2.1] R202:
+///   R202:
 ///     program-unit :=
 ///         main-program
 ///      or external-subprogram
@@ -286,7 +286,7 @@ bool Parser::ParseProgramUnit() {
 
 /// ParseMainProgram - Parse the main program.
 ///
-///   [11.1] R1101:
+///   R1101:
 ///     main-program :=
 ///         [program-stmt]
 ///           [specification-part]
@@ -306,13 +306,18 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
+  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
+    ParseExecutionPart();
+    ParseStatementLabel();
+  }
+
   ParseEND_PROGRAMStmt();
   return false;
 }
 
 /// ParseSpecificationPart - Parse the specification part.
 ///
-///   [2.1] R204:
+///   R204:
 ///     specification-part :=
 ///        [use-stmt] ...
 ///          [import-stmt] ...
@@ -359,7 +364,7 @@ bool Parser::ParseSpecificationPart() {
 
 /// ParseExternalSubprogram - Parse an external subprogram.
 ///
-///   [2.1] R203:
+///   R203:
 ///     external-subprogram :=
 ///         function-subprogram
 ///      or subroutine-subprogram
@@ -369,7 +374,7 @@ bool Parser::ParseExternalSubprogram() {
 
 /// ParseFunctionSubprogram - Parse a function subprogram.
 ///
-///   [12.5.2.1] R1223:
+///   R1223:
 ///     function-subprogram :=
 ///         function-stmt
 ///           [specification-part]
@@ -382,7 +387,7 @@ bool Parser::ParseFunctionSubprogram() {
 
 /// ParseSubroutineSubprogram - Parse a subroutine subprogram.
 ///
-///   [12.5.2.2] R1231:
+///   R1231:
 ///     subroutine-subprogram :=
 ///         subroutine-stmt
 ///           [specification-part]
@@ -395,7 +400,7 @@ bool Parser::ParseSubroutineSubprogram() {
 
 /// ParseModule - Parse a module.
 ///
-///   [11.2] R1104:
+///   R1104:
 ///     module :=
 ///         module-stmt
 ///           [specification-part]
@@ -407,7 +412,7 @@ bool Parser::ParseModule() {
 
 /// ParseBlockData - Parse block data.
 ///
-///   [11.3] R1116:
+///   R1116:
 ///     block-data :=
 ///         block-data-stmt
 ///           [specification-part]
@@ -427,17 +432,28 @@ bool Parser::ParseImplicitPartList() {
 
 /// ParseImplicitPart - Parse the implicit part.
 ///
-///   [2.1] R205:
+///   R205:
 ///     implicit-part :=
 ///         [implicit-part-stmt] ...
 ///           implicit-stmt
 bool Parser::ParseImplicitPart() {
-  // [2.1] R206:
+  // R206:
   //   implicit-part-stmt :=
   //       implicit-stmt
   //    or parameter-stmt
   //    or format-stmt
   //    or entry-stmt
+  return false;
+}
+
+/// ParseExecutionPart - Parse the execution part.
+///
+///   R208:
+///     execution-part :=
+///         executable-construct
+///           [ execution-part-construct ] ...
+bool Parser::ParseExecutionPart() {
+  ParseExecutableConstruct();
   return false;
 }
 
