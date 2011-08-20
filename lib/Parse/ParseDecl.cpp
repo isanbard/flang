@@ -316,7 +316,7 @@ bool Parser::ParseLengthSelector(Selector &Len) {
 ///   [4.5.8] R456:
 ///     type-param-spec :=
 ///         [ keyword = ] type-param-value
-bool Parser::ParseDerivedTypeSpec(DeclSpec *&DTS) {
+bool Parser::ParseDerivedTypeSpec(DeclSpec *&DS) {
   llvm::SMLoc Loc = Tok.getLocation();
   const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
   if (!VD)
@@ -340,7 +340,7 @@ bool Parser::ParseDerivedTypeSpec(DeclSpec *&DTS) {
     }
   }
 
-  DTS = new DerivedDeclSpec(new VarExpr(Loc, VD), ExprVec);
+  DS = new DerivedDeclSpec(new VarExpr(Loc, VD), ExprVec);
   return false;
 
  error:
@@ -357,7 +357,7 @@ bool Parser::ParseDerivedTypeSpec(DeclSpec *&DTS) {
 ///      or TYPE ( derived-type-spec )
 ///      or CLASS ( derived-type-spec )
 ///      or CLASS ( * )
-bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
+bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
   // [4.4] R403:
   //   intrinsic-type-spec :=
   //       INTEGER [ kind-selector ]
@@ -396,7 +396,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
                                 "expected ')' after kind selector");
     }
 
-    DTS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
+    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
   case BuiltinType::TS_DoublePrecision: {
@@ -405,7 +405,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
       return Diag.ReportError(Tok.getLocation(),
                              "'DOUBLE PRECISION' doesn't take a kind selector");
     Selector Kind;
-    DTS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
+    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
   case BuiltinType::TS_Character: {
@@ -488,9 +488,9 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
       }
     }
 
-    DTS = new IntrinsicDeclSpec(Actions.ActOnCharacterBuiltinType(&Context,
-                                                                  Len,
-                                                                  Kind));
+    DS = new IntrinsicDeclSpec(Actions.ActOnCharacterBuiltinType(&Context,
+                                                                 Len,
+                                                                 Kind));
     return false;
   }
   }
@@ -500,7 +500,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
       return Diag.ReportError(Tok.getLocation(),
                               "expected '(' in type specification");
 
-    if (ParseDerivedTypeSpec(DTS))
+    if (ParseDerivedTypeSpec(DS))
       return true;
 
     if (!EatIfPresent(tok::r_paren))
