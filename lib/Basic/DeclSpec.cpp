@@ -40,7 +40,7 @@ void IntrinsicDeclSpec::print(llvm::raw_ostream &O) {
 
 DerivedDeclSpec::DerivedDeclSpec(ExprResult e,
                                  llvm::ArrayRef<ExprResult> Arr)
-  : DeclSpec(dts_DerivedTypeSpec), TypeExpr(e) {
+  : DeclSpec(DerivedTypeSpec), TypeExpr(e) {
   for (unsigned I = 0, N = Arr.size(); I != N; ++I)
     TypeParamSpec.push_back(Arr[I]);
 }

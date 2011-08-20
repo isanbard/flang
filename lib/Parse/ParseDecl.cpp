@@ -15,37 +15,35 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/Basic/Actions.h"
-#include "flang/Basic/DeclSpec.h"
 using namespace fortran;
 
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
 /// the list, but reports an error if that attribute was all ready assigned.
-bool Parser::AssignAttrSpec(unsigned &AttrSpecs, Type::AttrSpec AS) {
-  if ((AttrSpecs & AS) != 0)
+bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec AS) {
+  if (DS->hasAttribute(AS))
     return Diag.ReportError(Tok.getLocation(),
                             "attribute specification defined more than once");
-  AttrSpecs |= AS;
+  DS->setAttribute(AS);
   Lex();
   return false;
 }
 
 /// ParseTypeDeclarationStmt - Parse a type-declaration-stmt construct.
 ///
-///   [5.1] R501:
+///   [5.2.1] R501:
 ///     type-declaration-stmt :=
 ///         declaration-type-spec [ [ , attr-spec ] ... :: ] entity-decl-list
 bool Parser::ParseTypeDeclarationStmt() {
   if (!Tok.isAtStartOfStatement())
     return true;
   
-  DeclSpec *DTS = 0;
-  if (ParseDeclarationTypeSpec(DTS))
+  DeclSpec *DS = 0;
+  if (ParseDeclarationTypeSpec(DS))
     return true;
 
-  unsigned AttrSpecs = 0;
   llvm::SmallVector<ExprResult, 4> Dimensions;
-  Type::AccessSpec AS = Type::AC_None;
-  Type::IntentSpec IS = Type::IS_None;
+  DeclSpec::AccessSpec AS = DeclSpec::AC_None;
+  DeclSpec::IntentSpec IS = DeclSpec::IS_None;
   while (EatIfPresent(tok::comma)) {
     // [5.1] R503:
     //   attr-spec :=
@@ -71,25 +69,25 @@ bool Parser::ParseTypeDeclarationStmt() {
                        "unknown attribute specification");
       goto error;
     case tok::kw_ALLOCATABLE:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Allocatable))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Allocatable))
         goto error;
       break;
     case tok::kw_ASYNCHRONOUS:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Asynchronous))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Asynchronous))
         goto error;
       break;
     case tok::kw_DIMENSION:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Dimension))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Dimension))
         goto error;
       if (ParseArraySpec(Dimensions))
         goto error;
       break;
     case tok::kw_EXTERNAL:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_External))
+      if (AssignAttrSpec(DS, DeclSpec::AS_External))
         goto error;
       break;
     case tok::kw_INTENT:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Intent))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Intent))
         goto error;
 
       if (!EatIfPresent(tok::l_paren)) {
@@ -103,9 +101,9 @@ bool Parser::ParseTypeDeclarationStmt() {
         Diag.ReportError(Tok.getLocation(),
                          "invalid INTENT specifier");
         goto error;
-      case tok::kw_IN:    IS = Type::IS_In;    break;
-      case tok::kw_OUT:   IS = Type::IS_Out;   break;
-      case tok::kw_INOUT: IS = Type::IS_InOut; break;
+      case tok::kw_IN:    IS = DeclSpec::IS_In;    break;
+      case tok::kw_OUT:   IS = DeclSpec::IS_Out;   break;
+      case tok::kw_INOUT: IS = DeclSpec::IS_InOut; break;
       }
       Lex();
 
@@ -117,47 +115,47 @@ bool Parser::ParseTypeDeclarationStmt() {
 
       break;
     case tok::kw_INTRINSIC:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Intrinsic))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Intrinsic))
         goto error;
       break;
     case tok::kw_PARAMETER:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Parameter))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Parameter))
         goto error;
       break;
     case tok::kw_POINTER:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Pointer))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Pointer))
         goto error;
       break;
     case tok::kw_PROTECTED:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Protected))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Protected))
         goto error;
       break;
     case tok::kw_SAVE:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Save))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Save))
         goto error;
       break;
     case tok::kw_TARGET:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Target))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Target))
         goto error;
       break;
     case tok::kw_VALUE:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Value))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Value))
         goto error;
       break;
     case tok::kw_VOLATILE:
-      if (AssignAttrSpec(AttrSpecs, Type::AS_Volatile))
+      if (AssignAttrSpec(DS, DeclSpec::AS_Volatile))
         goto error;
       break;
     case tok::kw_PUBLIC:
     case tok::kw_PRIVATE:
-      if (AS != Type::AC_None) {
+      if (AS != DeclSpec::AC_None) {
         Diag.ReportError(Tok.getLocation(),
                          "too many access specifiers specified");
         goto error;
       }
 
-      AS = (Tok.getKind() == tok::kw_PUBLIC) ? Type::AC_Public :
-                                               Type::AC_Private;
+      AS = (Tok.getKind() == tok::kw_PUBLIC) ? DeclSpec::AC_Public :
+                                               DeclSpec::AC_Private;
       break;
     }
   }
@@ -179,7 +177,7 @@ bool Parser::ParseTypeDeclarationStmt() {
                        "identifier already was declared");
       // FIXME: Make this error better!
     } else {
-      Actions.ActOnVarDecl(&Context, DTS, Context.getOrCreateVarDecl(ID));
+      Actions.ActOnVarDecl(&Context, DS, Context.getOrCreateVarDecl(ID));
     }
 
     Lex();
@@ -206,7 +204,7 @@ bool Parser::ParseTypeDeclarationStmt() {
   for (llvm::SmallVectorImpl<ExprResult>::iterator
          I = Dimensions.begin(), E = Dimensions.end(); I != E; ++I)
     delete I->take();
-  delete DTS;
+  delete DS;
   return true;
 }
 
@@ -454,7 +452,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
     return Actions.ActOnTypeDeclSpec(&Context);
   }
 
-  // TODO: Handle TYPE and CLASS.
+  // TODO: Handle CLASS.
 
   return true;
 }

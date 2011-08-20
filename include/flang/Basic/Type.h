@@ -55,39 +55,6 @@ public:
     TC_Pointer = 4
   };
 
-  enum AttrSpec {
-    AS_None            = 0,
-    AS_Allocatable     = 1 << 0,
-    AS_Asynchronous    = 1 << 1,
-    AS_Dimension       = 1 << 2,
-    AS_External        = 1 << 3,
-    AS_Intent          = 1 << 4,
-    AS_Intrinsic       = 1 << 5,
-    AS_Optional        = 1 << 6,
-    AS_Parameter       = 1 << 7,
-    AS_Pointer         = 1 << 8,
-    AS_Protected       = 1 << 9,
-    AS_Save            = 1 << 10,
-    AS_Target          = 1 << 11,
-    AS_Value           = 1 << 12,
-    AS_Volatile        = 1 << 13,
-    AS_AccessSpec      = 1 << 30,
-    AS_LangBindingSpec = 1 << 31
-  };
-
-  enum AccessSpec {
-    AC_None    = 0,
-    AC_Public  = 1 << 0,
-    AC_Private = 1 << 1
-  };
-
-  enum IntentSpec {
-    IS_None   = 0,
-    IS_In     = 1 << 0,
-    IS_Out    = 1 << 1,
-    IS_InOut  = 1 << 2
-  };
-
 private:
   TypeClass TyClass;
 protected:

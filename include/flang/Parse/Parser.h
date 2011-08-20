@@ -15,6 +15,7 @@
 #define FORTRAN_PARSER_PARSER_H__
 
 #include "flang/AST/ASTContext.h" // FIXME: Move to AST construction.
+#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/Diagnostic.h"
 #include "flang/Basic/IdentifierTable.h"
 #include "flang/Basic/LangOptions.h"
@@ -36,7 +37,6 @@ namespace fortran {
 
 class Action;
 class DeclGroupRef;
-class DeclSpec;
 class Expr;
 class Parser;
 class Selector;
@@ -220,13 +220,14 @@ private:
 
   void ParseStatementLabel();
 
+  // Declaration construct functions
+  bool ParseDeclarationTypeSpec(DeclSpec *&DTS);
   bool ParseKindSelector(Selector &Kind);
   bool ParseLengthSelector(Selector &Len);
-  bool ParseDeclarationTypeSpec(DeclSpec *&DTS);
-  bool ParseDerivedTypeSpec(DeclSpec *&DTS);
+  bool ParseDerivedTypeSpec(DeclSpec *&DS);
   bool ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims);
 
-  bool AssignAttrSpec(unsigned &AttrSpecs, Type::AttrSpec AS);
+  bool AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec AS);
   void LexToEndOfStatement();
   bool EatIfPresent(tok::TokenKind);
 };
