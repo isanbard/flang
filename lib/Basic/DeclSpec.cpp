@@ -1,4 +1,4 @@
-//===-- DeclTypeSpec.cpp - Fortran Declaration Type Specifier Interface ---===//
+//===-- DeclSpec.cpp - Fortran Declaration Type Specifier Interface ---===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "flang/Basic/DeclTypeSpec.h"
+#include "flang/Basic/DeclSpec.h"
 #include "flang/AST/Expr.h"
 #include "flang/Basic/Type.h"
 #include "llvm/Support/raw_ostream.h"
@@ -22,15 +22,15 @@ using namespace fortran;
 // Declaration Type Specifier
 //===----------------------------------------------------------------------===//
 
-DeclTypeSpec::~DeclTypeSpec() {}
+DeclSpec::~DeclSpec() {}
 
 //===----------------------------------------------------------------------===//
 // Intrinsic Declaration Type Specifier
 //===----------------------------------------------------------------------===//
 
-IntrinsicDeclTypeSpec::~IntrinsicDeclTypeSpec() {}
+IntrinsicDeclSpec::~IntrinsicDeclSpec() {}
 
-void IntrinsicDeclTypeSpec::print(llvm::raw_ostream &O) {
+void IntrinsicDeclSpec::print(llvm::raw_ostream &O) {
   Ty->print(O);
 }
 
@@ -38,17 +38,17 @@ void IntrinsicDeclTypeSpec::print(llvm::raw_ostream &O) {
 // Derived Declaration Type Specifier
 //===----------------------------------------------------------------------===//
 
-DerivedDeclTypeSpec::DerivedDeclTypeSpec(ExprResult e,
-                                         llvm::ArrayRef<ExprResult> Arr)
-  : DeclTypeSpec(dts_DerivedTypeSpec), TypeExpr(e) {
+DerivedDeclSpec::DerivedDeclSpec(ExprResult e,
+                                 llvm::ArrayRef<ExprResult> Arr)
+  : DeclSpec(dts_DerivedTypeSpec), TypeExpr(e) {
   for (unsigned I = 0, N = Arr.size(); I != N; ++I)
     TypeParamSpec.push_back(Arr[I]);
 }
 
-DerivedDeclTypeSpec::~DerivedDeclTypeSpec() {
+DerivedDeclSpec::~DerivedDeclSpec() {
   delete TypeExpr.take();
 }
 
-void DerivedDeclTypeSpec::print(llvm::raw_ostream &O) {
+void DerivedDeclSpec::print(llvm::raw_ostream &O) {
   TypeExpr.get()->print(O);
 }

@@ -31,7 +31,7 @@ class raw_ostream;
 namespace fortran {
 
 class ASTContext;
-class DeclTypeSpec;
+class DeclSpec;
 class Diagnostic;
 class IdentifierInfo;
 class Token;
@@ -68,8 +68,8 @@ public:
   virtual const BuiltinType *ActOnCharacterBuiltinType(ASTContext *Ctx,
                                                        Selector Len,
                                                        Selector Kind) = 0;
-  virtual DeclTypeSpec *ActOnTypeDeclSpec(ASTContext *Ctx) = 0;
-  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclTypeSpec *DTS,
+  virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) = 0;
+  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD) = 0;
 
   virtual bool ActOnArraySpec() = 0;
@@ -110,8 +110,8 @@ public:
   virtual const BuiltinType *ActOnCharacterBuiltinType(ASTContext *Ctx,
                                                        Selector Len,
                                                        Selector Kind);
-  virtual DeclTypeSpec *ActOnTypeDeclSpec(ASTContext *Ctx);
-  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclTypeSpec *DTS,
+  virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx);
+  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD);
   virtual bool ActOnArraySpec();
 };

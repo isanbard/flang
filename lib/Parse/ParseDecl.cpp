@@ -15,7 +15,7 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/Basic/Actions.h"
-#include "flang/Basic/DeclTypeSpec.h"
+#include "flang/Basic/DeclSpec.h"
 using namespace fortran;
 
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
@@ -38,7 +38,7 @@ bool Parser::ParseTypeDeclarationStmt() {
   if (!Tok.isAtStartOfStatement())
     return true;
   
-  DeclTypeSpec *DTS = 0;
+  DeclSpec *DTS = 0;
   if (ParseDeclarationTypeSpec(DTS))
     return true;
 
@@ -260,7 +260,7 @@ bool Parser::ParseLengthSelector(Selector &Len) {
 ///   [4.5.8] R456:
 ///     type-param-spec :=
 ///         [ keyword = ] type-param-value
-bool Parser::ParseDerivedTypeSpec(DeclTypeSpec *&DTS) {
+bool Parser::ParseDerivedTypeSpec(DeclSpec *&DTS) {
   llvm::SMLoc Loc = Tok.getLocation();
   const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
   if (!VD)
@@ -284,7 +284,7 @@ bool Parser::ParseDerivedTypeSpec(DeclTypeSpec *&DTS) {
     }
   }
 
-  DTS = new DerivedDeclTypeSpec(new VarExpr(Loc, VD), ExprVec);
+  DTS = new DerivedDeclSpec(new VarExpr(Loc, VD), ExprVec);
   return false;
 
  error:
@@ -301,7 +301,7 @@ bool Parser::ParseDerivedTypeSpec(DeclTypeSpec *&DTS) {
 ///      or TYPE ( derived-type-spec )
 ///      or CLASS ( derived-type-spec )
 ///      or CLASS ( * )
-bool Parser::ParseDeclarationTypeSpec(DeclTypeSpec *&DTS) {
+bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DTS) {
   // [4.4] R403:
   //   intrinsic-type-spec :=
   //       INTEGER [ kind-selector ]
@@ -340,8 +340,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclTypeSpec *&DTS) {
                                 "expected ')' after kind selector");
     }
 
-    DTS = new IntrinsicDeclTypeSpec(Actions.ActOnBuiltinType(&Context, TS,
-                                                             Kind));
+    DTS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
   case BuiltinType::TS_DoublePrecision: {
@@ -350,8 +349,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclTypeSpec *&DTS) {
       return Diag.ReportError(Tok.getLocation(),
                              "'DOUBLE PRECISION' doesn't take a kind selector");
     Selector Kind;
-    DTS = new IntrinsicDeclTypeSpec(Actions.ActOnBuiltinType(&Context, TS,
-                                                             Kind));
+    DTS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
   case BuiltinType::TS_Character: {
@@ -434,9 +432,9 @@ bool Parser::ParseDeclarationTypeSpec(DeclTypeSpec *&DTS) {
       }
     }
 
-    DTS = new IntrinsicDeclTypeSpec(Actions.ActOnCharacterBuiltinType(&Context,
-                                                                      Len,
-                                                                      Kind));
+    DTS = new IntrinsicDeclSpec(Actions.ActOnCharacterBuiltinType(&Context,
+                                                                  Len,
+                                                                  Kind));
     return false;
   }
   }

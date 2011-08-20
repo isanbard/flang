@@ -16,7 +16,7 @@
 #include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
 #include "flang/Basic/Actions.h"
-#include "flang/Basic/DeclTypeSpec.h"
+#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/TokenKinds.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
@@ -572,7 +572,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
 
 /// ParseUSEStmt - Parse the 'USE' statement.
 ///
-///   [11.2.1] R1109:
+///   [11.2.2] R1109:
 ///     use-stmt :=
 ///         USE [ [ , module-nature ] :: ] module-name [ , rename-list ]
 ///      or USE [ [ , module-nature ] :: ] module-name , ONLY : [ only-list ]

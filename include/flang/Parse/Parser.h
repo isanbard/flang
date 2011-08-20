@@ -36,7 +36,7 @@ namespace fortran {
 
 class Action;
 class DeclGroupRef;
-class DeclTypeSpec;
+class DeclSpec;
 class Expr;
 class Parser;
 class Selector;
@@ -222,8 +222,8 @@ private:
 
   bool ParseKindSelector(Selector &Kind);
   bool ParseLengthSelector(Selector &Len);
-  bool ParseDeclarationTypeSpec(DeclTypeSpec *&DTS);
-  bool ParseDerivedTypeSpec(DeclTypeSpec *&DTS);
+  bool ParseDeclarationTypeSpec(DeclSpec *&DTS);
+  bool ParseDerivedTypeSpec(DeclSpec *&DTS);
   bool ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims);
 
   bool AssignAttrSpec(unsigned &AttrSpecs, Type::AttrSpec AS);

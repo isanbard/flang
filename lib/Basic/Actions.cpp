@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Basic/Actions.h"
-#include "flang/Basic/DeclTypeSpec.h"
+#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/Diagnostic.h"
 #include "flang/Basic/Token.h"
 #include "flang/AST/ASTContext.h"
@@ -186,11 +186,11 @@ PrintAction::ActOnCharacterBuiltinType(ASTContext *Ctx, Selector Len,
 
 }
 
-DeclTypeSpec *PrintAction::ActOnTypeDeclSpec(ASTContext *Ctx) {
+DeclSpec *PrintAction::ActOnTypeDeclSpec(ASTContext *Ctx) {
   return 0;
 }
 
-bool PrintAction::ActOnVarDecl(ASTContext *Ctx, DeclTypeSpec *DTS,
+bool PrintAction::ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                                const VarDecl *VD) {
   llvm::outs().indent(Indent * 2) << '<';
   DTS->print(llvm::outs());
