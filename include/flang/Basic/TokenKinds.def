@@ -147,6 +147,8 @@ KEYWORD(ACCESS                 , KEYALL)    // [5.2.1]  access-stmt
 KEYWORD(ALLOCATABLE            , KEYNOTF77) // [5.2.2]  allocatable-stmt
 KEYWORD(ASYNCHRONOUS           , KEYF90)    // [5.2.3]  asynchronous-stmt
 KEYWORD(BIND                   , KEYALL)    // [5.2.4]  bind-stmt
+KEYWORD(CODIMENSION            , KEYF2008)  // [.......]
+KEYWORD(CONTIGUOUS             , KEYF2008)  // [.......]
 KEYWORD(DATA                   , KEYALL)    // [5.2.5]  data-stmt
 KEYWORD(DIMENSION              , KEYALL)    // [5.2.6]  dimension-stmt
 KEYWORD(INTENT                 , KEYALL)    // [5.2.7]  intent-stmt

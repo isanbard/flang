@@ -67,11 +67,13 @@ bool Parser::ParseTypeDeclarationStmt() {
 
   llvm::SmallVector<ExprResult, 4> Dimensions;
   while (EatIfPresent(tok::comma)) {
-    // [5.1] R503:
+    // [5.2.1] R502:
     //   attr-spec :=
     //       access-spec
     //    or ALLOCATABLE
     //    or ASYNCHRONOUS
+    //    or CODIMENSION lbracket coarray-spec rbracket
+    //    or CONTIGUOUS
     //    or DIMENSION ( array-spec )
     //    or EXTERNAL
     //    or INTENT ( intent-spec )
@@ -96,6 +98,28 @@ bool Parser::ParseTypeDeclarationStmt() {
       break;
     case tok::kw_ASYNCHRONOUS:
       if (AssignAttrSpec(DS, DeclSpec::AS_Asynchronous))
+        goto error;
+      break;
+    case tok::kw_CODIMENSION:
+      if (AssignAttrSpec(DS, DeclSpec::AS_Codimension))
+        goto error;
+      if (!EatIfPresent(tok::l_square)) {
+        Diag.ReportError(Tok.getLocation(),
+                         "expected '[' in CODIMENSION attribute");
+        goto error;
+      }
+
+      // FIXME: Parse the coarray-spec.
+
+      if (!EatIfPresent(tok::r_square)) {
+        Diag.ReportError(Tok.getLocation(),
+                         "expected ']' in CODIMENSION attribute");
+        goto error;
+      }
+
+      break;
+    case tok::kw_CONTIGUOUS:
+      if (AssignAttrSpec(DS, DeclSpec::AS_Contiguous))
         goto error;
       break;
     case tok::kw_DIMENSION:
@@ -140,13 +164,17 @@ bool Parser::ParseTypeDeclarationStmt() {
 
       if (!EatIfPresent(tok::r_paren)) {
         Diag.ReportError(Tok.getLocation(),
-                         "expected '(' after INTENT specifier");
+                         "expected ')' after INTENT specifier");
         goto error;
       }
 
       break;
     case tok::kw_INTRINSIC:
       if (AssignAttrSpec(DS, DeclSpec::AS_Intrinsic))
+        goto error;
+      break;
+    case tok::kw_OPTIONAL:
+      if (AssignAttrSpec(DS, DeclSpec::AS_Optional))
         goto error;
       break;
     case tok::kw_PARAMETER:
@@ -177,6 +205,8 @@ bool Parser::ParseTypeDeclarationStmt() {
       if (AssignAttrSpec(DS, DeclSpec::AS_Volatile))
         goto error;
       break;
+
+    // Access Control Specifiers
     case tok::kw_PUBLIC:
       if (AssignAccessSpec(DS, DeclSpec::AC_Public))
         goto error;
@@ -238,7 +268,7 @@ bool Parser::ParseTypeDeclarationStmt() {
 
 /// Parse the optional KIND selector.
 /// 
-///   [4.4] R404:
+///   [4.4.1] R405:
 ///     kind-selector :=
 ///         ( [ KIND = ] scalar-int-initialization-expr )
 bool Parser::ParseKindSelector(Selector &Kind) {
