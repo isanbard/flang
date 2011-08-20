@@ -19,11 +19,35 @@ using namespace fortran;
 
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
 /// the list, but reports an error if that attribute was all ready assigned.
-bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec AS) {
-  if (DS->hasAttribute(AS))
+bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec Val) {
+  if (DS->hasAttribute(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "attribute specification defined more than once");
-  DS->setAttribute(AS);
+  DS->setAttribute(Val);
+  Lex();
+  return false;
+}
+
+/// AssignAccessSpec - Helper function that assigns the access specification to
+/// the DeclSpec, but reports an error if that access spec was all ready
+/// assigned.
+bool Parser::AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val) {
+  if (DS->hasAccessControl(Val))
+    return Diag.ReportError(Tok.getLocation(),
+                            "access specification defined more than once");
+  DS->setAccessControl(Val);
+  Lex();
+  return false;
+}
+
+/// AssignIntentSpec - Helper function that assigns the intent specification to
+/// the DeclSpec, but reports an error if that intent spec was all ready
+/// assigned.
+bool Parser::AssignIntentSpec(DeclSpec *DS, DeclSpec::IntentSpec Val) {
+  if (DS->hasIntent(Val))
+    return Diag.ReportError(Tok.getLocation(),
+                            "intent specification defined more than once");
+  DS->setIntent(Val);
   Lex();
   return false;
 }
@@ -42,8 +66,6 @@ bool Parser::ParseTypeDeclarationStmt() {
     return true;
 
   llvm::SmallVector<ExprResult, 4> Dimensions;
-  DeclSpec::AccessSpec AS = DeclSpec::AC_None;
-  DeclSpec::IntentSpec IS = DeclSpec::IS_None;
   while (EatIfPresent(tok::comma)) {
     // [5.1] R503:
     //   attr-spec :=
@@ -101,9 +123,18 @@ bool Parser::ParseTypeDeclarationStmt() {
         Diag.ReportError(Tok.getLocation(),
                          "invalid INTENT specifier");
         goto error;
-      case tok::kw_IN:    IS = DeclSpec::IS_In;    break;
-      case tok::kw_OUT:   IS = DeclSpec::IS_Out;   break;
-      case tok::kw_INOUT: IS = DeclSpec::IS_InOut; break;
+      case tok::kw_IN:
+        if (AssignIntentSpec(DS, DeclSpec::IS_In))
+          goto error;
+        break;
+      case tok::kw_OUT:
+        if (AssignIntentSpec(DS, DeclSpec::IS_Out))
+          goto error;
+        break;
+      case tok::kw_INOUT:
+        if (AssignIntentSpec(DS, DeclSpec::IS_InOut))
+          goto error;
+        break;
       }
       Lex();
 
@@ -147,15 +178,12 @@ bool Parser::ParseTypeDeclarationStmt() {
         goto error;
       break;
     case tok::kw_PUBLIC:
-    case tok::kw_PRIVATE:
-      if (AS != DeclSpec::AC_None) {
-        Diag.ReportError(Tok.getLocation(),
-                         "too many access specifiers specified");
+      if (AssignAccessSpec(DS, DeclSpec::AC_Public))
         goto error;
-      }
-
-      AS = (Tok.getKind() == tok::kw_PUBLIC) ? DeclSpec::AC_Public :
-                                               DeclSpec::AC_Private;
+      break;
+    case tok::kw_PRIVATE:
+      if (AssignAccessSpec(DS, DeclSpec::AC_Private))
+        goto error;
       break;
     }
   }
