@@ -23,7 +23,7 @@
 namespace fortran {
 
 class ASTContext;
-class DeclTypeSpec;
+class DeclSpec;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
@@ -31,7 +31,7 @@ class IdentifierInfo;
 ///
 class VarDecl : public llvm::FoldingSetNode {
   llvm::SMLoc Loc;
-  const DeclTypeSpec *DTS;
+  const DeclSpec *DTS;
   const IdentifierInfo *IDInfo;
 
   /// HasAttrs - This indicates whether the decl has attributes or not.
@@ -42,7 +42,7 @@ public:
   VarDecl(const IdentifierInfo *Info)
     : DTS(0), IDInfo(Info), HasAttrs(false)
   {}
-  VarDecl(llvm::SMLoc L, const DeclTypeSpec *dts, const IdentifierInfo *Info)
+  VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
     : Loc(L), DTS(dts), IDInfo(Info), HasAttrs(false)
   {}
 
@@ -52,8 +52,10 @@ public:
   const IdentifierInfo *getIdentifier() const { return IDInfo; }
   void setIdentifier(const IdentifierInfo *II) { IDInfo = II; }
 
-  const DeclTypeSpec *getDeclTypeSpec() const { return DTS; }
-  void setDeclTypeSpec(const DeclTypeSpec *Val) { DTS = Val; }
+  const DeclSpec *getDeclSpec() const { return DTS; }
+  void setDeclSpec(const DeclSpec *Val) { DTS = Val; }
+
+  bool isImplicitlyDefined() const { return DTS == 0; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, IDInfo);

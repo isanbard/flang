@@ -172,6 +172,8 @@ private:
   bool ParseSpecificationStmt();
   bool ParseActionStmt();
 
+  ExprResult ParseDesignator();
+
   // Stmt-level parsing methods.
   StmtResult ParsePROGRAMStmt();
   StmtResult ParseUSEStmt();

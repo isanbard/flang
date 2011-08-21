@@ -22,11 +22,11 @@ using namespace fortran;
 // ParseExpression - Expressions are level-5 expresisons optionally involving
 // defined binary operators.
 //
-//   [7.1.2.8] R722:
+//   R722:
 //     expr :=
 //         [ expr defined-binary-op ] level-5-expr
 //
-//   [7.1.2.8] R723:
+//   R723:
 //     defined-binary-op :=
 //         . letter [ letter ] ... .
 Parser::ExprResult Parser::ParseExpression() {
@@ -52,32 +52,32 @@ Parser::ExprResult Parser::ParseExpression() {
 // ParseLevel5Expr - Level-5 expressions are level-4 expressions optionally
 // involving the logical operators.
 //
-//   [7.1.2.7] R717:
+//   R717:
 //     level-5-expr :=
 //         [ level-5-expr equiv-op ] equiv-operand
-//   [7.1.2.7] R716:
+//   R716:
 //     equiv-operand :=
 //         [ equiv-operand or-op ] or-operand
-//   [7.1.2.7] R715:
+//   R715:
 //     or-operand :=
 //         [ or-operand and-op ] and-operand
-//   [7.1.2.7] R714:
+//   R714:
 //     and-operand :=
 //         [ not-op ] level-4-expr
 //         
-//   [7.1.2.7] R718:
+//   R718:
 //     not-op :=
 //         .NOT.
-//   [7.1.2.7] R719:
+//   R719:
 //     and-op :=
 //         .AND.
-//   [7.1.2.7] R720:
+//   R720:
 //     or-op :=
 //         .OR.
-//   [7.1.2.7] R721:
+//   R721:
 //     equiv-op :=
 //         .EQV.
-//       | .NEQV.
+//      or .NEQV.
 Parser::ExprResult Parser::ParseAndOperand() {
   llvm::SMLoc NotLoc = Tok.getLocation();
   bool Negate = EatIfPresent(tok::kw_NOT);
@@ -137,23 +137,23 @@ Parser::ExprResult Parser::ParseLevel5Expr() {
 // ParseLevel4Expr - Level-4 expressions are level-3 expressions optionally
 // involving the relational operators.
 //
-//   [7.1.2.6] R712:
+//   R712:
 //     level-4-expr :=
 //         [ level-3-expr rel-op ] level-3-expr
-//   [7.1.2.6] R713:
+//   R713:
 //     rel-op :=
 //         .EQ.
-//      |  .NE.
-//      |  .LT.
-//      |  .LE.
-//      |  .GT.
-//      |  .GE.
-//      |  ==
-//      |  /=
-//      |  <
-//      |  <=
-//      |  >
-//      |  >=
+//      or .NE.
+//      or .LT.
+//      or .LE.
+//      or .GT.
+//      or .GE.
+//      or ==
+//      or /=
+//      or <
+//      or <=
+//      or >
+//      or >=
 Parser::ExprResult Parser::ParseLevel4Expr() {
   ExprResult E = ParseLevel3Expr();
   if (E.isInvalid()) return ExprResult();
@@ -195,10 +195,10 @@ Parser::ExprResult Parser::ParseLevel4Expr() {
 // ParseLevel3Expr - Level-3 expressions are level-2 expressions optionally
 // involving the character operator concat-op.
 //
-//   [7.1.2.5] R710:
+//   R710:
 //     level-3-expr :=
 //         [ level-3-expr concat-op ] level-2-expr
-//   [7.1.2.5] R711:
+//   R711:
 //     concat-op :=
 //         //
 Parser::ExprResult Parser::ParseLevel3Expr() {
@@ -217,26 +217,26 @@ Parser::ExprResult Parser::ParseLevel3Expr() {
 // ParseLevel2Expr - Level-2 expressions are level-1 expressions optionally
 // involving the numeric operators power-op, mult-op, and add-op.
 //
-//   [7.1.2.4] R706:
+//   R706:
 //     level-2-expr :=
 //         [ [ level-2-expr ] add-op ] add-operand
-//   [7.1.2.4] R705:
+//   R705:
 //     add-operand :=
 //         [ add-operand mult-op ] mult-operand
-//   [7.1.2.4] R704:
+//   R704:
 //     mult-operand :=
 //         level-1-expr [ power-op mult-operand ]
-//   [7.1.2.4] R707:
+//   R707:
 //     power-op :=
 //         **
-//   [7.1.2.4] R708:
+//   R708:
 //     mult-op :=
 //         *
-//      |  /
-//   [7.1.2.4] R709:
+//      or /
+//   R709:
 //     add-op :=
 //         +
-//      |  -
+//      or -
 Parser::ExprResult Parser::ParseMultOperand() {
   ExprResult E = ParseLevel1Expr();
   if (E.isInvalid()) return ExprResult();
@@ -309,10 +309,10 @@ Parser::ExprResult Parser::ParseLevel2Expr() {
 // ParseLevel1Expr - Level-1 expressions are primaries optionally operated on by
 // defined unary operators.
 //
-//   [7.1.2.3] R702:
+//   R702:
 //     level-1-expr :=
 //         [ defined-unary-op ] primary
-//   [7.1.2.3] R703:
+//   R703:
 //     defined-unary-op :=
 //         . letter [ letter ] ... .
 Parser::ExprResult Parser::ParseLevel1Expr() {
@@ -334,16 +334,16 @@ Parser::ExprResult Parser::ParseLevel1Expr() {
 
 // ParsePrimaryExpr - Parse a primary expression.
 //
-//   [7.1.2.2] R701:
+//   R701:
 //     primary :=
 //         constant
-//      |  designator
-//      |  array-constructor
-//      |  structure-constructor
-//      |  function-reference
-//      |  type-param-inquiry
-//      |  type-param-name
-//      |  ( expr )
+//      or designator
+//      or array-constructor
+//      or structure-constructor
+//      or function-reference
+//      or type-param-inquiry
+//      or type-param-name
+//      or ( expr )
 Parser::ExprResult Parser::ParsePrimaryExpr() {
   ExprResult E;
   llvm::SMLoc Loc = Tok.getLocation();
@@ -370,16 +370,9 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
                                               Tok.getLength()));
     Lex();
     break;
-  case tok::identifier: {
-    const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
-    if (!VD) {
-      Diag.ReportError(Loc, "unknown identifier");
-      return ExprResult();
-    }
-    E = new VarExpr(Loc, VD);
-    Lex();
+  case tok::identifier:
+    E = Parser::ParseDesignator();
     break;
-  }
   case tok::minus:
     Lex();
     E = Parser::ParsePrimaryExpr();
@@ -394,5 +387,30 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     break;
   }
 
+  return E;
+}
+
+/// ParseDesignator - Parse a designator. Return null if current token is not a
+/// designator.
+///
+///   R601:
+///     designator :=
+///         object-name
+///      or array-element
+///      or array-section
+///      or coindexed-named-object
+///      or complex-part-designator
+///      or structure-component
+///      or substring
+ExprResult Parser::ParseDesignator() {
+  ExprResult E;
+  if (tok::identifier) {
+    /// R504:
+    ///   object-name :=
+    ///       name
+    E = new VarExpr(Tok.getLocation(),
+                    Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+    Lex();
+  }
   return E;
 }

@@ -1085,29 +1085,3 @@ Parser::StmtResult Parser::ParseFORALLStmt() {
 Parser::StmtResult Parser::ParseEND_FORALLStmt() {
   return StmtResult();
 }
-
-/// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.
-///
-///   [11.1] R1103:
-///     end-program-stmt :=
-///         END [ PROGRAM [ program-name ] ]
-Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
-  bool sawEnd = Tok.is(tok::kw_END);
-  bool sawEndProgram = Tok.is(tok::kw_ENDPROGRAM);
-
-  if (!sawEnd && !sawEndProgram) {
-    Diag.ReportError(Tok.getLocation(),
-                     "expected 'END PROGRAM' statement");
-    return StmtResult();
-  }
-  Lex();
-
-  llvm::SMLoc TokLoc = Tok.getLocation();
-  if (Tok.is(tok::eof))
-    // The program name wasn't specified in the 'END PROGRAM' statement.
-    return Actions.ActOnEND_PROGRAM(TokLoc, 0, StmtLabelTok);
-
-  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
-  if (!Tok.is(tok::eof)) Lex(); // Eat the ending token.
-  return Actions.ActOnEND_PROGRAM(TokLoc, IDInfo, StmtLabelTok);
-}

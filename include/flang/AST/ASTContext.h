@@ -65,7 +65,7 @@ public:
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(const IdentifierInfo *Info);
-  const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclTypeSpec *DTS,
+  const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclSpec *DTS,
                                     const IdentifierInfo *Info);
 };
 

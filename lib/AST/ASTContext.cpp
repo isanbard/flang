@@ -97,7 +97,7 @@ ArrayType *ASTContext::getArrayType(const Type *Ty,
 }
 
 const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
-                                              const DeclTypeSpec *DTS,
+                                              const DeclSpec *DS,
                                               const IdentifierInfo *Info) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.
@@ -108,7 +108,7 @@ const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
   if (VarDecl *VD = VariableDecls.FindNodeOrInsertPos(ID, InsertPos))
     return VD;
 
-  VarDecl *New = new (*this) VarDecl(Loc, DTS, Info);
+  VarDecl *New = new (*this) VarDecl(Loc, DS, Info);
   VariableDecls.InsertNode(New, InsertPos);
   return New;
 }

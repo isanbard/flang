@@ -85,13 +85,52 @@ bool Parser::ParseExecutableConstruct() {
 ///[obs] or arithmetic-if-stmt
 ///[obs] or computed-goto-stmt
 bool Parser::ParseActionStmt() {
-  IdentifierInfo *ID = 0;
+  ParseStatementLabel();
+
+  StmtResult SR;
   switch (Tok.getKind()) {
-  default: break; // FIXME: Error?
+  default:
+    // Assignment Statement.
+    //   R732:
+    //     assignment-stmt :=
+    //         variable = expr
+    break;
   case tok::kw_ALLOCATE:
     Lex();
+    break;
+  case tok::kw_END:
+    // TODO: All of the end-* stmts.
+    break;
+  case tok::kw_ENDPROGRAM:
+    SR = ParseEND_PROGRAMStmt();
     break;
   }
 
   return false;
+}
+
+/// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.
+///
+///   [11.1] R1103:
+///     end-program-stmt :=
+///         END [ PROGRAM [ program-name ] ]
+Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
+  bool sawEnd = Tok.is(tok::kw_END);
+  bool sawEndProgram = Tok.is(tok::kw_ENDPROGRAM);
+
+  if (!sawEnd && !sawEndProgram) {
+    Diag.ReportError(Tok.getLocation(),
+                     "expected 'END PROGRAM' statement");
+    return StmtResult();
+  }
+  Lex();
+
+  llvm::SMLoc TokLoc = Tok.getLocation();
+  if (Tok.is(tok::eof))
+    // The program name wasn't specified in the 'END PROGRAM' statement.
+    return Actions.ActOnEND_PROGRAM(TokLoc, 0, StmtLabelTok);
+
+  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
+  if (!Tok.is(tok::eof)) Lex(); // Eat the ending token.
+  return Actions.ActOnEND_PROGRAM(TokLoc, IDInfo, StmtLabelTok);
 }
