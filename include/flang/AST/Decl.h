@@ -31,7 +31,7 @@ class IdentifierInfo;
 ///
 class VarDecl : public llvm::FoldingSetNode {
   llvm::SMLoc Loc;
-  const DeclSpec *DTS;
+  const DeclSpec *DS;
   const IdentifierInfo *IDInfo;
 
   /// HasAttrs - This indicates whether the decl has attributes or not.
@@ -40,10 +40,10 @@ class VarDecl : public llvm::FoldingSetNode {
   friend class ASTContext;  // ASTContext creates these.
 public:
   VarDecl(const IdentifierInfo *Info)
-    : DTS(0), IDInfo(Info), HasAttrs(false)
+    : DS(0), IDInfo(Info), HasAttrs(false)
   {}
   VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
-    : Loc(L), DTS(dts), IDInfo(Info), HasAttrs(false)
+    : Loc(L), DS(dts), IDInfo(Info), HasAttrs(false)
   {}
 
   llvm::SMLoc getLocation() const { return Loc; }
@@ -52,10 +52,12 @@ public:
   const IdentifierInfo *getIdentifier() const { return IDInfo; }
   void setIdentifier(const IdentifierInfo *II) { IDInfo = II; }
 
-  const DeclSpec *getDeclSpec() const { return DTS; }
-  void setDeclSpec(const DeclSpec *Val) { DTS = Val; }
+  const DeclSpec *getDeclSpec() const { return DS; }
+  void setDeclSpec(const DeclSpec *Val) { DS = Val; }
 
-  bool isImplicitlyDefined() const { return DTS == 0; }
+  /// isImplicitlyDefined - A variable which isn't defined and there isn't an
+  /// "implicit none" statement has a default type of REAL.
+  bool isImplicitlyDefined() const { return DS == 0; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, IDInfo);
