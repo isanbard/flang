@@ -24,18 +24,23 @@ namespace fortran {
 class IdentifierInfo;
 class VarDecl;
 
+//===----------------------------------------------------------------------===//
+/// Expr -
 class Expr {
-public:
+protected:
   enum ExprType {
+    // Primary Expressions
+    Designator,
+
     // Unary Expressions
-    ET_Constant,
-    ET_Variable,
-    ET_Unary,
-    ET_DefinedUnaryOperator,
+    Constant,
+    Variable,
+    Unary,
+    DefinedUnaryOperator,
 
     // Binary Expressions
-    ET_Binary,
-    ET_DefinedBinaryOperator
+    Binary,
+    DefinedBinaryOperator
   };
 private:
   ExprType ExprID;
@@ -53,6 +58,80 @@ public:
   static bool classof(const Expr *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
+/// DesignatorExpr -
+class DesignatorExpr : public Expr {
+public:
+  enum DesignatorTy {
+    ObjectName,
+    ArrayElement,
+    ArraySection,
+    CoindexedNamedObject,
+    ComplexPartDesignator,
+    StructureComponent,
+    Substring
+  };
+private:
+  DesignatorTy Ty;
+  ExprResult E;
+  DesignatorExpr(ExprType ET, llvm::SMLoc loc, DesignatorTy ty, ExprResult e)
+    : Expr(ET, loc), Ty(ty), E(e) {}
+public:
+  DesignatorExpr(llvm::SMLoc loc, DesignatorTy ty, ExprResult e)
+    : Expr(Expr::Designator, loc), Ty(ty), E(e) {}
+  virtual ~DesignatorExpr();
+
+  DesignatorTy getDesignatorType() const { return Ty; }
+
+  const ExprResult getExpression() const { return E; }
+  ExprResult getExpression() { return E; }
+
+  virtual void print(llvm::raw_ostream&);
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::Designator;
+  }
+  static bool classof(const DesignatorExpr *) { return true; }
+};
+
+//===----------------------------------------------------------------------===//
+/// ConstantExpr -
+class ConstantExpr : public Expr {
+  llvm::StringRef Data;
+public:
+  ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
+    : Expr(Expr::Constant, loc), Data(data) {}
+
+  llvm::StringRef getData() const { return Data; }
+
+  virtual void print(llvm::raw_ostream&);
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::Constant;
+  }
+  static bool classof(const ConstantExpr *) { return true; }
+};
+
+//===----------------------------------------------------------------------===//
+/// VarExpr -
+class VarExpr : public Expr {
+  const VarDecl *Variable;
+public:
+  VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
+    : Expr(Expr::Variable, Loc), Variable(Var) {}
+
+  const VarDecl *getVarDecl() const { return Variable; }
+
+  virtual void print(llvm::raw_ostream&);
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::Variable;
+  }
+  static bool classof(const ConstantExpr *) { return true; }
+};
+
+//===----------------------------------------------------------------------===//
+/// UnaryExpr -
 class UnaryExpr : public Expr {
 public:
   enum Operator {
@@ -74,7 +153,7 @@ protected:
     : Expr(ET, loc), Op(op), E(e) {}
 public:
   UnaryExpr(llvm::SMLoc loc, Operator op, ExprResult e)
-    : Expr(Expr::ET_Unary, loc), Op(op), E(e) {}
+    : Expr(Expr::Unary, loc), Op(op), E(e) {}
   virtual ~UnaryExpr();
 
   Operator getOperator() const { return Op; }
@@ -85,16 +164,18 @@ public:
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_Unary;
+    return E->getExpressionID() == Expr::Unary;
   }
   static bool classof(const UnaryExpr *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
+/// DefinedOperatorUnaryExpr -
 class DefinedOperatorUnaryExpr : public UnaryExpr {
   IdentifierInfo *II;
 public:
   DefinedOperatorUnaryExpr(llvm::SMLoc loc, ExprResult e, IdentifierInfo *ii)
-    : UnaryExpr(ET_DefinedUnaryOperator, loc, Defined, e), II(ii) {}
+    : UnaryExpr(Expr::DefinedUnaryOperator, loc, Defined, e), II(ii) {}
 
   const IdentifierInfo *getIdentifierInfo() const { return II; }
   IdentifierInfo *getIdentifierInfo() { return II; }
@@ -102,43 +183,13 @@ public:
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_DefinedUnaryOperator;
+    return E->getExpressionID() == Expr::DefinedUnaryOperator;
   }
   static bool classof(const DefinedOperatorUnaryExpr *) { return true; }
 };
 
-class ConstantExpr : public Expr {
-  llvm::StringRef Data;
-public:
-  ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
-    : Expr(ET_Constant, loc), Data(data) {}
-
-  llvm::StringRef getData() const { return Data; }
-
-  virtual void print(llvm::raw_ostream&);
-
-  static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_Constant;
-  }
-  static bool classof(const ConstantExpr *) { return true; }
-};
-
-class VarExpr : public Expr {
-  const VarDecl *Variable;
-public:
-  VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
-    : Expr(ET_Variable, Loc), Variable(Var) {}
-
-  const VarDecl *getVarDecl() const { return Variable; }
-
-  virtual void print(llvm::raw_ostream&);
-
-  static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_Variable;
-  }
-  static bool classof(const ConstantExpr *) { return true; }
-};
-
+//===----------------------------------------------------------------------===//
+/// BinaryExpr -
 class BinaryExpr : public Expr {
 public:
   enum Operator {
@@ -178,7 +229,7 @@ protected:
     : Expr(ET, loc), Op(op), LHS(lhs), RHS(rhs) {}
 public:
   BinaryExpr(llvm::SMLoc loc, Operator op, ExprResult lhs, ExprResult rhs)
-    : Expr(ET_Binary, loc), Op(op), LHS(lhs), RHS(rhs) {}
+    : Expr(Expr::Binary, loc), Op(op), LHS(lhs), RHS(rhs) {}
   virtual ~BinaryExpr();
 
   Operator getOperator() const { return Op; }
@@ -191,17 +242,19 @@ public:
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_Binary;
+    return E->getExpressionID() == Expr::Binary;
   }
   static bool classof(const BinaryExpr *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
+/// DefinedOperatorBinaryExpr -
 class DefinedOperatorBinaryExpr : public BinaryExpr {
   IdentifierInfo *II;
 public:
   DefinedOperatorBinaryExpr(llvm::SMLoc loc, ExprResult lhs, ExprResult rhs,
                             IdentifierInfo *ii)
-    : BinaryExpr(ET_DefinedBinaryOperator, loc, Defined, lhs, rhs), II(ii) {}
+    : BinaryExpr(Expr::DefinedBinaryOperator, loc, Defined, lhs, rhs), II(ii) {}
 
   const IdentifierInfo *getIdentifierInfo() const { return II; }
   IdentifierInfo *getIdentifierInfo() { return II; }
@@ -209,7 +262,7 @@ public:
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::ET_DefinedBinaryOperator;
+    return E->getExpressionID() == Expr::DefinedBinaryOperator;
   }
   static bool classof(const DefinedOperatorBinaryExpr *) { return true; }
 };

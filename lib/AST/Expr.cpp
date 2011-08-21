@@ -11,7 +11,15 @@
 #include "flang/AST/Expr.h"
 using namespace fortran;
 
+//===----------------------------------------------------------------------===//
+// Expression D'tors
+//===----------------------------------------------------------------------===//
+
 Expr::~Expr() {}
+
+DesignatorExpr::~DesignatorExpr() {
+  delete E.take();
+}
 
 UnaryExpr::~UnaryExpr() {
   delete E.take();
@@ -22,11 +30,20 @@ BinaryExpr::~BinaryExpr() {
   delete RHS.take();
 }
 
+//===----------------------------------------------------------------------===//
+// Expression Print Statements
+//===----------------------------------------------------------------------===//
+
 void Expr::dump() {
   this->print(llvm::outs());
 }
 
 void Expr::print(llvm::raw_ostream &O) {
+}
+
+void DesignatorExpr::print(llvm::raw_ostream &O) {
+  // TODO: Implement
+  E.get()->print(O);
 }
 
 void UnaryExpr::print(llvm::raw_ostream &O) {

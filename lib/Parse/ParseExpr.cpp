@@ -408,43 +408,59 @@ ExprResult Parser::ParseDesignator() {
     // R504:
     //   object-name :=
     //       name
-    E = new VarExpr(Tok.getLocation(),
-                    Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+    const VarDecl *VD = Context.getOrCreateVarDecl(Tok.getIdentifierInfo());
+    // FIXME: Wrapping one expression inside another seems like a waste.
+    E = new DesignatorExpr(Tok.getLocation(), DesignatorExpr::ObjectName,
+                           new VarExpr(Tok.getLocation(), VD));
     Lex();
 
-    // R617:
-    //   array-element :=
-    //       data-ref
     // R618:
     //   array-section :=
     //       data-ref [ ( substring-range ) ]
     //    or complex-part-designator
-    // R611:
-    //   data-ref :=
-    //       part-ref [ % part-ref ] ...
-    // R612:
-    //   part-ref :=
-    //       part-name [ ( section-subscript-list ) ] [ image-selector ]
     // R610:
     //   substring-range :=
     //       [ scalar-int-expr ] : [ scalar-int-expr ]
-    // R620:
-    //   section-subscript :=
-    //       subscript
-    //    or subscript-triplet
-    //    or vector-subscript
-    // R621:
-    //   subscript-triplet :=
-    //       [ subscript ] : [ subscript ] [ : stride ]
-    // R619:
-    //   subscript :=
-    //       scalar-int-expr
-    // R622:
-    //   stride :=
-    //       scalar-int-expr
-    // R623:
-    //   vector-subscript :=
-    //       int-expr
   }
+  return E;
+}
+
+/// ParseArrayElement - Parse an array element.
+/// 
+///   R617:
+///     array-element :=
+///         data-ref
+///   R611:
+///     data-ref :=
+///         part-ref [ % part-ref ] ...
+ExprResult Parser::ParseArrayElement() {
+  ExprResult E;
+  return E;
+}
+
+/// ParsePartReference - Parse the part reference.
+///
+///   R612:
+///     part-ref :=
+///         part-name [ ( section-subscript-list ) ] [ image-selector ]
+///   R620:
+///     section-subscript :=
+///         subscript
+///      or subscript-triplet
+///      or vector-subscript
+///   R619:
+///     subscript :=
+///         scalar-int-expr
+///   R621:
+///     subscript-triplet :=
+///         [ subscript ] : [ subscript ] [ : stride ]
+///   R622:
+///     stride :=
+///         scalar-int-expr
+///   R623:
+///     vector-subscript :=
+///         int-expr
+ExprResult Parser::ParsePartReference() {
+  ExprResult E;
   return E;
 }

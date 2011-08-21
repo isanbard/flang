@@ -20,6 +20,7 @@ namespace fortran {
 
 class Expr;
 class Stmt;
+class VarDecl;
 
 /// OpaquePtr - This is a very simple POD type that wraps a pointer that the
 /// Parser doesn't know about but that Sema or another client does. The UID
@@ -88,8 +89,9 @@ public:
   }
 };
 
-typedef ActionResult<Expr*> ExprResult;
-typedef ActionResult<Stmt*> StmtResult;
+typedef ActionResult<VarDecl*> DeclResult;
+typedef ActionResult<Expr*>    ExprResult;
+typedef ActionResult<Stmt*>    StmtResult;
 
 } // end fortran namespace
 

@@ -173,6 +173,8 @@ private:
   bool ParseActionStmt();
 
   ExprResult ParseDesignator();
+  ExprResult ParseArrayElement();
+  ExprResult ParsePartReference();
 
   // Stmt-level parsing methods.
   StmtResult ParsePROGRAMStmt();
