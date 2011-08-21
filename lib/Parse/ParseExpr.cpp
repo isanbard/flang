@@ -408,10 +408,8 @@ ExprResult Parser::ParseDesignator() {
     // R504:
     //   object-name :=
     //       name
-    const VarDecl *VD = Context.getOrCreateVarDecl(Tok.getIdentifierInfo());
-    // FIXME: Wrapping one expression inside another seems like a waste.
-    E = new DesignatorExpr(Tok.getLocation(), DesignatorExpr::ObjectName,
-                           new VarExpr(Tok.getLocation(), VD));
+    E = new VarExpr(Tok.getLocation(),
+                    Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
     Lex();
 
     // R618:

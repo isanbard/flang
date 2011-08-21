@@ -17,9 +17,7 @@ using namespace fortran;
 
 Expr::~Expr() {}
 
-DesignatorExpr::~DesignatorExpr() {
-  delete E.take();
-}
+DesignatorExpr::~DesignatorExpr() {}
 
 UnaryExpr::~UnaryExpr() {
   delete E.take();
@@ -42,8 +40,6 @@ void Expr::print(llvm::raw_ostream &O) {
 }
 
 void DesignatorExpr::print(llvm::raw_ostream &O) {
-  // TODO: Implement
-  E.get()->print(O);
 }
 
 void UnaryExpr::print(llvm::raw_ostream &O) {

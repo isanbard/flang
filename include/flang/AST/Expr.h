@@ -15,6 +15,7 @@
 #define FORTRAN_AST_EXPR_H__
 
 #include "flang/Sema/Ownership.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/StringRef.h"
@@ -73,18 +74,14 @@ public:
   };
 private:
   DesignatorTy Ty;
-  ExprResult E;
-  DesignatorExpr(ExprType ET, llvm::SMLoc loc, DesignatorTy ty, ExprResult e)
-    : Expr(ET, loc), Ty(ty), E(e) {}
+  DesignatorExpr(ExprType ET, llvm::SMLoc loc, DesignatorTy ty)
+    : Expr(ET, loc), Ty(ty) {}
 public:
-  DesignatorExpr(llvm::SMLoc loc, DesignatorTy ty, ExprResult e)
-    : Expr(Expr::Designator, loc), Ty(ty), E(e) {}
+  DesignatorExpr(llvm::SMLoc loc, DesignatorTy ty)
+    : Expr(Expr::Designator, loc), Ty(ty) {}
   virtual ~DesignatorExpr();
 
   DesignatorTy getDesignatorType() const { return Ty; }
-
-  const ExprResult getExpression() const { return E; }
-  ExprResult getExpression() { return E; }
 
   virtual void print(llvm::raw_ostream&);
 
@@ -114,20 +111,25 @@ public:
 
 //===----------------------------------------------------------------------===//
 /// VarExpr -
-class VarExpr : public Expr {
+class VarExpr : public DesignatorExpr {
   const VarDecl *Variable;
 public:
   VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
-    : Expr(Expr::Variable, Loc), Variable(Var) {}
+    : DesignatorExpr(Loc, DesignatorExpr::ObjectName), Variable(Var) {}
 
   const VarDecl *getVarDecl() const { return Variable; }
 
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::Variable;
+    return E->getExpressionID() == Expr::Designator &&
+      llvm::cast<DesignatorExpr>(E)->getDesignatorType() ==
+      DesignatorExpr::ObjectName;
   }
-  static bool classof(const ConstantExpr *) { return true; }
+  static bool classof(const DesignatorExpr *E) {
+    return E->getDesignatorType() == DesignatorExpr::ObjectName;
+  }
+  static bool classof(const VarExpr *) { return true; }
 };
 
 //===----------------------------------------------------------------------===//
