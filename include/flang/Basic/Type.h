@@ -15,6 +15,7 @@
 #define FORTRAN_TYPE_H__
 
 #include "flang/Sema/Ownership.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -44,15 +45,16 @@ public:
 //===----------------------------------------------------------------------===//
 /// Type - The base class for Fortran types.
 class Type {
-public:
+protected:
   /// TypeClass - The intrinsic Fortran type specifications. REAL is the default
   /// if "IMPLICIT NONE" isn't specified.
   enum TypeClass {
-    TC_None    = 0,
-    TC_Builtin = 1,
-    TC_Complex = 2,
-    TC_Array   = 3,
-    TC_Pointer = 4
+    None    = 0,
+    Builtin = 1,
+    Complex = 2,
+    Array   = 3,
+    Struct  = 4,
+    Pointer = 5
   };
 
 private:
@@ -70,6 +72,7 @@ public:
   static bool classof(const Type *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
 /// BuiltinType - Intrinsic Fortran types.
 class BuiltinType : public Type, public llvm::FoldingSetNode {
 public:
@@ -89,10 +92,10 @@ protected:
   TypeSpec TySpec;              //< Type specification.
   Selector Kind;                //< Kind selector.
 public:
-  BuiltinType() : Type(TC_Builtin), TySpec(TS_Real) {}
-  BuiltinType(TypeSpec TS) : Type(TC_Builtin), TySpec(TS) {}
+  BuiltinType() : Type(Builtin), TySpec(TS_Real) {}
+  BuiltinType(TypeSpec TS) : Type(Builtin), TySpec(TS) {}
   BuiltinType(TypeSpec TS, Selector K)
-    : Type(TC_Builtin), TySpec(TS), Kind(K)
+    : Type(Builtin), TySpec(TS), Kind(K)
   {}
   virtual ~BuiltinType();
 
@@ -117,10 +120,13 @@ public:
 
   virtual void print(llvm::raw_ostream &O) const;
 
-  static bool classof(const Type *T) { return T->getTypeClass() == TC_Builtin; }
+  static bool classof(const Type *T) { return T->getTypeClass() == Builtin; }
   static bool classof(const BuiltinType *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
+/// CharacterBuiltinType - A character builtin type has an optional 'LEN' kind
+/// selector.
 class CharacterBuiltinType : public BuiltinType {
   Selector Len;
 public:
@@ -149,13 +155,14 @@ public:
   virtual void print(llvm::raw_ostream &O) const;
 
   static bool classof(const Type *T) {
-    return T->getTypeClass() == TC_Builtin &&
+    return T->getTypeClass() == Builtin &&
       ((const BuiltinType*)T)->isCharacterType();
   }
   static bool classof(const BuiltinType *BT) { return BT->isCharacterType(); }
   static bool classof(const CharacterBuiltinType *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
 /// PointerType - Allocatable types.
 class PointerType : public Type, public llvm::FoldingSetNode {
   const Type *BaseType;
@@ -163,7 +170,7 @@ class PointerType : public Type, public llvm::FoldingSetNode {
   friend class ASTContext;  // ASTContext creates these.
 public:
   PointerType(const Type *BaseTy, unsigned Dims)
-    : Type(TC_Pointer), BaseType(BaseTy), NumDims(Dims) {}
+    : Type(Pointer), BaseType(BaseTy), NumDims(Dims) {}
 
   const Type *getPointeeType() const { return BaseType; }
   unsigned getNumDimensions() const { return NumDims; }
@@ -179,10 +186,11 @@ public:
 
   virtual void print(llvm::raw_ostream &O) const {} // FIXME
 
-  static bool classof(const Type *T) { return T->getTypeClass() == TC_Pointer; }
+  static bool classof(const Type *T) { return T->getTypeClass() == Pointer; }
   static bool classof(const PointerType *) { return true; }
 };
 
+//===----------------------------------------------------------------------===//
 /// ArrayType - Array types.
 class ArrayType : public Type, public llvm::FoldingSetNode {
   const Type *ElemType;
@@ -190,7 +198,7 @@ class ArrayType : public Type, public llvm::FoldingSetNode {
   friend class ASTContext;  // ASTContext creates these.
 public:
   ArrayType(const Type *ElemTy, const llvm::SmallVectorImpl<unsigned> &Dims)
-    : Type(TC_Array), ElemType(ElemTy) {
+    : Type(Array), ElemType(ElemTy) {
     Dimensions.append(Dims.begin(), Dims.end());
   }
 
@@ -222,8 +230,32 @@ public:
 
   virtual void print(llvm::raw_ostream &O) const {} // FIXME
 
-  static bool classof(const Type *T) { return T->getTypeClass() == TC_Array; }
+  static bool classof(const Type *T) { return T->getTypeClass() == Array; }
   static bool classof(const ArrayType *) { return true; }
+};
+
+//===----------------------------------------------------------------------===//
+/// StructType - Structure types.
+class StructType : public Type, public llvm::FoldingSetNode {
+  llvm::SmallVector<Type*, 16> Elems;
+  friend class ASTContext;  // ASTContext creates these.
+public:
+  StructType(unsigned NumElements)
+    : Type(Struct) {}
+
+  void Profile(llvm::FoldingSetNodeID &ID) {
+    Profile(ID, Elems);
+  }
+  static void Profile(llvm::FoldingSetNodeID &ID, llvm::ArrayRef<Type*> Elems) {
+    for (llvm::ArrayRef<Type*>::iterator
+           I = Elems.begin(), E = Elems.end(); I != E; ++I)
+      ID.AddPointer(*I);
+  }
+
+  virtual void print(llvm::raw_ostream &O) const {} // FIXME
+
+  static bool classof(const Type *T) { return T->getTypeClass() == Struct; }
+  static bool classof(const StructType *) { return true; }
 };
 
 } // end fortran namespace

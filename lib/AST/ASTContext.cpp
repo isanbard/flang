@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/AST/ASTContext.h"
+#include "llvm/ADT/ArrayRef.h"
 using namespace fortran;
 
 ASTContext::~ASTContext() {
@@ -93,6 +94,22 @@ ArrayType *ASTContext::getArrayType(const Type *Ty,
   ArrayType *New = new (*this) ArrayType(Ty, Dims);
   Types.push_back(New);
   ArrayTypes.InsertNode(New, InsertPos);
+  return New;
+}
+
+StructType *ASTContext::getStructType(llvm::ArrayRef<Type*> Elems) {
+  // Unique pointers, to guarantee there is only one pointer of a particular
+  // structure.
+  llvm::FoldingSetNodeID ID;
+  StructType::Profile(ID, Elems);
+
+  void *InsertPos = 0;
+  if (StructType *ST = StructTypes.FindNodeOrInsertPos(ID, InsertPos))
+    return ST;
+
+  StructType *New = new (*this) StructType(Elems.size());
+  Types.push_back(New);
+  StructTypes.InsertNode(New, InsertPos);
   return New;
 }
 

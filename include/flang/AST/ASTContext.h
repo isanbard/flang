@@ -22,6 +22,10 @@
 #include <set>
 #include <vector>
 
+namespace llvm {
+template <typename T> class ArrayRef;
+} // end llvm namespac
+
 namespace fortran {
 
 class ASTContext {
@@ -29,6 +33,7 @@ class ASTContext {
   llvm::FoldingSet<BuiltinType> BuiltinTypes;
   llvm::FoldingSet<PointerType> PointerTypes;
   llvm::FoldingSet<ArrayType>   ArrayTypes;
+  llvm::FoldingSet<StructType>  StructTypes;
 
   /// VariableDecls - The various variables in a program.
   llvm::FoldingSet<VarDecl>     VariableDecls;
@@ -58,10 +63,14 @@ public:
   /// the specified type.
   PointerType *getPointerType(const Type *Ty, unsigned NumDims);
 
-  /// getArrayType - Return the uniqued reference to the type for an array to
+  /// getArrayType - Return the uniqued reference to the type for an array of
   /// the specified type.
   ArrayType *getArrayType(const Type *Ty,
                           const llvm::SmallVectorImpl<unsigned> &Dims);
+
+  /// getStructType - Return the uniqued reference to the type for a structure of
+  /// the specified type.
+  StructType *getStructType(llvm::ArrayRef<Type*> Elems);
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(const IdentifierInfo *Info);
