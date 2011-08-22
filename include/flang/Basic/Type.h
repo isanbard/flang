@@ -91,12 +91,14 @@ public:
 protected:
   TypeSpec TySpec;              //< Type specification.
   Selector Kind;                //< Kind selector.
-public:
+
+  friend class ASTContext;      // ASTContext creates these.
   BuiltinType() : Type(Builtin), TySpec(TS_Real) {}
   BuiltinType(TypeSpec TS) : Type(Builtin), TySpec(TS) {}
   BuiltinType(TypeSpec TS, Selector K)
     : Type(Builtin), TySpec(TS), Kind(K)
   {}
+public:
   virtual ~BuiltinType();
 
   TypeSpec getTypeSpec() const { return TySpec; }
@@ -128,14 +130,11 @@ public:
 /// CharacterBuiltinType - A character builtin type has an optional 'LEN' kind
 /// selector.
 class CharacterBuiltinType : public BuiltinType {
-  Selector Len;
-public:
-  CharacterBuiltinType()
-    : BuiltinType(TS_Character) {}
-  CharacterBuiltinType(Selector L)
-    : BuiltinType(TS_Character), Len(L) {}
+  Selector Len;             //< Optional length selector.
+  friend class ASTContext;  // ASTContext creates these.
   CharacterBuiltinType(Selector L, Selector K)
     : BuiltinType(TS_Character, K), Len(L) {}
+public:
   virtual ~CharacterBuiltinType();
 
   bool hasLen() const { return Len.getKindExpr().isUsable(); }
@@ -165,13 +164,12 @@ public:
 //===----------------------------------------------------------------------===//
 /// PointerType - Allocatable types.
 class PointerType : public Type, public llvm::FoldingSetNode {
-  const Type *BaseType;
+  const Type *BaseType;     //<
   unsigned NumDims;
   friend class ASTContext;  // ASTContext creates these.
-public:
   PointerType(const Type *BaseTy, unsigned Dims)
     : Type(Pointer), BaseType(BaseTy), NumDims(Dims) {}
-
+public:
   const Type *getPointeeType() const { return BaseType; }
   unsigned getNumDimensions() const { return NumDims; }
 
@@ -196,12 +194,11 @@ class ArrayType : public Type, public llvm::FoldingSetNode {
   const Type *ElemType;
   llvm::SmallVector<unsigned, 4> Dimensions;
   friend class ASTContext;  // ASTContext creates these.
-public:
-  ArrayType(const Type *ElemTy, const llvm::SmallVectorImpl<unsigned> &Dims)
+  ArrayType(const Type *ElemTy, llvm::ArrayRef<unsigned> Dims)
     : Type(Array), ElemType(ElemTy) {
     Dimensions.append(Dims.begin(), Dims.end());
   }
-
+public:
   const Type *getElementType() const { return ElemType; }
   const llvm::SmallVectorImpl<unsigned> &getDimensions() const {
     return Dimensions;
@@ -237,11 +234,12 @@ public:
 //===----------------------------------------------------------------------===//
 /// StructType - Structure types.
 class StructType : public Type, public llvm::FoldingSetNode {
-  llvm::SmallVector<Type*, 16> Elems;
+  std::vector<Type*> Elems;
   friend class ASTContext;  // ASTContext creates these.
+  StructType(llvm::ArrayRef<Type*> Elements)
+    : Type(Struct), Elems(Elements.begin(), Elements.end()) {}
 public:
-  StructType(unsigned NumElements)
-    : Type(Struct) {}
+  Type *getElementType(unsigned Idx) const { return Elems[Idx]; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, Elems);

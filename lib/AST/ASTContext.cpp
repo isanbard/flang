@@ -107,7 +107,7 @@ StructType *ASTContext::getStructType(llvm::ArrayRef<Type*> Elems) {
   if (StructType *ST = StructTypes.FindNodeOrInsertPos(ID, InsertPos))
     return ST;
 
-  StructType *New = new (*this) StructType(Elems.size());
+  StructType *New = new (*this) StructType(Elems);
   Types.push_back(New);
   StructTypes.InsertNode(New, InsertPos);
   return New;
