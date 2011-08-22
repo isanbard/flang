@@ -172,8 +172,14 @@ private:
   bool ParseSpecificationStmt();
   bool ParseActionStmt();
 
+  // Designator parsing methods.
   ExprResult ParseDesignator();
   ExprResult ParseArrayElement();
+  ExprResult ParseArraySection();
+  ExprResult ParseCoindexedNamedObject();
+  ExprResult ParseComplexPartDesignator();
+  ExprResult ParseStructureComponent();
+  ExprResult ParseSubstring();
   ExprResult ParsePartReference();
 
   // Stmt-level parsing methods.

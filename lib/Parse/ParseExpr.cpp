@@ -370,8 +370,10 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
                                               Tok.getLength()));
     Lex();
     break;
+  case tok::char_literal_constant:
   case tok::identifier:
     E = Parser::ParseDesignator();
+    if (E.isInvalid()) return ExprResult();
     break;
   case tok::minus:
     Lex();
@@ -403,23 +405,20 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
 ///      or structure-component
 ///      or substring
 ExprResult Parser::ParseDesignator() {
-  ExprResult E;
-  if (tok::identifier) {
-    // R504:
-    //   object-name :=
-    //       name
-    E = new VarExpr(Tok.getLocation(),
-                    Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
-    Lex();
+  if (Tok.is(tok::char_literal_constant))
+    // Possibly something like: '0123456789'(N:N)
+    return ParseSubstring();
 
-    // R618:
-    //   array-section :=
-    //       data-ref [ ( substring-range ) ]
-    //    or complex-part-designator
-    // R610:
-    //   substring-range :=
-    //       [ scalar-int-expr ] : [ scalar-int-expr ]
-  }
+  ExprResult E;
+  if (Tok.isNot(tok::identifier)) return E;
+
+  // R504:
+  //   object-name :=
+  //       name
+  E = new VarExpr(Tok.getLocation(),
+                  Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+  Lex();
+
   return E;
 }
 
@@ -432,6 +431,77 @@ ExprResult Parser::ParseDesignator() {
 ///     data-ref :=
 ///         part-ref [ % part-ref ] ...
 ExprResult Parser::ParseArrayElement() {
+  ExprResult E;
+  return E;
+}
+
+/// ParseArraySection - Parse a array section.
+///
+///   R618:
+///     array-section :=
+///         data-ref [ ( substring-range ) ]
+///      or complex-part-designator
+///   R610:
+///     substring-range :=
+///         [ scalar-int-expr ] : [ scalar-int-expr ]
+ExprResult Parser::ParseArraySection() {
+  ExprResult E;
+  return E;
+}
+
+/// ParseCoindexedNamedObject - Parse a coindexed named object.
+///
+///   R614:
+///     coindexed-named-object :=
+///         data-ref
+///   C620:
+///     The data-ref shall contain exactly one part-re. The part-ref shall
+///     contain an image-selector. The part-name shall be the name of a scalar
+///     coarray.
+ExprResult Parser::ParseCoindexedNamedObject() {
+  ExprResult E;
+  return E;
+}
+
+/// ParseComplexPartDesignator - Parse a complex part designator.
+///
+///   R615:
+///     complex-part-designator :=
+///         designator % RE
+///      or designator % IM
+///   C621:
+///     The designator shall be of complex type.
+ExprResult Parser::ParseComplexPartDesignator() {
+  ExprResult E;
+  return E;
+}
+
+/// ParseStructureComponent - Parse a structure component.
+///
+///   R613:
+///     structure-component :=
+///         data-ref
+ExprResult Parser::ParseStructureComponent() {
+  ExprResult E;
+  return E;
+}
+
+/// ParseSubstring - Parse a substring.
+///
+///   R608:
+///     substring :=
+///         parent-string ( substring-range )
+///   R609:
+///     parent-string :=
+///         scalar-variable-name
+///      or array-element
+///      or coindexed-named-object
+///      or scalar-structure-component
+///      or scalar-constant
+///   R610:
+///     substring-range :=
+///         [ scalar-int-expr ] : [ scalar-int-expr ]
+ExprResult Parser::ParseSubstring() {
   ExprResult E;
   return E;
 }
