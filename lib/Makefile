@@ -9,6 +9,6 @@
 
 FLANG_LEVEL := ..
 
-PARALLEL_DIRS = Basic Parse AST Frontend
+PARALLEL_DIRS = Basic Parse AST Frontend Sema
 
 include $(FLANG_LEVEL)/Makefile
