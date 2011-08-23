@@ -60,6 +60,24 @@ public:
 };
 
 //===----------------------------------------------------------------------===//
+/// ConstantExpr -
+class ConstantExpr : public Expr {
+  llvm::StringRef Data;
+public:
+  ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
+    : Expr(Expr::Constant, loc), Data(data) {}
+
+  llvm::StringRef getData() const { return Data; }
+
+  virtual void print(llvm::raw_ostream&);
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::Constant;
+  }
+  static bool classof(const ConstantExpr *) { return true; }
+};
+
+//===----------------------------------------------------------------------===//
 /// DesignatorExpr -
 class DesignatorExpr : public Expr {
 public:
@@ -89,24 +107,6 @@ public:
     return E->getExpressionID() == Expr::Designator;
   }
   static bool classof(const DesignatorExpr *) { return true; }
-};
-
-//===----------------------------------------------------------------------===//
-/// ConstantExpr -
-class ConstantExpr : public Expr {
-  llvm::StringRef Data;
-public:
-  ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
-    : Expr(Expr::Constant, loc), Data(data) {}
-
-  llvm::StringRef getData() const { return Data; }
-
-  virtual void print(llvm::raw_ostream&);
-
-  static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::Constant;
-  }
-  static bool classof(const ConstantExpr *) { return true; }
 };
 
 //===----------------------------------------------------------------------===//
