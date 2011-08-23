@@ -25,6 +25,7 @@ namespace llvm {
 namespace fortran {
 
 class DiagnosticClient;
+class DiagnosticErrorTrap;
 class LangOptions;
 
 /// Diagnostic - This concrete class is used by the front-end to report problems
@@ -41,13 +42,18 @@ public:
     Fatal   = 4
   };
 private:
-  llvm::SourceMgr *SrcMgr;
   DiagnosticClient *Client;
   bool OwnsDiagClient;
+  llvm::SourceMgr *SrcMgr;
+
+  /// \brief Counts for DiagnosticErrorTrap to check whether an error occurred
+  /// during a parsing section, e.g. during parsing a function.
+  unsigned TrapNumErrorsOccurred;
+  unsigned TrapNumUnrecoverableErrorsOccurred;
 public:
   Diagnostic(llvm::SourceMgr *SM, DiagnosticClient *DC,
-             bool ShouldOwnClient = true) :
-    SrcMgr(SM), Client(DC), OwnsDiagClient(ShouldOwnClient) {}
+             bool ShouldOwnClient = true)
+    : Client(DC), OwnsDiagClient(ShouldOwnClient), SrcMgr(SM) {}
 
   DiagnosticClient *getClient() { return Client; }
   const DiagnosticClient *getClient() const { return Client; }
@@ -91,6 +97,44 @@ public:
   /// \return The return value is always true, as an idiomatic convenience to
   /// clients.
   bool ReportWarning(llvm::SMLoc L, const llvm::Twine &Msg);
+
+private:
+  // This is private state used by DiagnosticBuilder. We put it here instead of
+  // in DiagnosticBuilder in order to keep DiagnosticBuilder a small lightweight
+  // object. This implementation choice means that we can only have one
+  // diagnostic "in flight" at a time, but this seems to be a reasonable
+  // tradeoff to keep these objects small. Assertions verify that only one
+  // diagnostic is in flight at a time.
+  friend class DiagnosticErrorTrap;
+};
+
+/// \brief RAII class that determines when any errors have occurred between the
+/// time the instance was created and the time it was queried.
+class DiagnosticErrorTrap {
+  Diagnostic &Diag;
+  unsigned NumErrors;
+  unsigned NumUnrecoverableErrors;
+public:
+  explicit DiagnosticErrorTrap(Diagnostic &Diag)
+    : Diag(Diag) { reset(); }
+
+  /// \brief Determine whether any errors have occurred since this
+  /// object instance was created.
+  bool hasErrorOccurred() const {
+    return Diag.TrapNumErrorsOccurred > NumErrors;
+  }
+
+  /// \brief Determine whether any unrecoverable errors have occurred since this
+  /// object instance was created.
+  bool hasUnrecoverableErrorOccurred() const {
+    return Diag.TrapNumUnrecoverableErrorsOccurred > NumUnrecoverableErrors;
+  }
+
+  // Set to initial state of "no errors occurred".
+  void reset() {
+    NumErrors = Diag.TrapNumErrorsOccurred;
+    NumUnrecoverableErrors = Diag.TrapNumUnrecoverableErrorsOccurred;
+  }
 };
 
 /// DiagnosticClient - This is an abstract interface implemented by clients of
