@@ -70,7 +70,7 @@ public:
 
   /// getStructType - Return the uniqued reference to the type for a structure of
   /// the specified type.
-  StructType *getStructType(llvm::ArrayRef<Type*> Elems);
+  StructType *getStructType(llvm::ArrayRef<Decl*> Elems);
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(const IdentifierInfo *Info);

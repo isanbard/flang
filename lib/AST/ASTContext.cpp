@@ -97,7 +97,7 @@ ArrayType *ASTContext::getArrayType(const Type *Ty,
   return New;
 }
 
-StructType *ASTContext::getStructType(llvm::ArrayRef<Type*> Elems) {
+StructType *ASTContext::getStructType(llvm::ArrayRef<Decl*> Elems) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.
   llvm::FoldingSetNodeID ID;

@@ -23,6 +23,7 @@
 namespace fortran {
 
 class IdentifierInfo;
+class Decl;
 class VarDecl;
 
 //===----------------------------------------------------------------------===//

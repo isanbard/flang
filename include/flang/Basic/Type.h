@@ -26,8 +26,8 @@ class raw_ostream;
 namespace fortran {
 
 class ASTContext;
+class Decl;
 class Expr;
-class VarDecl;
 
 //===----------------------------------------------------------------------===//
 /// Selector - A selector is a modifier on a type that indicates different
@@ -62,7 +62,7 @@ private:
 protected:
   Type(TypeClass tc) : TyClass(tc) {}
   virtual ~Type();
-  virtual void Destroy(ASTContext& C);
+  virtual void Destroy(ASTContext &C);
   friend class ASTContext;
 public:
   TypeClass getTypeClass() const { return TyClass; }
@@ -87,7 +87,6 @@ public:
     TS_Character       = 4,
     TS_Logical         = 5
   };
-
 protected:
   TypeSpec TySpec;              //< Type specification.
   Selector Kind;                //< Kind selector.
@@ -164,7 +163,7 @@ public:
 //===----------------------------------------------------------------------===//
 /// PointerType - Allocatable types.
 class PointerType : public Type, public llvm::FoldingSetNode {
-  const Type *BaseType;     //<
+  const Type *BaseType;     //< The type of the object pointed to.
   unsigned NumDims;
   friend class ASTContext;  // ASTContext creates these.
   PointerType(const Type *BaseTy, unsigned Dims)
@@ -234,18 +233,18 @@ public:
 //===----------------------------------------------------------------------===//
 /// StructType - Structure types.
 class StructType : public Type, public llvm::FoldingSetNode {
-  std::vector<Type*> Elems;
+  std::vector<Decl*> Elems;
   friend class ASTContext;  // ASTContext creates these.
-  StructType(llvm::ArrayRef<Type*> Elements)
+  StructType(llvm::ArrayRef<Decl*> Elements)
     : Type(Struct), Elems(Elements.begin(), Elements.end()) {}
 public:
-  Type *getElementType(unsigned Idx) const { return Elems[Idx]; }
+  Decl *getElement(unsigned Idx) const { return Elems[Idx]; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, Elems);
   }
-  static void Profile(llvm::FoldingSetNodeID &ID, llvm::ArrayRef<Type*> Elems) {
-    for (llvm::ArrayRef<Type*>::iterator
+  static void Profile(llvm::FoldingSetNodeID &ID, llvm::ArrayRef<Decl*> Elems) {
+    for (llvm::ArrayRef<Decl*>::iterator
            I = Elems.begin(), E = Elems.end(); I != E; ++I)
       ID.AddPointer(*I);
   }
