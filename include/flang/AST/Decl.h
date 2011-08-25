@@ -32,6 +32,7 @@ class IdentifierInfo;
 class Decl {
 public:
   Decl() {}
+  virtual ~Decl();
 };
 
 //===----------------------------------------------------------------------===//
@@ -42,16 +43,13 @@ class VarDecl : public Decl, public llvm::FoldingSetNode {
   const DeclSpec *DS;
   const IdentifierInfo *IDInfo;
 
-  /// HasAttrs - This indicates whether the decl has attributes or not.
-  bool HasAttrs : 1;
-
   friend class ASTContext;  // ASTContext creates these.
 public:
   VarDecl(const IdentifierInfo *Info)
-    : DS(0), IDInfo(Info), HasAttrs(false)
+    : DS(0), IDInfo(Info)
   {}
   VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
-    : Loc(L), DS(dts), IDInfo(Info), HasAttrs(false)
+    : Loc(L), DS(dts), IDInfo(Info)
   {}
 
   llvm::SMLoc getLocation() const { return Loc; }
