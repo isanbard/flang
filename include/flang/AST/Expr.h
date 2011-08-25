@@ -14,6 +14,7 @@
 #ifndef FORTRAN_AST_EXPR_H__
 #define FORTRAN_AST_EXPR_H__
 
+#include "flang/Basic/Type.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
@@ -109,6 +110,58 @@ public:
   }
   static bool classof(const DesignatorExpr *) { return true; }
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// FIXME: Should this go somewhere else?
+
+class Subscript {
+public:
+  enum SubscriptTy { Normal = 0, EmptyRange = ':', Splat = '*' };
+private:
+  SubscriptTy Ty;
+  Expr *Val;
+  Subscript(SubscriptTy ty, Expr *e = 0)
+    : Ty(ty), Val(e) {}
+  Subscript(const Subscript&);  // Don't implement.
+public:
+  virtual ~Subscript();
+
+  static Subscript *create(Expr *E);
+  static Subscript *createEmptyRange();
+  static Subscript *createSplat();
+
+  Expr *getValue() const { return Val; }
+  void setValue(Expr *V) { Val = V; }
+
+  bool isEmptyRange() const { return Ty == EmptyRange; }
+  bool isSplat() const { return Ty == Splat; }
+};
+
+class SubscriptTriplet : public Subscript {
+  Subscript *Sub1;
+  Subscript *Sub2;
+  Subscript *Stride;
+public:
+};
+
+class VectorSubscript : public Subscript {
+  // int-expr
+public:
+};
+
+class CoSubscript : public Subscript {
+public:
+};
+
+class PartRef {
+  Decl *PartName;
+  llvm::SmallVector<Subscript*, 4> Subscripts;
+  llvm::SmallVector<CoSubscript*, 2> ImageSelector;
+public:
+};
+
+//
+////////////////////////////////////////////////////////////////////////////////
 
 //===----------------------------------------------------------------------===//
 /// VarExpr -

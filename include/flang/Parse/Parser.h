@@ -180,6 +180,7 @@ private:
   ExprResult ParseComplexPartDesignator();
   ExprResult ParseStructureComponent();
   ExprResult ParseSubstring();
+  ExprResult ParseDataReference();
   ExprResult ParsePartReference();
 
   // Stmt-level parsing methods.

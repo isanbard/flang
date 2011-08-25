@@ -105,3 +105,22 @@ void DefinedOperatorBinaryExpr::print(llvm::raw_ostream &O) {
   RHS.get()->print(O);
   O << ')';
 }
+
+//===----------------------------------------------------------------------===//
+// Subscript Methods
+//===----------------------------------------------------------------------===//
+
+Subscript::~Subscript() {
+}
+
+Subscript *Subscript::create(Expr *E) {
+  return new Subscript(Subscript::Normal, E);
+}
+
+Subscript *Subscript::createEmptyRange() {
+  return new Subscript(Subscript::EmptyRange);
+}
+
+Subscript *Subscript::createSplat() {
+  return new Subscript(Subscript::Splat);
+}

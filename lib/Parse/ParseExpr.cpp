@@ -14,6 +14,7 @@
 #include "flang/Parse/Parser.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
+#include "flang/Basic/Actions.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/Twine.h"
@@ -464,9 +465,6 @@ ExprResult Parser::ParseDesignator() {
 ///   R617:
 ///     array-element :=
 ///         data-ref
-///   R611:
-///     data-ref :=
-///         part-ref [ % part-ref ] ...
 ExprResult Parser::ParseArrayElement() {
   ExprResult E;
   return E;
@@ -541,6 +539,29 @@ ExprResult Parser::ParseStructureComponent() {
 ExprResult Parser::ParseSubstring() {
   ExprResult E;
   return E;
+}
+
+/// ParseDataReference - Parse a data reference.
+///
+///   R611:
+///     data-ref :=
+///         part-ref [ % part-ref ] ...
+ExprResult Parser::ParseDataReference() {
+  std::vector<ExprResult> Exprs;
+
+  do {
+    ExprResult E = ParsePartReference();
+    if (E.isInvalid())
+      goto error;
+    Exprs.push_back(E);
+  } while (EatIfPresent(tok::percent));
+
+  return Actions.ActOnDataReference(Exprs);
+ error:
+  for (std::vector<ExprResult>::iterator
+         I = Exprs.begin(), E = Exprs.end(); I != E; ++I)
+    delete I->take();
+  return ExprResult();
 }
 
 /// ParsePartReference - Parse the part reference.

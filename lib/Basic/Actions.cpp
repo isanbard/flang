@@ -201,3 +201,7 @@ bool PrintAction::ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
 bool PrintAction::ActOnArraySpec() {
   return false;
 }
+
+ExprResult PrintAction::ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs) {
+  return ExprResult();
+}

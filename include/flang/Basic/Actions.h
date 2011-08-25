@@ -73,6 +73,8 @@ public:
                             const VarDecl *VD) = 0;
 
   virtual bool ActOnArraySpec() = 0;
+
+  virtual ExprResult ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs) = 0;
 };
 
 /// PrintAction - This is a default action for the parser. It pretty-prints the
@@ -114,6 +116,7 @@ public:
   virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD);
   virtual bool ActOnArraySpec();
+  virtual ExprResult ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs);
 };
 
 } // end fortran namespace
