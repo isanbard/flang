@@ -27,9 +27,17 @@ class DeclSpec;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
+/// Decl - Base class for declarations.
+///
+class Decl {
+public:
+  Decl() {}
+};
+
+//===----------------------------------------------------------------------===//
 /// VarDecl - Declaration or definition of a variable.
 ///
-class VarDecl : public llvm::FoldingSetNode {
+class VarDecl : public Decl, public llvm::FoldingSetNode {
   llvm::SMLoc Loc;
   const DeclSpec *DS;
   const IdentifierInfo *IDInfo;
