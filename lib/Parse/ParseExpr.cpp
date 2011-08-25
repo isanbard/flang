@@ -96,7 +96,12 @@ Parser::ExprResult Parser::ParseOrOperand() {
   while (Tok.getKind() == tok::kw_AND) {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
-    E = new BinaryExpr(OpLoc, BinaryExpr::And, E, ParseAndOperand());
+    ExprResult AndOp = ParseAndOperand();
+    if (AndOp.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, BinaryExpr::And, E, AndOp);
   }
 
   return E;
@@ -108,7 +113,12 @@ Parser::ExprResult Parser::ParseEquivOperand() {
   while (Tok.getKind() == tok::kw_OR) {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
-    E = new BinaryExpr(OpLoc, BinaryExpr::Or, E, ParseOrOperand());
+    ExprResult OrOp = ParseOrOperand();
+    if (OrOp.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, BinaryExpr::Or, E, OrOp);
   }
 
   return E;
@@ -160,35 +170,37 @@ Parser::ExprResult Parser::ParseLevel4Expr() {
 
   while (true) {
     llvm::SMLoc OpLoc = Tok.getLocation();
+    BinaryExpr::Operator Op = BinaryExpr::None;
     switch (Tok.getKind()) {
     default:
       return E;
     case tok::kw_EQ: case tok::equalequal:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Equal, E, ParseLevel3Expr());
+      Op = BinaryExpr::Equal;
       break;
     case tok::kw_NE: case tok::slashequal:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::NotEqual, E, ParseLevel3Expr());
+      Op = BinaryExpr::NotEqual;
       break;
     case tok::kw_LT: case tok::less:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::LessThan, E, ParseLevel3Expr());
+      Op = BinaryExpr::LessThan;
       break;
     case tok::kw_LE: case tok::lessequal:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::LessThanEqual, E, ParseLevel3Expr());
+      Op = BinaryExpr::LessThanEqual;
       break;
     case tok::kw_GT: case tok::greater:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::GreaterThan, E, ParseLevel3Expr());
+      Op = BinaryExpr::GreaterThan;
       break;
     case tok::kw_GE: case tok::greaterequal:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::GreaterThanEqual, E,
-                         ParseLevel3Expr());
+      Op = BinaryExpr::GreaterThanEqual;
       break;
     }
+
+    Lex();
+    ExprResult Lvl3Expr = ParseLevel3Expr();
+    if (Lvl3Expr.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, Op, E, Lvl3Expr);
   }
 }
 
@@ -208,7 +220,12 @@ Parser::ExprResult Parser::ParseLevel3Expr() {
   while (Tok.getKind() == tok::slashslash) {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
-    E = new BinaryExpr(OpLoc, BinaryExpr::Concat, E, ParseLevel2Expr());
+    ExprResult Lvl2Expr = ParseLevel2Expr();
+    if (Lvl2Expr.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, BinaryExpr::Concat, E, Lvl2Expr);
   }
   
   return E;
@@ -244,7 +261,12 @@ Parser::ExprResult Parser::ParseMultOperand() {
   if (Tok.getKind() == tok::starstar) {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
-    E = new BinaryExpr(OpLoc, BinaryExpr::Power, E, ParseMultOperand());
+    ExprResult MulOp = ParseMultOperand();
+    if (MulOp.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, BinaryExpr::Power, E, MulOp);
   }
 
   return E;
@@ -255,18 +277,25 @@ Parser::ExprResult Parser::ParseAddOperand() {
 
   while (true) {
     llvm::SMLoc OpLoc = Tok.getLocation();
+    BinaryExpr::Operator Op = BinaryExpr::None;
     switch (Tok.getKind()) {
     default:
       return E;
     case tok::star:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Multiply, E, ParseMultOperand());
+      Op = BinaryExpr::Multiply;
       break;
     case tok::slash:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Divide, E, ParseMultOperand());
+      Op = BinaryExpr::Divide;
       break;
     }
+
+    Lex();
+    ExprResult MulOp = ParseMultOperand();
+    if (MulOp.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, Op, E, MulOp);
   }
 }
 Parser::ExprResult Parser::ParseLevel2Expr() {
@@ -291,18 +320,25 @@ Parser::ExprResult Parser::ParseLevel2Expr() {
 
   while (true) {
     OpLoc = Tok.getLocation();
+    BinaryExpr::Operator Op = BinaryExpr::None;
     switch (Tok.getKind()) {
     default:
       return E;
     case tok::plus:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Plus, E, ParseAddOperand());
+      Op = BinaryExpr::Plus;
       break;
     case tok::minus:
-      Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Minus, E, ParseAddOperand());
+      Op = BinaryExpr::Minus;
       break;
     }
+
+    Lex();
+    ExprResult AddOp = ParseAddOperand();
+    if (AddOp.isInvalid()) {
+      delete E.take();
+      return ExprResult();
+    }
+    E = new BinaryExpr(OpLoc, Op, E, AddOp);
   }
 }
 
@@ -415,8 +451,9 @@ ExprResult Parser::ParseDesignator() {
   // R504:
   //   object-name :=
   //       name
-  E = new VarExpr(Tok.getLocation(),
-                  Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+  const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
+  if (!VD) return ExprResult();
+  E = new VarExpr(Tok.getLocation(), VD);
   Lex();
 
   return E;
@@ -528,6 +565,12 @@ ExprResult Parser::ParseSubstring() {
 ///   R623:
 ///     vector-subscript :=
 ///         int-expr
+///   R624:
+///     image-selector :=
+///         lbracket cosubscript-list rbracket
+///   R625:
+///     cosubscript :=
+///         scalar-int-expr
 ExprResult Parser::ParsePartReference() {
   ExprResult E;
   return E;
