@@ -14,7 +14,7 @@
 #ifndef FORTRAN_AST_EXPR_H__
 #define FORTRAN_AST_EXPR_H__
 
-#include "flang/Basic/Type.h"
+#include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
