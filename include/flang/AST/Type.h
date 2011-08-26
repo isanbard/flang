@@ -20,7 +20,7 @@
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
-class raw_ostream;
+  class raw_ostream;
 } // end llvm namespace
 
 namespace fortran {

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "flang/Basic/Type.h"
+#include "flang/AST/Type.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Expr.h"
 #include "llvm/Support/Casting.h"

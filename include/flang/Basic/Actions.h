@@ -14,18 +14,15 @@
 #ifndef FORTRAN_ACTIONS_H__
 #define FORTRAN_ACTIONS_H__
 
-#include "flang/Basic/Type.h"
 #include "flang/AST/Stmt.h"
+#include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
 
 namespace llvm {
-
-template <typename T> class ArrayRef;
-class SMLoc;
-class raw_ostream;
-
+  template <typename T> class ArrayRef;
+  class raw_ostream;
 } // end namespace llvm
 
 namespace fortran {

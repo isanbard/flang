@@ -16,7 +16,7 @@
 
 #include "llvm/Support/SMLoc.h"
 
-class fortran {
+namespace fortran {
 
 /// SourceRange - a trival tuple used to represent a source range.
 class SourceRange {

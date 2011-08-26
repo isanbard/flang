@@ -15,7 +15,7 @@
 #define FORTRAN_AST_ASTCONTEXT_H__
 
 #include "flang/AST/Decl.h"
-#include "flang/Basic/Type.h"
+#include "flang/AST/Type.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/Support/Allocator.h"
 #include <new>

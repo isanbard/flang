@@ -77,10 +77,10 @@ private:
   typedef llvm::SmallPtrSet<Decl*, 32> DeclSetTy;
   DeclSetTy DeclsInScope;
 
-  /// Entity - The entity with which this scope is associated. For
-  /// example, the entity of a class scope is the class itself, the
-  /// entity of a function scope is a function, etc. This field is
-  /// maintained by the Action implementation.
+  /// Entity - The entity with which this scope is associated. For example, the
+  /// entity of a record scope is the record itself, the entity of a function
+  /// scope is a function, etc. This field is maintained by the Action
+  /// implementation.
   void *Entity;
 
   /// \brief Used to determine if errors occurred in this scope.
