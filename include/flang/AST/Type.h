@@ -29,10 +29,10 @@ class ASTContext;
 class Decl;
 class Expr;
 
-//===----------------------------------------------------------------------===//
 /// Selector - A selector is a modifier on a type that indicates different
 /// properties for the type: precision, length, etc.
 class Selector {
+  friend class ASTContext;      // ASTContext creates these.
   ExprResult KindExpr;
 public:
   const ExprResult getKindExpr() const { return KindExpr; }
@@ -42,8 +42,7 @@ public:
   void print(llvm::raw_ostream &O) const;
 };
 
-//===----------------------------------------------------------------------===//
-/// Type - The base class for Fortran types.
+/// Type - This is the base class for the type hierarchy.
 class Type {
 protected:
   /// TypeClass - The intrinsic Fortran type specifications. REAL is the default
@@ -53,11 +52,14 @@ protected:
     Builtin = 1,
     Complex = 2,
     Array   = 3,
-    Struct  = 4,
+    Record  = 4,
     Pointer = 5
   };
 
 private:
+  Type(const Type&);           // DO NOT IMPLEMENT.
+  void operator=(const Type&); // DO NOT IMPLEMENT.
+
   TypeClass TyClass;
 protected:
   Type(TypeClass tc) : TyClass(tc) {}
@@ -72,7 +74,6 @@ public:
   static bool classof(const Type *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// BuiltinType - Intrinsic Fortran types.
 class BuiltinType : public Type, public llvm::FoldingSetNode {
 public:
@@ -125,7 +126,6 @@ public:
   static bool classof(const BuiltinType *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// CharacterBuiltinType - A character builtin type has an optional 'LEN' kind
 /// selector.
 class CharacterBuiltinType : public BuiltinType {
@@ -160,7 +160,6 @@ public:
   static bool classof(const CharacterBuiltinType *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// PointerType - Allocatable types.
 class PointerType : public Type, public llvm::FoldingSetNode {
   const Type *BaseType;     //< The type of the object pointed to.
@@ -187,24 +186,23 @@ public:
   static bool classof(const PointerType *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// ArrayType - Array types.
 class ArrayType : public Type, public llvm::FoldingSetNode {
   const Type *ElemType;
-  llvm::SmallVector<unsigned, 4> Dimensions;
+  llvm::SmallVector<Expr*, 4> Dimensions;
   friend class ASTContext;  // ASTContext creates these.
-  ArrayType(const Type *ElemTy, llvm::ArrayRef<unsigned> Dims)
+  ArrayType(const Type *ElemTy, llvm::ArrayRef<Expr*> Dims)
     : Type(Array), ElemType(ElemTy) {
     Dimensions.append(Dims.begin(), Dims.end());
   }
 public:
   const Type *getElementType() const { return ElemType; }
-  const llvm::SmallVectorImpl<unsigned> &getDimensions() const {
+  const llvm::SmallVectorImpl<Expr*> &getDimensions() const {
     return Dimensions;
   }
 
-  typedef llvm::SmallVectorImpl<unsigned>::iterator dim_iterator;
-  typedef llvm::SmallVectorImpl<unsigned>::const_iterator const_dim_iterator;
+  typedef llvm::SmallVectorImpl<Expr*>::iterator dim_iterator;
+  typedef llvm::SmallVectorImpl<Expr*>::const_iterator const_dim_iterator;
 
   size_t size() const              { return Dimensions.size(); }
   dim_iterator begin()             { return Dimensions.begin(); }
@@ -216,12 +214,12 @@ public:
     Profile(ID, ElemType, Dimensions);
   }
   static void Profile(llvm::FoldingSetNodeID &ID, const Type *ElemTy,
-                      const llvm::SmallVectorImpl<unsigned> &Dims) {
+                      const llvm::SmallVectorImpl<Expr*> &Dims) {
     ID.AddPointer(ElemTy);
 
-    for (llvm::SmallVectorImpl<unsigned>::const_iterator
+    for (llvm::SmallVectorImpl<Expr*>::const_iterator
            I = Dims.begin(), E = Dims.end(); I != E; ++I)
-      ID.AddInteger(*I);
+      ID.AddPointer(*I);
   }
 
   virtual void print(llvm::raw_ostream &O) const {} // FIXME
@@ -230,13 +228,12 @@ public:
   static bool classof(const ArrayType *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
-/// StructType - Structure types.
-class StructType : public Type, public llvm::FoldingSetNode {
+/// RecordType - Record types.
+class RecordType : public Type, public llvm::FoldingSetNode {
   std::vector<Decl*> Elems;
   friend class ASTContext;  // ASTContext creates these.
-  StructType(llvm::ArrayRef<Decl*> Elements)
-    : Type(Struct), Elems(Elements.begin(), Elements.end()) {}
+  RecordType(llvm::ArrayRef<Decl*> Elements)
+    : Type(Record), Elems(Elements.begin(), Elements.end()) {}
 public:
   Decl *getElement(unsigned Idx) const { return Elems[Idx]; }
 
@@ -251,8 +248,8 @@ public:
 
   virtual void print(llvm::raw_ostream &O) const {} // FIXME
 
-  static bool classof(const Type *T) { return T->getTypeClass() == Struct; }
-  static bool classof(const StructType *) { return true; }
+  static bool classof(const Type *T) { return T->getTypeClass() == Record; }
+  static bool classof(const RecordType *) { return true; }
 };
 
 } // end fortran namespace

@@ -33,7 +33,7 @@ class ASTContext {
   llvm::FoldingSet<BuiltinType> BuiltinTypes;
   llvm::FoldingSet<PointerType> PointerTypes;
   llvm::FoldingSet<ArrayType>   ArrayTypes;
-  llvm::FoldingSet<StructType>  StructTypes;
+  llvm::FoldingSet<RecordType>  RecordTypes;
 
   /// VariableDecls - The various variables in a program.
   llvm::FoldingSet<VarDecl>     VariableDecls;
@@ -66,11 +66,11 @@ public:
   /// getArrayType - Return the uniqued reference to the type for an array of
   /// the specified type.
   ArrayType *getArrayType(const Type *Ty,
-                          const llvm::SmallVectorImpl<unsigned> &Dims);
+                          const llvm::SmallVectorImpl<Expr*> &Dims);
 
-  /// getStructType - Return the uniqued reference to the type for a structure of
-  /// the specified type.
-  StructType *getStructType(llvm::ArrayRef<Decl*> Elems);
+  /// getRecordType - Return the uniqued reference to the type for a structure
+  /// of the specified type.
+  RecordType *getRecordType(llvm::ArrayRef<Decl*> Elems);
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(const IdentifierInfo *Info);

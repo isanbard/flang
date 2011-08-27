@@ -81,7 +81,7 @@ PointerType *ASTContext::getPointerType(const Type *Ty, unsigned NumDims) {
 /// getArrayType - Return the uniqued reference to the type for an array to the
 /// specified type.
 ArrayType *ASTContext::getArrayType(const Type *Ty,
-                                    const llvm::SmallVectorImpl<unsigned>&Dims){
+                                    const llvm::SmallVectorImpl<Expr*> &Dims) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.
   llvm::FoldingSetNodeID ID;
@@ -97,19 +97,19 @@ ArrayType *ASTContext::getArrayType(const Type *Ty,
   return New;
 }
 
-StructType *ASTContext::getStructType(llvm::ArrayRef<Decl*> Elems) {
+RecordType *ASTContext::getRecordType(llvm::ArrayRef<Decl*> Elems) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.
   llvm::FoldingSetNodeID ID;
-  StructType::Profile(ID, Elems);
+  RecordType::Profile(ID, Elems);
 
   void *InsertPos = 0;
-  if (StructType *ST = StructTypes.FindNodeOrInsertPos(ID, InsertPos))
+  if (RecordType *ST = RecordTypes.FindNodeOrInsertPos(ID, InsertPos))
     return ST;
 
-  StructType *New = new (*this) StructType(Elems);
+  RecordType *New = new (*this) RecordType(Elems);
   Types.push_back(New);
-  StructTypes.InsertNode(New, InsertPos);
+  RecordTypes.InsertNode(New, InsertPos);
   return New;
 }
 
