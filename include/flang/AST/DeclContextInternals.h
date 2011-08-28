@@ -61,7 +61,6 @@ public:
   NamedDecl *getAsDecl() const {
     return Data.dyn_cast<NamedDecl *>();
   }
-
   DeclsTy *getAsVector() const {
     return Data.dyn_cast<DeclsTy *>();
   }
@@ -191,7 +190,7 @@ public:
 };
 
 class StoredDeclsMap : public llvm::DenseMap<DeclarationName, StoredDeclsList> {
-  friend class ASTContext; // walks the chain deleting these
+  friend class ASTContext; // Walks the chain deleting these.
   friend class DeclContext;
   llvm::PointerIntPair<StoredDeclsMap*, 1> Previous;
 public:
@@ -199,9 +198,8 @@ public:
 };
 
 class DependentStoredDeclsMap : public StoredDeclsMap {
-private:
   friend class DependentDiagnostic;
-  friend class DeclContext; // iterates over diagnostics
+  friend class DeclContext; // Iterates over diagnostics.
   DependentDiagnostic *FirstDiagnostic;
 public:
   DependentStoredDeclsMap() : FirstDiagnostic(0) {}
