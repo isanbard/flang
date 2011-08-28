@@ -572,7 +572,7 @@ private:
   TypeClass TyClass;
 protected:
   Type *this_() { return this; }
-  Type(TypeClass TC, QualType Canon = QualType()) // FIXME:
+  Type(TypeClass TC, QualType Canon)
     : ExtQualsTypeCommonBase(this,
                              Canon.isNull() ? QualType(this_(), 0) : Canon),
       TyClass(TC) {}
@@ -627,10 +627,10 @@ protected:
   Selector Kind;                //< Kind selector.
 
   friend class ASTContext;      // ASTContext creates these.
-  BuiltinType() : Type(Builtin), TySpec(TS_Real) {}
-  BuiltinType(TypeSpec TS) : Type(Builtin), TySpec(TS) {}
+  BuiltinType() : Type(Builtin, QualType()), TySpec(TS_Real) {}
+  BuiltinType(TypeSpec TS) : Type(Builtin, QualType()), TySpec(TS) {}
   BuiltinType(TypeSpec TS, Selector K)
-    : Type(Builtin), TySpec(TS), Kind(K)
+    : Type(Builtin, QualType()), TySpec(TS), Kind(K)
   {}
 public:
   virtual ~BuiltinType();
@@ -700,7 +700,7 @@ class PointerType : public Type, public llvm::FoldingSetNode {
   unsigned NumDims;
   friend class ASTContext;  // ASTContext creates these.
   PointerType(const Type *BaseTy, unsigned Dims)
-    : Type(Pointer), BaseType(BaseTy), NumDims(Dims) {}
+    : Type(Pointer, QualType()), BaseType(BaseTy), NumDims(Dims) {}
 public:
   const Type *getPointeeType() const { return BaseType; }
   unsigned getNumDimensions() const { return NumDims; }
@@ -726,7 +726,7 @@ class ArrayType : public Type, public llvm::FoldingSetNode {
   llvm::SmallVector<Expr*, 4> Dimensions;
   friend class ASTContext;  // ASTContext creates these.
   ArrayType(const Type *ElemTy, llvm::ArrayRef<Expr*> Dims)
-    : Type(Array), ElemType(ElemTy) {
+    : Type(Array, QualType()), ElemType(ElemTy) {
     Dimensions.append(Dims.begin(), Dims.end());
   }
 public:
@@ -767,7 +767,7 @@ class RecordType : public Type, public llvm::FoldingSetNode {
   std::vector<Decl*> Elems;
   friend class ASTContext;  // ASTContext creates these.
   RecordType(llvm::ArrayRef<Decl*> Elements)
-    : Type(Record), Elems(Elements.begin(), Elements.end()) {}
+    : Type(Record, QualType()), Elems(Elements.begin(), Elements.end()) {}
 public:
   Decl *getElement(unsigned Idx) const { return Elems[Idx]; }
 
