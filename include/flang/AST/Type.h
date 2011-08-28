@@ -98,8 +98,8 @@ public:
   };
 
   enum {
-    /// The maximum supported address space number.
-    /// 21 bits should be enough for anyone.
+    /// The maximum supported address space number. Twenty bits...hope that's
+    /// enough.
     MaxAddressSpace = 0xFFFFFU,
 
     /// The width of the "fast" qualifier mask.
@@ -147,6 +147,7 @@ public:
     return Mask;
   }
 
+  /// Allocatable, Parameter, and Volatile attributes.
   bool hasAPVQualifiers() const { return getAPVQualifiers(); }
   unsigned getAPVQualifiers() const { return Mask & APVMask; }
   void setAPVQualifiers(unsigned mask) {
@@ -172,61 +173,12 @@ public:
   void removeAllocatable() { Mask &= ~Allocatable; }
   void addAllocatable() { Mask |= Allocatable; }
 
-  bool hasAsynchronous() const { return Mask & Asynchronous; }
-  void setAsynchronous(bool flag) {
-    Mask = (Mask & ~Asynchronous) | (flag ? Asynchronous : 0);
-  } 
-  void removeAsynchronous() { Mask &= ~Asynchronous; }
-  void addAsynchronous() { Mask |= Asynchronous; }
-
-  bool hasContiguous() const { return Mask & Contiguous; }
-  void setContiguous(bool flag) {
-    Mask = (Mask & ~Contiguous) | (flag ? Contiguous : 0);
-  } 
-  void removeContiguous() { Mask &= ~Contiguous; }
-  void addContiguous() { Mask |= Contiguous; }
-
-  bool hasOptional() const { return Mask & Optional; }
-  void setOptional(bool flag) {
-    Mask = (Mask & ~Optional) | (flag ? Optional : 0);
-  } 
-  void removeOptional() { Mask &= ~Optional; }
-  void addOptional() { Mask |= Optional; }
-
   bool hasParameter() const { return Mask & Parameter; }
   void setParameter(bool flag) {
     Mask = (Mask & ~Parameter) | (flag ? Parameter : 0);
   } 
   void removeParameter() { Mask &= ~Parameter; }
   void addParameter() { Mask |= Parameter; }
-
-  bool hasPointer() const { return Mask & Pointer; }
-  void setPointer(bool flag) {
-    Mask = (Mask & ~Pointer) | (flag ? Pointer : 0);
-  } 
-  void removePointer() { Mask &= ~Pointer; }
-  void addPointer() { Mask |= Pointer; }
-
-  bool hasSave() const { return Mask & Save; }
-  void setSave(bool flag) {
-    Mask = (Mask & ~Save) | (flag ? Save : 0);
-  } 
-  void removeSave() { Mask &= ~Save; }
-  void addSave() { Mask |= Save; }
-
-  bool hasTarget() const { return Mask & Target; }
-  void setTarget(bool flag) {
-    Mask = (Mask & ~Target) | (flag ? Target : 0);
-  } 
-  void removeTarget() { Mask &= ~Target; }
-  void addTarget() { Mask |= Target; }
-
-  bool hasValue() const { return Mask & Value; }
-  void setValue(bool flag) {
-    Mask = (Mask & ~Value) | (flag ? Value : 0);
-  } 
-  void removeValue() { Mask &= ~Value; }
-  void addValue() { Mask |= Value; }
 
   bool hasVolatile() const { return Mask & Volatile; }
   void setVolatile(bool flag) {
@@ -235,6 +187,7 @@ public:
   void removeVolatile() { Mask &= ~Volatile; }
   void addVolatile() { Mask |= Volatile; }
 
+  /// Extra attributes.
   bool hasExtAttr() const { return Mask & ExtAttrMask; }
   ExtAttr getExtAttr() const {
     return ExtAttr((Mask & ExtAttrMask) >> ExtAttrShift);
@@ -248,6 +201,7 @@ public:
     setExtAttr(type);
   }
 
+  /// Intent attributes.
   bool hasIntentAttr() const { return Mask & IntentAttrMask; }
   IntentAttr getIntentAttr() const {
     return IntentAttr((Mask & IntentAttrMask) >> IntentAttrShift);
@@ -261,6 +215,7 @@ public:
     setIntentAttr(type);
   }
 
+  /// Address space.
   bool hasAddressSpace() const { return Mask & AddressSpaceMask; }
   unsigned getAddressSpace() const { return Mask >> AddressSpaceShift; }
   void setAddressSpace(unsigned space) {
@@ -292,6 +247,15 @@ public:
   void addFastQualifiers(unsigned mask) {
     assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
     Mask |= mask;
+  }
+
+  /// hasNonFastQualifiers - Return true if the set contains any
+  /// qualifiers which require an ExtQuals node to be allocated.
+  bool hasNonFastQualifiers() const { return Mask & ~FastMask; }
+  Qualifiers getNonFastQualifiers() const {
+    Qualifiers Quals = *this;
+    Quals.setFastQualifiers(0);
+    return Quals;
   }
 
   /// hasQualifiers - Return true if the set contains any qualifiers.
