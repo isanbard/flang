@@ -205,6 +205,46 @@ static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &O,
   return O << V.getIdentifier()->getName();
 }
 
+/// TypeDecl - Represents a declaration of a type.
+class TypeDecl : public NamedDecl {
+  /// TypeForDecl - This indicates the Type object that represents this
+  /// TypeDecl. It is a cache maintained by ASTContext::getTagDeclType.
+  mutable const class Type *TypeForDecl;
+
+  /// LocStart - The start of the source range for this declaration.
+  llvm::SMLoc LocStart;
+
+  friend class ASTContext;
+  friend class DeclContext;
+  friend class TagDecl;
+  friend class TagType;
+
+protected:
+  TypeDecl(Kind DK, DeclContext *DC, llvm::SMLoc L, IdentifierInfo *Id,
+           llvm::SMLoc StartL = llvm::SMLoc())
+    : NamedDecl(DK, DC, L, Id), TypeForDecl(0), LocStart(StartL) {}
+
+public:
+  // Low-level accessor
+  const class Type *getTypeForDecl() const { return TypeForDecl; }
+  void setTypeForDecl(const class Type *TD) { TypeForDecl = TD; }
+
+  llvm::SMLoc getLocStart() const { return LocStart; }
+  void setLocStart(llvm::SMLoc L) { LocStart = L; }
+  virtual SourceRange getSourceRange() const {
+    if (LocStart.isValid())
+      return SourceRange(LocStart, getLocation());
+    else
+      return SourceRange(getLocation());
+  }
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) {
+    return D->getKind() >= FirstType && D->getKind() <= LastType;
+  }
+  static bool classof(const TypeDecl *D) { return true; }
+};
+
 } // end fortran namespace
 
 #endif // FORTRAN_AST_DECL_H__
