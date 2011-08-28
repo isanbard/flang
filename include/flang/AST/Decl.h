@@ -14,7 +14,10 @@
 #ifndef FORTRAN_AST_DECL_H__
 #define FORTRAN_AST_DECL_H__
 
+#include "flang/AST/DeclarationName.h"
+#include "flang/AST/Type.h"
 #include "flang/Basic/IdentifierTable.h"
+#include "flang/Basic/SourceLocation.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
@@ -24,6 +27,7 @@ namespace fortran {
 
 class ASTContext;
 class DeclSpec;
+class DeclContext;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
@@ -31,14 +35,135 @@ class IdentifierInfo;
 ///
 class Decl {
 public:
-  Decl() {}
+  enum Kind {
+    Named,
+      Type,
+        Tag,
+          Record,
+          Enum,
+      Value,
+        Declarator,
+          Var,
+            ParamVar,
+          Field,
+        EnumConstant,
+    FirstNamed = Named,           LastNamed = EnumConstant,
+    FirstType = Type,             LastType = Enum,
+    FirstTag = Tag,               LastTag = Enum,
+    FirstValue = Value,           LastValue = EnumConstant,
+    FirstDeclarator = Declarator, LastDeclarator = Field,
+    FirstVar = Var,               LastVar = ParamVar
+  };
+private:
+  friend class DeclContext;
+
+  /// NextDeclInContext - The next declaration within the same lexical
+  /// DeclContext. These pointers form the linked list that is traversed via
+  /// DeclContext's decls_begin()/decls_end().
+  Decl *NextDeclInContext;
+
+  /// DeclCtx - The declaration context.
+  DeclContext *DeclCtx;
+
+  /// Loc - The location of this decl.
+  llvm::SMLoc Loc;
+
+  /// DeclKind - The class of decl this is.
+  unsigned DeclKind : 8;
+
+protected:
+
+  Decl(Kind DK, DeclContext *DC, llvm::SMLoc L)
+    : NextDeclInContext(0), DeclCtx(DC), Loc(L), DeclKind(DK) {}
+
   virtual ~Decl();
+
+public:
+  /// \brief Source range that this declaration covers.
+  virtual SourceRange getSourceRange() const {
+    return SourceRange(getLocation(), getLocation());
+  }
+  llvm::SMLoc getLocStart() const { return getSourceRange().getBegin(); }
+  llvm::SMLoc getLocEnd() const { return getSourceRange().getEnd(); }
+
+  llvm::SMLoc getLocation() const { return Loc; }
+  void setLocation(llvm::SMLoc L) { Loc = L; }
+
+  Kind getKind() const { return static_cast<Kind>(DeclKind); }
+
+  Decl *getNextDeclInContext() { return NextDeclInContext; }
+  const Decl *getNextDeclInContext() const { return NextDeclInContext; }
+
+  DeclContext *getDeclContext() { return DeclCtx; }
+  const DeclContext *getDeclContext() const { return DeclCtx; }
+  void setDeclContext(DeclContext *DC) { DeclCtx = DC; }
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
-/// VarDecl - Declaration or definition of a variable.
-///
-class VarDecl : public Decl, public llvm::FoldingSetNode {
+/// NamedDecl - This represents a decl with a name.
+class NamedDecl : public Decl {
+  /// Name - The name of this declaration, which is typically a normal
+  /// identifier.
+  DeclarationName Name;
+protected:
+  NamedDecl(Kind DK, DeclContext *DC, llvm::SMLoc L, DeclarationName N)
+    : Decl(DK, DC, L), Name(N) {}
+public:
+  /// getIdentifier - Get the identifier that names this declaration, if there
+  /// is one.
+  IdentifierInfo *getIdentifier() const { return Name.getAsIdentifierInfo(); }
+
+  /// getName - Get the name of identifier for this declaration as a StringRef.
+  /// This requires that the declaration have a name and that it be a simple
+  /// identifier.
+  llvm::StringRef getName() const {
+    assert(Name.isIdentifier() && "Name is not a simple identifier");
+    return getIdentifier() ? getIdentifier()->getName() : "";
+  }
+
+  /// getDeclName - Get the actual, stored name of the declaration.
+  DeclarationName getDeclName() const { return Name; }
+
+  /// \brief Set the name of this declaration.
+  void setDeclName(DeclarationName N) { Name = N; }
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) {
+    return D->getKind() >= FirstNamed && D->getKind() <= LastNamed;
+  }
+  static bool classof(const NamedDecl *) { return true; }
+};
+
+/// ValueDecl - Represent the declaration of a variable (in which case it is an
+/// lvalue), a function (in which case it is a function designator), or an enum
+/// constant.
+class ValueDecl : public NamedDecl {
+  //FIXME:  QualType DeclType;
+  class Type *DeclType;
+protected:
+  ValueDecl(Kind DK, DeclContext *DC, llvm::SMLoc L,
+            DeclarationName N, class Type *T)
+    : NamedDecl(DK, DC, L, N), DeclType(T) {}
+public:
+  class Type *getType() const { return DeclType; }
+  void setType(class Type *newType) { DeclType = newType; }
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) {
+    return D->getKind() >= FirstValue && D->getKind() <= LastValue;
+  }
+  static bool classof(const ValueDecl *D) { return true; }
+};
+
+/// VarDecl - An instance of this class is created to represent a variable
+/// declaration or definition.
+#if 0
+// FIXME:
+class VarDecl : public DeclaratorDecl {
+#endif
+class VarDecl : public ValueDecl, public llvm::FoldingSetNode {
   llvm::SMLoc Loc;
   const DeclSpec *DS;
   const IdentifierInfo *IDInfo;
@@ -46,10 +171,14 @@ class VarDecl : public Decl, public llvm::FoldingSetNode {
   friend class ASTContext;  // ASTContext creates these.
 public:
   VarDecl(const IdentifierInfo *Info)
-    : DS(0), IDInfo(Info)
+    // FIXME:
+    : ValueDecl(Var, 0, llvm::SMLoc(), DeclarationName(Info), 0),
+      DS(0), IDInfo(Info)
   {}
   VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
-    : Loc(L), DS(dts), IDInfo(Info)
+    // FIXME:
+    : ValueDecl(Var, 0, L, DeclarationName(Info), 0),
+      Loc(L), DS(dts), IDInfo(Info)
   {}
 
   llvm::SMLoc getLocation() const { return Loc; }
