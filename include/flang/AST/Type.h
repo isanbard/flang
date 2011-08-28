@@ -19,6 +19,7 @@
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/PointerUnion.h"
 #include "llvm/ADT/SmallVector.h"
+#include "flang/Basic/LLVM.h"
 
 namespace llvm {
   class raw_ostream;
@@ -441,6 +442,17 @@ public:
 
 namespace llvm {
 
+/// Implement simplify_type for QualType, so that we can dyn_cast from QualType
+/// to a specific Type class.
+template<> struct simplify_type<const ::fortran::QualType> {
+  typedef const ::fortran::Type *SimpleType;
+  static SimpleType getSimplifiedValue(const ::fortran::QualType &Val) {
+    return Val.getTypePtr();
+  }
+};
+template<> struct simplify_type< ::fortran::QualType>
+  : public simplify_type<const ::fortran::QualType> {};
+
 // Teach SmallPtrSet that QualType is "basically a pointer".
 template<>
 class PointerLikeTypeTraits<fortran::QualType> {
@@ -579,6 +591,12 @@ public:
   QualType getCanonicalTypeInternal() const {
     return CanonicalType;
   }
+
+  /// Helper methods to distinguish type categories. All type predicates
+  /// operate on the canonical type ignoring qualifiers.
+
+  /// isBuiltinType - returns true if the type is a builtin type.
+  bool isBuiltinType() const;
 
   virtual void print(llvm::raw_ostream &O) const = 0;
 
@@ -785,6 +803,10 @@ inline SplitQualType QualType::split() const {
   Qualifiers Qs = EQ->getQualifiers();
   Qs.addFastQualifiers(getLocalFastQualifiers());
   return SplitQualType(EQ->getBaseType(), Qs);
+}
+
+inline bool Type::isBuiltinType() const {
+  return isa<BuiltinType>(CanonicalType);
 }
 
 } // end fortran namespace
