@@ -164,28 +164,20 @@ public:
 class VarDecl : public DeclaratorDecl {
 #endif
 class VarDecl : public ValueDecl, public llvm::FoldingSetNode {
-  llvm::SMLoc Loc;
   const DeclSpec *DS;
-  const IdentifierInfo *IDInfo;
 
   friend class ASTContext;  // ASTContext creates these.
 public:
   VarDecl(const IdentifierInfo *Info)
     // FIXME:
     : ValueDecl(Var, 0, llvm::SMLoc(), DeclarationName(Info), 0),
-      DS(0), IDInfo(Info)
+      DS(0)
   {}
   VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
     // FIXME:
     : ValueDecl(Var, 0, L, DeclarationName(Info), 0),
-      Loc(L), DS(dts), IDInfo(Info)
+      DS(dts)
   {}
-
-  llvm::SMLoc getLocation() const { return Loc; }
-  void setLocation(llvm::SMLoc L) { Loc = L; }
-
-  const IdentifierInfo *getIdentifier() const { return IDInfo; }
-  void setIdentifier(const IdentifierInfo *II) { IDInfo = II; }
 
   const DeclSpec *getDeclSpec() const { return DS; }
   void setDeclSpec(const DeclSpec *Val) { DS = Val; }
@@ -195,14 +187,17 @@ public:
   bool isImplicitlyDefined() const { return DS == 0; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, IDInfo);
+    Profile(ID, getIdentifier());
   }
-  static void Profile(llvm::FoldingSetNodeID &ID, const IdentifierInfo *IDInfo){
-    ID.AddPointer(IDInfo);
+  static void Profile(llvm::FoldingSetNodeID &ID, const IdentifierInfo *Info) {
+    ID.AddPointer(Info);
   }
 
   // Implement isa/cast/dyn_cast/etc.
-  static bool classof(const VarDecl *D) { return true; }
+  static bool classof(const Decl *D) {
+    return D->getKind() >= FirstVar && D->getKind() <= LastVar;
+  }
+  static bool classof(const VarDecl *) { return true; }
 };
 
 static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &O,

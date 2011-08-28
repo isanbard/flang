@@ -235,7 +235,8 @@ bool Parser::ParseTypeDeclarationStmt() {
                        "identifier already was declared");
       // FIXME: Make this error better!
     } else {
-      Actions.ActOnVarDecl(&Context, DS, Context.getOrCreateVarDecl(ID));
+      Actions.ActOnVarDecl(&Context, DS,
+                           Context.getOrCreateVarDecl(IDLoc, DS, ID));
     }
 
     Lex();

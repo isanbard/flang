@@ -130,21 +130,6 @@ const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
   return New;
 }
 
-const VarDecl *ASTContext::getOrCreateVarDecl(const IdentifierInfo *Info) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  VarDecl::Profile(ID, Info);
-
-  void *InsertPos = 0;
-  if (VarDecl *VD = VariableDecls.FindNodeOrInsertPos(ID, InsertPos))
-    return VD;
-
-  VarDecl *New = new (*this) VarDecl(Info);
-  VariableDecls.InsertNode(New, InsertPos);
-  return New;
-}
-
 const VarDecl *ASTContext::getVarDecl(const IdentifierInfo *Info) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.

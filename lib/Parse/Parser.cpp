@@ -669,14 +669,18 @@ Parser::StmtResult Parser::ParseUSEStmt() {
       return StmtResult();
     }
 
-    LocalNames.push_back(Context.getOrCreateVarDecl(UseListFirstVar));
-    UseNames.push_back(Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+    // FIXME:
+    LocalNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
+                                                    UseListFirstVar));
+    UseNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
+                                                  Tok.getIdentifierInfo()));
     Lex();
     EatIfPresent(tok::comma);
   }
 
   while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
-    LocalNames.push_back(Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+    LocalNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
+                                                    Tok.getIdentifierInfo()));
     Lex();
 
     if (OnlyUse) {
@@ -699,7 +703,9 @@ Parser::StmtResult Parser::ParseUSEStmt() {
 
     // FIXME: Check for identifier kind.
     llvm::SMLoc UseNameLoc = Tok.getLocation();
-    UseNames.push_back(Context.getOrCreateVarDecl(Tok.getIdentifierInfo()));
+    // FIXME:
+    UseNames.push_back(Context.getOrCreateVarDecl(UseNameLoc, 0,
+                                                  Tok.getIdentifierInfo()));
     Lex();
 
     if (!EatIfPresent(tok::comma))

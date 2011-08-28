@@ -73,7 +73,6 @@ public:
   RecordType *getRecordType(llvm::ArrayRef<Decl*> Elems);
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
-  const VarDecl *getOrCreateVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclSpec *DTS,
                                     const IdentifierInfo *Info);
 };
