@@ -335,7 +335,8 @@ public:
 
 typedef std::pair<const Type*, Qualifiers> SplitQualType;
 
-/// QualType - 
+/// QualType - For efficiency, some of the more common attributes are stored as
+/// part of the type.
 class QualType {
   // Thankfully, these are efficiently composable.
   llvm::PointerIntPair<llvm::PointerUnion<const Type*,const ExtQuals*>,
@@ -356,6 +357,7 @@ class QualType {
     CommonPtrVal &= ~(uintptr_t)((1 << TypeAlignmentInBits) - 1);
     return reinterpret_cast<ExtQualsTypeCommonBase*>(CommonPtrVal);
   }
+
   friend class QualifierCollector;
 public:
   QualType() {}
@@ -368,11 +370,6 @@ public:
   unsigned getLocalFastQualifiers() const { return Value.getInt(); }
   void setLocalFastQualifiers(unsigned Quals) { Value.setInt(Quals); }
 
-  /// isNull - Return true if this QualType doesn't point to a type yet.
-  bool isNull() const {
-    return Value.getPointer().isNull();
-  }
-
   /// \brief Retrieves a pointer to the underlying (unqualified) type. This
   /// function requires that the type not be NULL. If the type might be NULL,
   /// use the (slightly less efficient) \c getTypePtrOrNull().
@@ -381,6 +378,10 @@ public:
 
   /// \brief Retrieves a pointer to the name of the base type.
   const IdentifierInfo *getBaseTypeIdentifier() const;
+
+  /// \brief Divides a QualType into its unqualified type and a set of local
+  /// qualifiers.
+  SplitQualType split() const;
 
   void *getAsOpaquePtr() const { return Value.getOpaqueValue(); }
   static QualType getFromOpaquePtr(const void *Ptr) {
@@ -396,9 +397,19 @@ public:
     return Value.getPointer().is<const ExtQuals*>();
   }
 
-  /// \brief Divides a QualType into its unqualified type and a set of local
-  /// qualifiers.
-  SplitQualType split() const;
+  bool isCanonical() const;
+
+  /// isNull - Return true if this QualType doesn't point to a type yet.
+  bool isNull() const {
+    return Value.getPointer().isNull();
+  }
+
+  /// \brief Determine whether this particular QualType instance has any
+  /// qualifiers, without looking through any typedefs that might add 
+  /// qualifiers at a different level.
+  bool hasLocalQualifiers() const {
+    return getLocalFastQualifiers() || hasLocalNonFastQualifiers();
+  }
 
   const Type &operator*() const {
     return *getTypePtr();
@@ -491,6 +502,12 @@ public:
 
   Qualifiers getQualifiers() const { return Quals; }
 
+  bool hasExtAttr() const { return Quals.hasExtAttr(); }
+  unsigned getExtAttr() const { return Quals.getExtAttr(); }
+
+  bool hasIntentAttr() const { return Quals.hasIntentAttr(); }
+  unsigned getIntentAttr() const { return Quals.getIntentAttr(); }
+
   bool hasAddressSpace() const { return Quals.hasAddressSpace(); }
   unsigned getAddressSpace() const { return Quals.getAddressSpace(); }
 
@@ -521,6 +538,8 @@ public:
 };
 
 /// Type - This is the base class for the type hierarchy.
+///
+/// Types are immutable once created.
 class Type : public ExtQualsTypeCommonBase {
 protected:
   /// TypeClass - The intrinsic Fortran type specifications. REAL is the default
@@ -541,10 +560,10 @@ private:
   TypeClass TyClass;
 protected:
   Type *this_() { return this; }
-  Type(TypeClass tc, QualType Canon = QualType()) // FIXME:
+  Type(TypeClass TC, QualType Canon = QualType()) // FIXME:
     : ExtQualsTypeCommonBase(this,
                              Canon.isNull() ? QualType(this_(), 0) : Canon),
-      TyClass(tc) {}
+      TyClass(TC) {}
   virtual ~Type();
   virtual void Destroy(ASTContext &C);
   friend class ASTContext;
@@ -751,6 +770,10 @@ inline const Type *QualType::getTypePtr() const {
 }
 inline const Type *QualType::getTypePtrOrNull() const {
   return (isNull() ? 0 : getCommonPtr()->BaseType);
+}
+
+inline bool QualType::isCanonical() const {
+  return getTypePtr()->isCanonicalUnqualified();
 }
 
 inline SplitQualType QualType::split() const {
