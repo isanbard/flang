@@ -17,6 +17,7 @@
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FoldingSet.h"
+#include "llvm/ADT/PointerUnion.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
@@ -24,10 +25,48 @@ namespace llvm {
 } // end llvm namespace
 
 namespace fortran {
+  enum {
+    TypeAlignmentInBits = 4,
+    TypeAlignment = 1 << TypeAlignmentInBits
+  };
+  class Type;
+  class ExtQuals;
+  class QualType;
+}
+
+namespace llvm {
+  template <typename T>
+  class PointerLikeTypeTraits;
+  template<>
+  class PointerLikeTypeTraits< ::fortran::Type*> {
+  public:
+    static inline void *getAsVoidPointer(::fortran::Type *P) { return P; }
+    static inline ::fortran::Type *getFromVoidPointer(void *P) {
+      return static_cast< ::fortran::Type*>(P);
+    }
+    enum { NumLowBitsAvailable = fortran::TypeAlignmentInBits };
+  };
+  template<>
+  class PointerLikeTypeTraits< ::fortran::ExtQuals*> {
+  public:
+    static inline void *getAsVoidPointer(::fortran::ExtQuals *P) { return P; }
+    static inline ::fortran::ExtQuals *getFromVoidPointer(void *P) {
+      return static_cast< ::fortran::ExtQuals*>(P);
+    }
+    enum { NumLowBitsAvailable = fortran::TypeAlignmentInBits };
+  };
+
+  template <>
+  struct isPodLike<fortran::QualType> { static const bool value = true; };
+}
+
+namespace fortran {
 
 class ASTContext;
 class Decl;
 class Expr;
+class ExtQualsTypeCommonBase;
+class QualifierCollector;
 
 /// Qualifiers - The collection of all-type qualifiers we support.
 class Qualifiers {
@@ -239,6 +278,125 @@ public:
   void Profile(llvm::FoldingSetNodeID &ID) const {
     ID.AddInteger(Mask);
   }
+};
+
+/// QualType - 
+class QualType {
+  typedef llvm::PointerUnion<const Type*, const ExtQuals*> TypeQualUnion;
+  TypeQualUnion Value;
+
+  const ExtQuals *getExtQualsUnsafe() const {
+    return Value.get<const ExtQuals*>();
+  }
+
+  const Type *getTypePtrUnsafe() const {
+    return Value.get<const Type*>();
+  }
+
+  const ExtQualsTypeCommonBase *getCommonPtr() const {
+    assert(!isNull() && "Cannot retrieve a NULL type pointer");
+    uintptr_t CommonPtrVal
+      = reinterpret_cast<uintptr_t>(Value.getOpaqueValue());
+    CommonPtrVal &= ~(uintptr_t)((1 << TypeAlignmentInBits) - 1);
+    return reinterpret_cast<ExtQualsTypeCommonBase*>(CommonPtrVal);
+  }
+  friend class QualifierCollector;
+public:
+  QualType() {}
+
+  explicit QualType(const Type *Ptr)
+    : Value(Ptr) {}
+  explicit QualType(const ExtQuals *Ptr)
+    : Value(Ptr) {}
+
+  /// isNull - Return true if this QualType doesn't point to a type yet.
+  bool isNull() const {
+    return Value.isNull();
+  }
+
+  /// \brief Retrieves a pointer to the underlying (unqualified) type. This
+  /// function requires that the type not be NULL. If the type might be NULL,
+  /// use the (slightly less efficient) \c getTypePtrOrNull().
+  const Type *getTypePtr() const;
+  const Type *getTypePtrOrNull() const;
+
+  void *getAsOpaquePtr() const { return Value.getOpaqueValue(); }
+  static QualType getFromOpaquePtr(const void *Ptr) {
+    QualType T;
+    T.Value = llvm::PointerLikeTypeTraits<TypeQualUnion>
+      ::getFromVoidPointer(const_cast<void*>(Ptr));
+    return T;
+  }
+
+  const Type &operator*() const {
+    return *getTypePtr();
+  }
+  const Type *operator->() const {
+    return getTypePtr();
+  }
+
+  /// operator==/!= - Indicate whether the specified types and qualifiers are
+  /// identical.
+  friend bool operator==(const QualType &LHS, const QualType &RHS) {
+    return LHS.Value == RHS.Value;
+  }
+  friend bool operator!=(const QualType &LHS, const QualType &RHS) {
+    return LHS.Value != RHS.Value;
+  }
+
+#if 0
+  void dump(const char *s) const;
+  void dump() const;
+#endif
+
+  void Profile(llvm::FoldingSetNodeID &ID) const {
+    ID.AddPointer(getAsOpaquePtr());
+  }
+};
+
+} // end fortran namespace
+
+namespace llvm {
+
+// Teach SmallPtrSet that QualType is "basically a pointer".
+template<>
+class PointerLikeTypeTraits<fortran::QualType> {
+public:
+  static inline void *getAsVoidPointer(fortran::QualType P) {
+    return P.getAsOpaquePtr();
+  }
+  static inline fortran::QualType getFromVoidPointer(void *P) {
+    return fortran::QualType::getFromOpaquePtr(P);
+  }
+  // Various qualifiers go in low bits.
+  enum { NumLowBitsAvailable = 0 };
+};
+
+} // end namespace llvm
+
+namespace fortran {
+
+/// \brief Base class that is common to both the \c ExtQuals and \c Type 
+/// classes, which allows \c QualType to access the common fields between the
+/// two.
+///
+class ExtQualsTypeCommonBase {
+  ExtQualsTypeCommonBase(const Type *BaseTy, QualType Canon)
+    : BaseType(BaseTy), CanonicalType(Canon) {}
+
+  /// \brief The "base" type of an extended qualifiers type (\c ExtQuals) or
+  /// a self-referential pointer (for \c Type).
+  ///
+  /// This pointer allows an efficient mapping from a QualType to its 
+  /// underlying type pointer.
+  const Type *const BaseType;
+
+  /// \brief The canonical type of this type.  A QualType.
+  QualType CanonicalType;
+
+  friend class QualType;
+  friend class Type;
+  friend class ExtQuals;
 };
 
 /// Selector - A selector is a modifier on a type that indicates different
@@ -463,6 +621,15 @@ public:
   static bool classof(const Type *T) { return T->getTypeClass() == Record; }
   static bool classof(const RecordType *) { return true; }
 };
+
+// Inline function definitions.
+
+inline const Type *QualType::getTypePtr() const {
+  return getCommonPtr()->BaseType;
+}
+inline const Type *QualType::getTypePtrOrNull() const {
+  return (isNull() ? 0 : getCommonPtr()->BaseType);
+}
 
 } // end fortran namespace
 
