@@ -32,6 +32,13 @@ class Expr;
 /// CLASS -- plus any kind selectors for that type.
 class DeclSpec {
 public:
+  enum TQ { // NOTE: These flags must be kept in sync with Qualifiers::TQ.
+    Allocatable = 1 << 0,
+    Parameter   = 1 << 1,
+    Volatile    = 1 << 2,
+    APVMask     = (Allocatable | Parameter | Volatile)
+  };
+
   enum TypeSpec {
     None,
     IntrinsicTypeSpec,
