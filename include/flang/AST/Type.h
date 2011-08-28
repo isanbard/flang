@@ -597,6 +597,11 @@ public:
 
   /// isBuiltinType - returns true if the type is a builtin type.
   bool isBuiltinType() const;
+  bool isIntegerType() const;
+  bool isRealType() const;
+  bool isCharacterType() const;
+  bool isDoublePrecisionType() const;
+  bool isLogicalType() const;
 
   virtual void print(llvm::raw_ostream &O) const = 0;
 
@@ -807,6 +812,31 @@ inline SplitQualType QualType::split() const {
 
 inline bool Type::isBuiltinType() const {
   return isa<BuiltinType>(CanonicalType);
+}
+inline bool Type::isIntegerType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isIntegerType();
+  return false;
+}
+inline bool Type::isRealType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isRealType();
+  return false;
+}
+inline bool Type::isCharacterType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isCharacterType();
+  return false;
+}
+inline bool Type::isDoublePrecisionType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isDoublePrecisionType();
+  return false;
+}
+inline bool Type::isLogicalType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->isLogicalType();
+  return false;
 }
 
 } // end fortran namespace
