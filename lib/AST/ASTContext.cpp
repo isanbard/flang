@@ -23,6 +23,40 @@ ASTContext::~ASTContext() {
   }
 }
 
+//===----------------------------------------------------------------------===//
+//                   Type creation/memoization methods
+//===----------------------------------------------------------------------===//
+
+QualType
+ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals) const {
+  unsigned FastQuals = Quals.getFastQualifiers();
+  Quals.removeFastQualifiers();
+
+  // Check if we've already instantiated this type.
+  llvm::FoldingSetNodeID ID;
+  ExtQuals::Profile(ID, BaseType, Quals);
+  void *InsertPos = 0;
+  if (ExtQuals *EQ = ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos)) {
+    assert(EQ->getQualifiers() == Quals);
+    return QualType(EQ, FastQuals);
+  }
+
+  // If the base type is not canonical, make the appropriate canonical type.
+  QualType Canon;
+  if (!BaseType->isCanonicalUnqualified()) {
+    SplitQualType CanonSplit = BaseType->getCanonicalTypeInternal().split();
+    CanonSplit.second.addConsistentQualifiers(Quals);
+    Canon = getExtQualType(CanonSplit.first, CanonSplit.second);
+
+    // Re-find the insert position.
+    (void) ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos);
+  }
+
+  ExtQuals *EQ = new (*this, TypeAlignment) ExtQuals(BaseType, Canon, Quals);
+  ExtQualNodes.InsertNode(EQ, InsertPos);
+  return QualType(EQ, FastQuals);
+}
+
 /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
 /// type.
 BuiltinType *ASTContext::getBuiltinType(BuiltinType::TypeSpec TS,

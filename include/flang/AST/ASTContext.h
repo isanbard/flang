@@ -29,25 +29,37 @@ template <typename T> class ArrayRef;
 namespace fortran {
 
 class ASTContext {
-  std::vector<Type*> Types;
-  llvm::FoldingSet<BuiltinType> BuiltinTypes;
-  llvm::FoldingSet<PointerType> PointerTypes;
-  llvm::FoldingSet<ArrayType>   ArrayTypes;
-  llvm::FoldingSet<RecordType>  RecordTypes;
+  ASTContext &this_() { return *this; }
+
+  mutable std::vector<Type*>            Types;
+  mutable llvm::FoldingSet<ExtQuals>    ExtQualNodes;
+  mutable llvm::FoldingSet<BuiltinType> BuiltinTypes;
+  mutable llvm::FoldingSet<PointerType> PointerTypes;
+  mutable llvm::FoldingSet<ArrayType>   ArrayTypes;
+  mutable llvm::FoldingSet<RecordType>  RecordTypes;
 
   /// VariableDecls - The various variables in a program.
-  llvm::FoldingSet<VarDecl>     VariableDecls;
+  mutable llvm::FoldingSet<VarDecl>     VariableDecls;
 
   /// MallocAlloc - The allocator objects used to create AST objects.
-  llvm::MallocAllocator MallocAlloc;
+  mutable llvm::MallocAllocator         MallocAlloc;
+
+  //===--------------------------------------------------------------------===//
+  //                           Type Constructors
+  //===--------------------------------------------------------------------===//
+
+private:
+  /// getExtQualType - Return a type with extended qualifiers.
+  QualType getExtQualType(const Type *Base, Qualifiers Quals) const;
+
 public:
   ASTContext() {}
   ~ASTContext();
 
-  void *Allocate(unsigned Size, unsigned Align = 8) {
+  void *Allocate(unsigned Size, unsigned Align = 8) const {
     return MallocAlloc.Allocate(Size, Align);
   }
-  void Deallocate(void *Ptr) {
+  void Deallocate(void *Ptr) const {
     MallocAlloc.Deallocate(Ptr);
   }
 
@@ -107,7 +119,7 @@ public:
 /// @param Alignment The alignment of the allocated memory (if the underlying
 ///                  allocator supports it).
 /// @return The allocated memory. Could be NULL.
-inline void *operator new(size_t Bytes, fortran::ASTContext &C,
+inline void *operator new(size_t Bytes, const fortran::ASTContext &C,
                           size_t Alignment = 8) throw () {
   return C.Allocate(Bytes, Alignment);
 }
@@ -118,7 +130,7 @@ inline void *operator new(size_t Bytes, fortran::ASTContext &C,
 /// invoking it directly; see the new operator for more details. This operator
 /// is called implicitly by the compiler if a placement new expression using the
 /// ASTContext throws in the object constructor.
-inline void operator delete(void *Ptr, fortran::ASTContext &C, size_t)
+inline void operator delete(void *Ptr, const fortran::ASTContext &C, size_t)
               throw () {
   C.Deallocate(Ptr);
 }
@@ -145,7 +157,7 @@ inline void operator delete(void *Ptr, fortran::ASTContext &C, size_t)
 /// @param Alignment The alignment of the allocated memory (if the underlying
 ///                  allocator supports it).
 /// @return The allocated memory. Could be NULL.
-inline void *operator new[](size_t Bytes, fortran::ASTContext& C,
+inline void *operator new[](size_t Bytes, const fortran::ASTContext& C,
                             size_t Alignment = 8) throw () {
   return C.Allocate(Bytes, Alignment);
 }
@@ -156,7 +168,7 @@ inline void *operator new[](size_t Bytes, fortran::ASTContext& C,
 /// invoking it directly; see the new[] operator for more details. This operator
 /// is called implicitly by the compiler if a placement new[] expression using
 /// the ASTContext throws in the object constructor.
-inline void operator delete[](void *Ptr, fortran::ASTContext &C, size_t)
+inline void operator delete[](void *Ptr, const fortran::ASTContext &C, size_t)
               throw () {
   C.Deallocate(Ptr);
 }

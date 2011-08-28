@@ -66,22 +66,28 @@ class ASTContext;
 class Decl;
 class Expr;
 class ExtQualsTypeCommonBase;
+class IdentifierInfo;
 class QualifierCollector;
 
 /// Qualifiers - The collection of all-type qualifiers we support.
 class Qualifiers {
 public:
-  enum TQ {
-    Allocatable     = 1 << 0,
-    Asynchronous    = 1 << 1,
-    Contiguous      = 1 << 2,
-    Optional        = 1 << 3,
-    Parameter       = 1 << 4,
-    Save            = 1 << 5,
-    Target          = 1 << 6,
-    Value           = 1 << 7,
-    Volatile        = 1 << 8,
-    QualMask        = 0x1FF
+  enum TQ { // NOTE: These flags must be kept in sync with DeclSpec::TQ.
+    Allocatable = 1 << 0,
+    Parameter   = 1 << 1,
+    Volatile    = 1 << 2,
+    APVMask     = (Allocatable | Parameter | Volatile)
+  };
+
+  enum ExtAttr {
+    EA_None         = 0,
+    Asynchronous    = 1 << 0,
+    Contiguous      = 1 << 1,
+    Optional        = 1 << 2,
+    Pointer         = 1 << 3,
+    Save            = 1 << 4,
+    Target          = 1 << 5,
+    Value           = 1 << 6
   };
 
   enum IntentAttr {
@@ -94,19 +100,40 @@ public:
   enum {
     /// The maximum supported address space number.
     /// 21 bits should be enough for anyone.
-    MaxAddressSpace = 0x1FFFFFU
+    MaxAddressSpace = 0xFFFFFU,
+
+    /// The width of the "fast" qualifier mask.
+    FastWidth = 3,
+
+    /// The fast qualifier mask.
+    FastMask = (1 << FastWidth) - 1
   };
 private:
-  // bits: |0   ..   8|9...10|11   ...  31|
-  //       |Attributes|Intent|AddressSpace|
+  // bits: |0 1 2|3  .. 9|10..11|12   ...  31|
+  //       |A P V|ExtAttr|Intent|AddressSpace|
   uint32_t Mask;
 
-  static const uint32_t IntentAttrShift = 9;
+  static const uint32_t ExtAttrShift = 3;
+  static const uint32_t ExtAttrMask = 0x3F << ExtAttrShift;
+  static const uint32_t IntentAttrShift = 10;
   static const uint32_t IntentAttrMask = 0x3 << IntentAttrShift;
-  static const uint32_t AddressSpaceMask = ~(QualMask | InOut);
-  static const uint32_t AddressSpaceShift = 11;
+  static const uint32_t AddressSpaceShift = 12;
+  static const uint32_t AddressSpaceMask =
+    ~(APVMask | ExtAttrMask | IntentAttrMask);
 public:
   Qualifiers() : Mask(0) {}
+
+  static Qualifiers fromFastMask(unsigned Mask) {
+    Qualifiers Qs;
+    Qs.addFastQualifiers(Mask);
+    return Qs;
+  }
+
+  static Qualifiers fromAPVMask(unsigned APV) {
+    Qualifiers Qs;
+    Qs.addAPVQualifiers(APV);
+    return Qs;
+  }
 
   // Deserialize qualifiers from an opaque representation.
   static Qualifiers fromOpaqueValue(unsigned opaque) {
@@ -118,6 +145,24 @@ public:
   // Serialize these qualifiers into an opaque representation.
   unsigned getAsOpaqueValue() const {
     return Mask;
+  }
+
+  bool hasAPVQualifiers() const { return getAPVQualifiers(); }
+  unsigned getAPVQualifiers() const { return Mask & APVMask; }
+  void setAPVQualifiers(unsigned mask) {
+    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
+    Mask = (Mask & ~APVMask) | mask;
+  }
+  void removeAPVQualifiers(unsigned mask) {
+    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
+    Mask &= ~mask;
+  }
+  void removeAPVQualifiers() {
+    removeAPVQualifiers(APVMask);
+  }
+  void addAPVQualifiers(unsigned mask) {
+    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
+    Mask |= mask;
   }
 
   bool hasAllocatable() const { return Mask & Allocatable; }
@@ -155,6 +200,13 @@ public:
   void removeParameter() { Mask &= ~Parameter; }
   void addParameter() { Mask |= Parameter; }
 
+  bool hasPointer() const { return Mask & Pointer; }
+  void setPointer(bool flag) {
+    Mask = (Mask & ~Pointer) | (flag ? Pointer : 0);
+  } 
+  void removePointer() { Mask &= ~Pointer; }
+  void addPointer() { Mask |= Pointer; }
+
   bool hasSave() const { return Mask & Save; }
   void setSave(bool flag) {
     Mask = (Mask & ~Save) | (flag ? Save : 0);
@@ -183,6 +235,19 @@ public:
   void removeVolatile() { Mask &= ~Volatile; }
   void addVolatile() { Mask |= Volatile; }
 
+  bool hasExtAttr() const { return Mask & ExtAttrMask; }
+  ExtAttr getExtAttr() const {
+    return ExtAttr((Mask & ExtAttrMask) >> ExtAttrShift);
+  }
+  void setExtAttr(ExtAttr type) {
+    Mask = (Mask & ~ExtAttrMask) | (type << ExtAttrShift);
+  }
+  void removeExtAttr() { setExtAttr(EA_None); }
+  void addExtAttr(ExtAttr type) {
+    assert(type);
+    setExtAttr(type);
+  }
+
   bool hasIntentAttr() const { return Mask & IntentAttrMask; }
   IntentAttr getIntentAttr() const {
     return IntentAttr((Mask & IntentAttrMask) >> IntentAttrShift);
@@ -209,6 +274,26 @@ public:
     setAddressSpace(space);
   }
 
+  // Fast qualifiers are those that can be allocated directly on a QualType
+  // object.
+  bool hasFastQualifiers() const { return getFastQualifiers(); }
+  unsigned getFastQualifiers() const { return Mask & FastMask; }
+  void setFastQualifiers(unsigned mask) {
+    assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
+    Mask = (Mask & ~FastMask) | mask;
+  }
+  void removeFastQualifiers(unsigned mask) {
+    assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
+    Mask &= ~mask;
+  }
+  void removeFastQualifiers() {
+    removeFastQualifiers(FastMask);
+  }
+  void addFastQualifiers(unsigned mask) {
+    assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
+    Mask |= mask;
+  }
+
   /// hasQualifiers - Return true if the set contains any qualifiers.
   bool hasQualifiers() const { return Mask; }
   bool empty() const { return !Mask; }
@@ -217,12 +302,14 @@ public:
   void addQualifiers(Qualifiers Q) {
     // If the other set doesn't have any non-boolean qualifiers, just
     // bit-or it in.
-    if (!(Q.Mask & ~QualMask)) {
+    if (!(Q.Mask & ~APVMask)) {
       Mask |= Q.Mask;
     } else {
-      Mask |= (Q.Mask & QualMask);
+      Mask |= (Q.Mask & APVMask);
       if (Q.hasAddressSpace())
         addAddressSpace(Q.getAddressSpace());
+      if (Q.hasExtAttr())
+        addExtAttr(Q.getExtAttr());
       if (Q.hasIntentAttr())
         addIntentAttr(Q.getIntentAttr());
     }
@@ -235,6 +322,8 @@ public:
            !hasAddressSpace() || !qs.hasAddressSpace());
     assert(getIntentAttr() == qs.getIntentAttr() ||
            !hasIntentAttr() || !qs.hasIntentAttr());
+    assert(getExtAttr() == qs.getExtAttr() ||
+           !hasExtAttr() || !qs.hasExtAttr());
     Mask |= qs.Mask;
   }
 
@@ -280,17 +369,20 @@ public:
   }
 };
 
+typedef std::pair<const Type*, Qualifiers> SplitQualType;
+
 /// QualType - 
 class QualType {
-  typedef llvm::PointerUnion<const Type*, const ExtQuals*> TypeQualUnion;
-  TypeQualUnion Value;
+  // Thankfully, these are efficiently composable.
+  llvm::PointerIntPair<llvm::PointerUnion<const Type*,const ExtQuals*>,
+                       Qualifiers::FastWidth> Value;
 
   const ExtQuals *getExtQualsUnsafe() const {
-    return Value.get<const ExtQuals*>();
+    return Value.getPointer().get<const ExtQuals*>();
   }
 
   const Type *getTypePtrUnsafe() const {
-    return Value.get<const Type*>();
+    return Value.getPointer().get<const Type*>();
   }
 
   const ExtQualsTypeCommonBase *getCommonPtr() const {
@@ -304,14 +396,17 @@ class QualType {
 public:
   QualType() {}
 
-  explicit QualType(const Type *Ptr)
-    : Value(Ptr) {}
-  explicit QualType(const ExtQuals *Ptr)
-    : Value(Ptr) {}
+  explicit QualType(const Type *Ptr, unsigned Quals)
+    : Value(Ptr, Quals) {}
+  explicit QualType(const ExtQuals *Ptr, unsigned Quals)
+    : Value(Ptr, Quals) {}
+
+  unsigned getLocalFastQualifiers() const { return Value.getInt(); }
+  void setLocalFastQualifiers(unsigned Quals) { Value.setInt(Quals); }
 
   /// isNull - Return true if this QualType doesn't point to a type yet.
   bool isNull() const {
-    return Value.isNull();
+    return Value.getPointer().isNull();
   }
 
   /// \brief Retrieves a pointer to the underlying (unqualified) type. This
@@ -320,13 +415,26 @@ public:
   const Type *getTypePtr() const;
   const Type *getTypePtrOrNull() const;
 
+  /// \brief Retrieves a pointer to the name of the base type.
+  const IdentifierInfo *getBaseTypeIdentifier() const;
+
   void *getAsOpaquePtr() const { return Value.getOpaqueValue(); }
   static QualType getFromOpaquePtr(const void *Ptr) {
     QualType T;
-    T.Value = llvm::PointerLikeTypeTraits<TypeQualUnion>
-      ::getFromVoidPointer(const_cast<void*>(Ptr));
+    T.Value.setFromOpaqueValue(const_cast<void*>(Ptr));
     return T;
   }
+
+  /// \brief Determine whether this particular QualType instance has any
+  /// "non-fast" qualifiers, e.g., those that are stored in an ExtQualType
+  /// instance.
+  bool hasLocalNonFastQualifiers() const {
+    return Value.getPointer().is<const ExtQuals*>();
+  }
+
+  /// \brief Divides a QualType into its unqualified type and a set of local
+  /// qualifiers.
+  SplitQualType split() const;
 
   const Type &operator*() const {
     return *getTypePtr();
@@ -399,6 +507,42 @@ class ExtQualsTypeCommonBase {
   friend class ExtQuals;
 };
 
+/// ExtQuals - We can encode up to four bits in the low bits of a type pointer,
+/// but there are many more type qualifiers that we want to be able to apply to
+/// an arbitrary type.  Therefore we have this struct, intended to be
+/// heap-allocated and used by QualType to store qualifiers.
+class ExtQuals : public ExtQualsTypeCommonBase, public llvm::FoldingSetNode {
+  /// Quals - the immutable set of qualifiers applied by this node; always
+  /// contains extended qualifiers.
+  Qualifiers Quals;
+
+  ExtQuals *this_() { return this; }
+
+public:
+  ExtQuals(const Type *BaseTy, QualType Canon, Qualifiers Quals) 
+    : ExtQualsTypeCommonBase(BaseTy,
+                             Canon.isNull() ? QualType(this_(), 0) : Canon),
+      Quals(Quals)
+  {}
+
+  Qualifiers getQualifiers() const { return Quals; }
+
+  bool hasAddressSpace() const { return Quals.hasAddressSpace(); }
+  unsigned getAddressSpace() const { return Quals.getAddressSpace(); }
+
+  const Type *getBaseType() const { return BaseType; }
+
+  void Profile(llvm::FoldingSetNodeID &ID) const {
+    Profile(ID, getBaseType(), Quals);
+  }
+  static void Profile(llvm::FoldingSetNodeID &ID,
+                      const Type *BaseType,
+                      Qualifiers Quals) {
+    ID.AddPointer(BaseType);
+    Quals.Profile(ID);
+  }
+};
+
 /// Selector - A selector is a modifier on a type that indicates different
 /// properties for the type: precision, length, etc.
 class Selector {
@@ -413,7 +557,7 @@ public:
 };
 
 /// Type - This is the base class for the type hierarchy.
-class Type {
+class Type : public ExtQualsTypeCommonBase {
 protected:
   /// TypeClass - The intrinsic Fortran type specifications. REAL is the default
   /// if "IMPLICIT NONE" isn't specified.
@@ -432,12 +576,26 @@ private:
 
   TypeClass TyClass;
 protected:
-  Type(TypeClass tc) : TyClass(tc) {}
+  Type *this_() { return this; }
+  Type(TypeClass tc, QualType Canon = QualType()) // FIXME:
+    : ExtQualsTypeCommonBase(this,
+                             Canon.isNull() ? QualType(this_(), 0) : Canon),
+      TyClass(tc) {}
   virtual ~Type();
   virtual void Destroy(ASTContext &C);
   friend class ASTContext;
 public:
   TypeClass getTypeClass() const { return TyClass; }
+
+  /// \brief Determines if this type would be canonical if it had no further
+  /// qualification.
+  bool isCanonicalUnqualified() const {
+    return CanonicalType == QualType(this, 0);
+  }
+
+  QualType getCanonicalTypeInternal() const {
+    return CanonicalType;
+  }
 
   virtual void print(llvm::raw_ostream &O) const = 0;
 
@@ -629,6 +787,17 @@ inline const Type *QualType::getTypePtr() const {
 }
 inline const Type *QualType::getTypePtrOrNull() const {
   return (isNull() ? 0 : getCommonPtr()->BaseType);
+}
+
+inline SplitQualType QualType::split() const {
+  if (!hasLocalNonFastQualifiers())
+    return SplitQualType(getTypePtrUnsafe(),
+                         Qualifiers::fromFastMask(getLocalFastQualifiers()));
+
+  const ExtQuals *EQ = getExtQualsUnsafe();
+  Qualifiers Qs = EQ->getQualifiers();
+  Qs.addFastQualifiers(getLocalFastQualifiers());
+  return SplitQualType(EQ->getBaseType(), Qs);
 }
 
 } // end fortran namespace
