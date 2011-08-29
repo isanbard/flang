@@ -22,6 +22,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/PrettyStackTrace.h"
+#include "flang/Basic/LLVM.h"
 
 namespace llvm {
   class SourceMgr;
@@ -338,7 +339,7 @@ public:
   /// getName - Get the name of identifier for this declaration as a StringRef.
   /// This requires that the declaration have a name and that it be a simple
   /// identifier.
-  llvm::StringRef getName() const {
+  StringRef getName() const {
     assert(Name.isIdentifier() && "Name is not a simple identifier");
     return getIdentifier() ? getIdentifier()->getName() : "";
   }
@@ -397,9 +398,13 @@ public:
 /// TagDecl - Represents the declaration of a struct/union/class/enum.
 class TagDecl : public TypeDecl, public DeclContext {
 public:
-  // This is really ugly.
-  typedef TagTypeKind TagKind;
-
+  /// \brief The kind of a tag type.
+  enum TagKind {
+    /// \brief A structure type.
+    TTK_Struct,
+    /// \brief An enum type.
+    TTK_Enum
+  };
 private:
   // FIXME: This can be packed into the bitfields in Decl.
   /// TagDeclKind - The TagKind enum.
@@ -411,11 +416,6 @@ private:
 
   /// IsBeingDefined - True if this is currently being defined.
   bool IsBeingDefined : 1;
-
-  /// IsEmbeddedInDeclarator - True if this tag declaration is "embedded" (i.e.,
-  /// defined or declared for the very first time) in the syntax of a
-  /// declarator.
-  bool IsEmbeddedInDeclarator : 1;
 
 protected:
   // These are used by (and only defined for) EnumDecl.
@@ -430,14 +430,13 @@ protected:
     TagDeclKind = TK;
     IsDefinition = false;
     IsBeingDefined = false;
-    IsEmbeddedInDeclarator = false;
   }
 
   /// @brief Completes the definition of this tag declaration.
-  ///
-  /// This is a helper function for derived classes.
-  void completeDefinition();    
-    
+  void completeDefinition() {
+    IsDefinition = true;
+    IsBeingDefined = false;
+  }
 public:
   /// getInnerLocStart - Return SMLoc representing start of source range
   /// ignoring outer template declarations.
@@ -469,34 +468,26 @@ public:
     return IsBeingDefined;
   }
 
-  bool isEmbeddedInDeclarator() const {
-    return IsEmbeddedInDeclarator;
-  }
-  void setEmbeddedInDeclarator(bool isInDeclarator) {
-    IsEmbeddedInDeclarator = isInDeclarator;
-  }
-
   /// @brief Starts the definition of this tag declaration.
   ///
   /// This method should be invoked at the beginning of the definition of this
   /// tag declaration. It will set the tag type into a state where it is in the
   /// process of being defined.
-  void startDefinition();
+  void startDefinition() { IsBeingDefined = true; }
 
   /// getDefinition - Returns the TagDecl that actually defines this
-  /// struct/union/class/enum.  When determining whether or not a
-  /// struct/union/class/enum is completely defined, one should use this method
-  /// as opposed to 'isDefinition'.  'isDefinition' indicates whether or not a
-  /// specific TagDecl is defining declaration, not whether or not the
-  /// struct/union/class/enum type is defined.  This method returns NULL if
-  /// there is no TagDecl that defines the struct/union/class/enum.
-  TagDecl* getDefinition() const;
+  /// struct/enum.  When determining whether or not a struct/enum is completely
+  /// defined, one should use this method as opposed to 'isDefinition'.
+  /// 'isDefinition' indicates whether or not a specific TagDecl is defining
+  /// declaration, not whether or not the struct/enum type is defined.  This
+  /// method returns NULL if there is no TagDecl that defines the struct/enum.
+  TagDecl *getDefinition() const {
+    return isDefinition() ? const_cast<TagDecl*>(this) : 0;
+  }
 
   void setDefinition(bool V) { IsDefinition = V; }
 
-  TagKind getTagKind() const {
-    return TagKind(TagDeclKind);
-  }
+  TagKind getTagKind() const { return TagKind(TagDeclKind); }
 
   void setTagKind(TagKind TK) { TagDeclKind = TK; }
 
@@ -516,8 +507,7 @@ public:
   }
 };
 
-/// EnumDecl - Represents an enum.  As an extension, we allow forward-declared
-/// enums.
+/// EnumDecl - Represents an enum.
 class EnumDecl : public TagDecl {
   EnumDecl(DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
            IdentifierInfo *Id, EnumDecl *PrevDecl, bool Fixed)
