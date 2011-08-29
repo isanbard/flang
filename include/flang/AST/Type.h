@@ -786,6 +786,14 @@ public:
   static bool classof(const RecordType *) { return true; }
 };
 
+/// \brief The kind of a tag type.
+enum TagTypeKind {
+  /// \brief A structure type.
+  TTK_Struct,
+  /// \brief An enum type.
+  TTK_Enum
+};
+
 // Inline function definitions.
 
 inline const Type *QualType::getTypePtr() const {

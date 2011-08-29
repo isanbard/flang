@@ -12,9 +12,30 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/AST/Decl.h"
+#include "flang/AST/ASTContext.h"
 using namespace fortran;
 
 Decl::~Decl() {}
+
+DeclContext *Decl::castToDeclContext(const Decl *D) {
+  Decl::Kind DK = D->getKind();
+  switch(DK) {
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT(NAME) \
+    case Decl::NAME:       \
+      return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
+#define DECL_CONTEXT_BASE(NAME)
+#include "flang/AST/DeclNodes.inc"
+    default:
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT_BASE(NAME)                                   \
+      if (DK >= first##NAME && DK <= last##NAME)                  \
+        return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
+#include "flang/AST/DeclNodes.inc"
+      assert(false && "a decl that inherits DeclContext isn't handled");
+      return 0;
+  }
+}
 
 DeclContext::~DeclContext() {}
 
@@ -122,6 +143,14 @@ void DeclContext::makeDeclVisibleInContextImpl(NamedDecl *D) {
   // Put this declaration into the appropriate slot.
   DeclNameEntries.AddSubsequentDecl(D);
 #endif
+}
+
+//===----------------------------------------------------------------------===//
+// Other Decl Allocation/Deallocation Method Implementations
+//===----------------------------------------------------------------------===//
+
+TranslationUnitDecl *TranslationUnitDecl::Create(ASTContext &C) {
+  return new (C) TranslationUnitDecl(C);
 }
 
 #if 0

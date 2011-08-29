@@ -29,6 +29,15 @@ template <typename T> class ArrayRef;
 
 namespace fortran {
 
+// Decls
+class DeclContext;
+class Decl;
+class FieldDecl;
+class RecordDecl;
+class TagDecl;
+class TranslationUnitDecl;
+class TypeDecl;
+
 class ASTContext {
   ASTContext &this_() { return *this; }
 

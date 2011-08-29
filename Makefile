@@ -14,7 +14,7 @@ ifndef FLANG_LEVEL
 
 IS_TOP_LEVEL := 1
 FLANG_LEVEL := .
-DIRS := lib tools
+DIRS := include lib tools
 
 PARALLEL_DIRS :=
 
