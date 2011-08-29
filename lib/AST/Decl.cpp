@@ -14,5 +14,6 @@
 #include "flang/AST/Decl.h"
 using namespace fortran;
 
-Decl::~Decl() {
-}
+Decl::~Decl() {}
+
+DeclContext::~DeclContext() {}
