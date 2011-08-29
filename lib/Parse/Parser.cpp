@@ -63,7 +63,7 @@ void PrettyStackTraceParserEntry::print(llvm::raw_ostream &OS) const {
 Parser::Parser(llvm::SourceMgr &SM, const LangOptions &Opts, Diagnostic  &D,
                Action &Acts)
   : TheLexer(SM, Opts, D), Features(Opts), CrashInfo(*this), SrcMgr(SM),
-    CurBuffer(0), Diag(D), Actions(Acts), Identifiers(Opts) {
+    CurBuffer(0), Context(SM), Diag(D), Actions(Acts), Identifiers(Opts) {
   getLexer().setBuffer(SrcMgr.getMemoryBuffer(CurBuffer));
   Tok.startToken();
   NextTok.startToken();

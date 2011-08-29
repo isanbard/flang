@@ -18,6 +18,7 @@
 #include "flang/AST/Type.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/Support/Allocator.h"
+#include "llvm/Support/SourceMgr.h"
 #include <new>
 #include <set>
 #include <vector>
@@ -44,6 +45,9 @@ class ASTContext {
   /// MallocAlloc - The allocator objects used to create AST objects.
   mutable llvm::MallocAllocator         MallocAlloc;
 
+  /// SourceMgr - The associated SourceMgr object.
+  llvm::SourceMgr &SrcMgr;
+
   //===--------------------------------------------------------------------===//
   //                           Type Constructors
   //===--------------------------------------------------------------------===//
@@ -53,8 +57,11 @@ private:
   QualType getExtQualType(const Type *Base, Qualifiers Quals) const;
 
 public:
-  ASTContext() {}
+  ASTContext(llvm::SourceMgr &SM) : SrcMgr(SM) {}
   ~ASTContext();
+
+  llvm::SourceMgr &getSourceManager() { return SrcMgr; }
+  const llvm::SourceMgr &getSourceManager() const { return SrcMgr; }
 
   void *Allocate(unsigned Size, unsigned Align = 8) const {
     return MallocAlloc.Allocate(Size, Align);
