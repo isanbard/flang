@@ -33,6 +33,7 @@ class ASTContext;
 class DeclSpec;
 class DeclContext;
 class IdentifierInfo;
+class StoredDeclsMap;
 
 //===----------------------------------------------------------------------===//
 /// Decl - Base class for declarations.
@@ -40,6 +41,7 @@ class IdentifierInfo;
 class Decl {
 public:
   enum Kind {
+    TranslationUnit,
     Named,
       Type,
         Tag,
@@ -172,6 +174,10 @@ public:
 class DeclContext {
   /// DeclKind - This indicates which class this is.
   unsigned DeclKind : 8;
+
+  /// \brief Pointer to the data structure used to lookup declarations within
+  /// this context.
+  mutable StoredDeclsMap *LookupPtr;
 protected:
   /// FirstDecl - The first declaration stored within this declaration
   /// context.
@@ -182,7 +188,7 @@ protected:
   mutable Decl *LastDecl;
 
   DeclContext(Decl::Kind K)
-    : DeclKind(K), FirstDecl(0), LastDecl(0) {}
+    : DeclKind(K), LookupPtr(0), FirstDecl(0), LastDecl(0) {}
 public:
   ~DeclContext();
 
@@ -190,6 +196,88 @@ public:
     return static_cast<Decl::Kind>(DeclKind);
   }
 
+  /// \brief Retrieve the internal representation of the lookup structure.
+  StoredDeclsMap *getLookupPtr() const { return LookupPtr; }
+
+  /// getPrimaryContext - There may be many different declarations of the same
+  /// entity (including forward declarations of classes, multiple definitions of
+  /// namespaces, etc.), each with a different set of declarations. This routine
+  /// returns the "primary" DeclContext structure, which will contain the
+  /// information needed to perform name lookup into this context.
+  DeclContext *getPrimaryContext();
+  const DeclContext *getPrimaryContext() const {
+    return const_cast<DeclContext*>(this)->getPrimaryContext();
+  }
+
+  /// decl_iterator - Iterates through the declarations stored within this
+  /// context.
+  class decl_iterator {
+    /// Current - The current declaration.
+    Decl *Current;
+
+  public:
+    typedef Decl*                     value_type;
+    typedef Decl*                     reference;
+    typedef Decl*                     pointer;
+    typedef std::forward_iterator_tag iterator_category;
+    typedef std::ptrdiff_t            difference_type;
+
+    decl_iterator() : Current(0) { }
+    explicit decl_iterator(Decl *C) : Current(C) { }
+
+    reference operator*() const { return Current; }
+    pointer operator->() const { return Current; }
+
+    decl_iterator& operator++() {
+      Current = Current->getNextDeclInContext();
+      return *this;
+    }
+
+    decl_iterator operator++(int) {
+      decl_iterator tmp(*this);
+      ++(*this);
+      return tmp;
+    }
+
+    friend bool operator==(decl_iterator x, decl_iterator y) {
+      return x.Current == y.Current;
+    }
+    friend bool operator!=(decl_iterator x, decl_iterator y) {
+      return x.Current != y.Current;
+    }
+  };
+
+  /// decls_begin/decls_end - Iterate over the declarations stored in this
+  /// context.
+  decl_iterator decls_begin() const;
+  decl_iterator decls_end() const;
+  bool decls_empty() const;
+
+  /// @brief Add the declaration D into this context.
+  ///
+  /// This routine should be invoked when the declaration D has first been
+  /// declared, to place D into the context where it was (lexically)
+  /// defined. Every declaration must be added to one (and only one!) context,
+  /// where it can be visited via [decls_begin(), decls_end()). Once a
+  /// declaration has been added to its lexical context, the corresponding
+  /// DeclContext owns the declaration.
+  ///
+  /// If D is also a NamedDecl, it will be made visible within its semantic
+  /// context via makeDeclVisibleInContext.
+  void addDecl(Decl *D);
+
+  /// @brief Makes a declaration visible within this context.
+  ///
+  /// This routine makes the declaration D visible to name lookup within this
+  /// context and, if this is a transparent context, within its parent contexts
+  /// up to the first enclosing non-transparent context. Making a declaration
+  /// visible within a context does not transfer ownership of a declaration, and
+  /// a declaration can be visible in many contexts that aren't its lexical
+  /// context.
+  void makeDeclVisibleInContext(NamedDecl *D);
+
+private:
+  void makeDeclVisibleInContextImpl(NamedDecl *D);
 };
 
 /// NamedDecl - This represents a decl with a name.
