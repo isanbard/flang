@@ -65,6 +65,8 @@ private:
   /// getExtQualType - Return a type with extended qualifiers.
   QualType getExtQualType(const Type *Base, Qualifiers Quals) const;
 
+  QualType getTypeDeclTypeSlow(const TypeDecl *Decl) const;
+
 public:
   ASTContext(llvm::SourceMgr &SM) : SrcMgr(SM) {}
   ~ASTContext();
@@ -98,11 +100,31 @@ public:
 
   /// getRecordType - Return the uniqued reference to the type for a structure
   /// of the specified type.
-  RecordType *getRecordType(llvm::ArrayRef<Decl*> Elems);
+  QualType getRecordType(const RecordDecl *Decl) const;
+
+  /// getRecordType - Return the uniqued reference to the type for an
+  /// enumeration of the specified type.
+  QualType getEnumType(const EnumDecl *Decl) const;
 
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclSpec *DTS,
                                     const IdentifierInfo *Info);
+
+  /// getTypeDeclType - Return the unique reference to the type for
+  /// the specified type declaration.
+  QualType getTypeDeclType(const TypeDecl *Decl,
+                           const TypeDecl *PrevDecl = 0) const {
+    assert(Decl && "Passed null for Decl param");
+    if (Decl->TypeForDecl) return QualType(Decl->TypeForDecl, 0);
+
+    if (PrevDecl) {
+      assert(PrevDecl->TypeForDecl && "previous decl has no TypeForDecl");
+      Decl->TypeForDecl = PrevDecl->TypeForDecl;
+      return QualType(PrevDecl->TypeForDecl, 0);
+    }
+
+    return getTypeDeclTypeSlow(Decl);
+  }
 };
 
 } // end fortran namespace

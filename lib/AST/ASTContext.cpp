@@ -13,6 +13,7 @@
 
 #include "flang/AST/ASTContext.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/Support/ErrorHandling.h"
 using namespace fortran;
 
 ASTContext::~ASTContext() {
@@ -131,22 +132,6 @@ ArrayType *ASTContext::getArrayType(const Type *Ty,
   return New;
 }
 
-RecordType *ASTContext::getRecordType(llvm::ArrayRef<Decl*> Elems) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  RecordType::Profile(ID, Elems);
-
-  void *InsertPos = 0;
-  if (RecordType *ST = RecordTypes.FindNodeOrInsertPos(ID, InsertPos))
-    return ST;
-
-  RecordType *New = new (*this) RecordType(Elems);
-  Types.push_back(New);
-  RecordTypes.InsertNode(New, InsertPos);
-  return New;
-}
-
 const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
                                               const DeclSpec *DS,
                                               const IdentifierInfo *Info) {
@@ -172,4 +157,45 @@ const VarDecl *ASTContext::getVarDecl(const IdentifierInfo *Info) {
 
   void *InsertPos = 0;
   return VariableDecls.FindNodeOrInsertPos(ID, InsertPos);
+}
+
+/// getTypeDeclTypeSlow - Return the unique reference to the type for the
+/// specified type declaration.
+QualType ASTContext::getTypeDeclTypeSlow(const TypeDecl *Decl) const {
+  assert(Decl && "Passed null for Decl param");
+  assert(!Decl->TypeForDecl && "TypeForDecl present in slow case");
+
+  if (const RecordDecl *Record = dyn_cast<RecordDecl>(Decl)) {
+    return getRecordType(Record);
+  } else if (const EnumDecl *Enum = dyn_cast<EnumDecl>(Decl)) {
+    return getEnumType(Enum);
+  } else {
+    llvm_unreachable("TypeDecl without a type?");
+  }
+
+  return QualType(Decl->TypeForDecl, 0);
+}
+
+QualType ASTContext::getRecordType(const RecordDecl *Decl) const {
+  return QualType();
+#if 0
+  if (Decl->TypeForDecl) return QualType(Decl->TypeForDecl, 0);
+
+  RecordType *newType = new (*this, TypeAlignment) RecordType(Decl);
+  Decl->TypeForDecl = newType;
+  Types.push_back(newType);
+  return QualType(newType, 0);
+#endif
+}
+
+QualType ASTContext::getEnumType(const EnumDecl *Decl) const {
+  return QualType();
+#if 0
+  if (Decl->TypeForDecl) return QualType(Decl->TypeForDecl, 0);
+
+  EnumType *newType = new (*this, TypeAlignment) EnumType(Decl);
+  Decl->TypeForDecl = newType;
+  Types.push_back(newType);
+  return QualType(newType, 0);
+#endif
 }

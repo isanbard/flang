@@ -34,6 +34,7 @@ class ASTContext;
 class DeclSpec;
 class IdentifierInfo;
 class StoredDeclsMap;
+class TypeLoc;
 
 // Decls
 class DeclContext;
@@ -299,6 +300,31 @@ private:
   void makeDeclVisibleInContextImpl(NamedDecl *D);
 };
 
+/// \brief A container of type source information.
+///
+/// A client can read the relevant info using TypeLoc wrappers, e.g:
+/// @code
+/// TypeLoc TL = TypeSourceInfo->getTypeLoc();
+/// if (PointerLoc *PL = dyn_cast<PointerLoc>(&TL))
+///   PL->getStarLoc().print(OS, SrcMgr);
+/// @endcode
+///
+class TypeSourceInfo {
+  QualType Ty;
+  // Contains a memory block after the class, used for type source information,
+  // allocated by ASTContext.
+  friend class ASTContext;
+  TypeSourceInfo(QualType ty) : Ty(ty) { }
+public:
+  /// \brief Return the type wrapped by this type source info.
+  QualType getType() const { return Ty; }
+#if 0
+  /// \brief Return the TypeLoc wrapper for the type source info.
+  TypeLoc getTypeLoc() const; // implemented in TypeLoc.h
+#endif
+};
+
+
 /// TranslationUnitDecl - The top declaration context.
 class TranslationUnitDecl : public Decl, public DeclContext {
   ASTContext &Ctx;
@@ -438,14 +464,14 @@ protected:
     IsBeingDefined = false;
   }
 public:
-  /// getInnerLocStart - Return SMLoc representing start of source range
-  /// ignoring outer template declarations.
-  llvm::SMLoc getInnerLocStart() const { return getLocStart(); }
-
   /// getOuterLocStart - Return SMLoc representing start of source range taking
   /// into account any outer template declarations.
-  llvm::SMLoc getOuterLocStart() const;
-  virtual SourceRange getSourceRange() const;
+  virtual SourceRange getSourceRange() const {
+    if (LocStart.isValid())
+      return SourceRange(LocStart, getLocation());
+    else
+      return SourceRange(getLocation());
+  }
 
   virtual TagDecl* getCanonicalDecl();
   const TagDecl* getCanonicalDecl() const {
@@ -510,11 +536,16 @@ public:
 /// EnumDecl - Represents an enum.
 class EnumDecl : public TagDecl {
   EnumDecl(DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-           IdentifierInfo *Id, EnumDecl *PrevDecl, bool Fixed)
+           IdentifierInfo *Id, EnumDecl *PrevDecl)
     : TagDecl(Enum, TTK_Enum, DC, IdLoc, Id, PrevDecl, StartLoc) {
+    NumNegativeBits = 0;
+    NumPositiveBits = 0;
   }
-
 public:
+  static EnumDecl *Create(ASTContext &C, DeclContext *DC,
+                          llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                          IdentifierInfo *Id, EnumDecl *PrevDecl);
+
   EnumDecl *getCanonicalDecl() {
     return cast<EnumDecl>(TagDecl::getCanonicalDecl());
   }
