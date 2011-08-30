@@ -142,6 +142,13 @@ public:
   const DeclContext *getDeclContext() const { return DeclCtx; }
   void setDeclContext(DeclContext *DC) { DeclCtx = DC; }
 
+  TranslationUnitDecl *getTranslationUnitDecl();
+  const TranslationUnitDecl *getTranslationUnitDecl() const {
+    return const_cast<Decl*>(this)->getTranslationUnitDecl();
+  }
+
+  ASTContext &getASTContext() const;
+
   /// setInvalidDecl - Indicates the Decl had a semantic error. This
   /// allows for graceful error recovery.
   void setInvalidDecl(bool Invalid = true);
@@ -226,6 +233,17 @@ protected:
     : DeclKind(K), LookupPtr(0), FirstDecl(0), LastDecl(0) {}
 public:
   ~DeclContext();
+
+  DeclContext *getParent() {
+    return Decl::castFromDeclContext(this)->getDeclContext();
+  }
+  const DeclContext *getParent() const {
+    return const_cast<DeclContext*>(this)->getParent();
+  }
+
+  ASTContext &getParentASTContext() const {
+    return Decl::castFromDeclContext(this)->getASTContext();
+  }
 
   Decl::Kind getDeclKind() const {
     return static_cast<Decl::Kind>(DeclKind);

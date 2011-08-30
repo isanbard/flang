@@ -114,6 +114,20 @@ public:
     // Otherwise, we have a range result.
     return DeclContext::lookup_result(&Vector[0], &Vector[0]+Vector.size());
   }
+
+  /// AddSubsequentDecl - This is called on the second and later decl when it is
+  /// not a redeclaration to merge it into the appropriate place in our list.
+  void AddSubsequentDecl(NamedDecl *D) {
+    // If this is the second decl added to the list, convert this to vector
+    // form.
+    if (NamedDecl *OldD = getAsDecl()) {
+      DeclsTy *VT = new DeclsTy();
+      VT->push_back(OldD);
+      Data = VT;
+    }
+
+    getAsVector()->push_back(D);
+  }
 };
 
 class StoredDeclsMap : public llvm::DenseMap<DeclarationName, StoredDeclsList> {

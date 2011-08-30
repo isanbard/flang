@@ -17,28 +17,6 @@
 #include "flang/AST/ASTContext.h"
 using namespace fortran;
 
-Decl::~Decl() {}
-
-DeclContext *Decl::castToDeclContext(const Decl *D) {
-  Decl::Kind DK = D->getKind();
-  switch(DK) {
-#define DECL(NAME, BASE)
-#define DECL_CONTEXT(NAME) \
-    case Decl::NAME:       \
-      return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
-#define DECL_CONTEXT_BASE(NAME)
-#include "flang/AST/DeclNodes.inc"
-    default:
-#define DECL(NAME, BASE)
-#define DECL_CONTEXT_BASE(NAME)                                   \
-      if (DK >= first##NAME && DK <= last##NAME)                  \
-        return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
-#include "flang/AST/DeclNodes.inc"
-      assert(false && "a decl that inherits DeclContext isn't handled");
-      return 0;
-  }
-}
-
 DeclContext::~DeclContext() {}
 
 
@@ -147,36 +125,17 @@ DeclContext::lookup(DeclarationName Name) const {
 }
 
 void DeclContext::makeDeclVisibleInContext(NamedDecl *D) {
-#if 0
-  // If we already have a lookup data structure, perform the insertion
-  // into it. If we haven't deserialized externally stored decls, deserialize
-  // them so we can add the decl. Otherwise, be lazy and don't build that
-  // structure until someone asks for it.
-  if (LookupPtr || hasExternalVisibleStorage())
-    makeDeclVisibleInContextImpl(D);
+  // If we already have a lookup data structure, perform the insertion into
+  // it.
+  if (!LookupPtr)
+    return;
 
-  // If we are a transparent context or inline namespace, insert into our
-  // parent context, too. This operation is recursive.
-  if (isTransparentContext() || isInlineNamespace())
-    getParent()->makeDeclVisibleInContext(D);
-
-  Decl *DCAsDecl = cast<Decl>(this);
-  // Notify that a decl was made visible unless it's a Tag being defined. 
-  if (!(isa<TagDecl>(DCAsDecl) && cast<TagDecl>(DCAsDecl)->isBeingDefined()))
-    if (ASTMutationListener *L = DCAsDecl->getASTMutationListener())
-      L->AddedVisibleDecl(this, D);
-#endif
+  makeDeclVisibleInContextImpl(D);
 }
 
 void DeclContext::makeDeclVisibleInContextImpl(NamedDecl *D) {
-#if 0
   // Skip unnamed declarations.
   if (!D->getDeclName())
-    return;
-
-  // Skip entities that can't be found by name lookup into a particular
-  // context.
-  if (D->getIdentifierNamespace() == 0)
     return;
 
   ASTContext *C = 0;
@@ -185,15 +144,6 @@ void DeclContext::makeDeclVisibleInContextImpl(NamedDecl *D) {
     CreateStoredDeclsMap(*C);
   }
 
-  // If there is an external AST source, load any declarations it knows about
-  // with this declaration's name.
-  // If the lookup table contains an entry about this name it means that we
-  // have already checked the external source.
-  if (ExternalASTSource *Source = getParentASTContext().getExternalSource())
-    if (hasExternalVisibleStorage() &&
-        LookupPtr->find(D->getDeclName()) == LookupPtr->end())
-      Source->FindExternalVisibleDeclsByName(this, D->getDeclName());
-
   // Insert this declaration into the map.
   StoredDeclsList &DeclNameEntries = (*LookupPtr)[D->getDeclName()];
   if (DeclNameEntries.isNull()) {
@@ -201,15 +151,73 @@ void DeclContext::makeDeclVisibleInContextImpl(NamedDecl *D) {
     return;
   }
 
-  // If it is possible that this is a redeclaration, check to see if there is
-  // already a decl for which declarationReplaces returns true.  If there is
-  // one, just replace it and return.
-  if (DeclNameEntries.HandleRedeclaration(D))
-    return;
-
   // Put this declaration into the appropriate slot.
   DeclNameEntries.AddSubsequentDecl(D);
-#endif
+}
+
+//===----------------------------------------------------------------------===//
+// Declaration Implementations
+//===----------------------------------------------------------------------===//
+
+Decl::~Decl() {}
+
+Decl *Decl::castFromDeclContext (const DeclContext *D) {
+  Decl::Kind DK = D->getDeclKind();
+  switch(DK) {
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT(NAME) \
+    case Decl::NAME:       \
+      return static_cast<NAME##Decl*>(const_cast<DeclContext*>(D));
+#define DECL_CONTEXT_BASE(NAME)
+#include "flang/AST/DeclNodes.inc"
+    default:
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT_BASE(NAME)                  \
+      if (DK >= first##NAME && DK <= last##NAME) \
+        return static_cast<NAME##Decl*>(const_cast<DeclContext*>(D));
+#include "flang/AST/DeclNodes.inc"
+      assert(false && "a decl that inherits DeclContext isn't handled");
+      return 0;
+  }
+}
+
+DeclContext *Decl::castToDeclContext(const Decl *D) {
+  Decl::Kind DK = D->getKind();
+  switch(DK) {
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT(NAME) \
+    case Decl::NAME:       \
+      return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
+#define DECL_CONTEXT_BASE(NAME)
+#include "flang/AST/DeclNodes.inc"
+    default:
+#define DECL(NAME, BASE)
+#define DECL_CONTEXT_BASE(NAME)                                   \
+      if (DK >= first##NAME && DK <= last##NAME)                  \
+        return static_cast<NAME##Decl*>(const_cast<Decl*>(D));
+#include "flang/AST/DeclNodes.inc"
+      assert(false && "a decl that inherits DeclContext isn't handled");
+      return 0;
+  }
+}
+
+TranslationUnitDecl *Decl::getTranslationUnitDecl() {
+  if (TranslationUnitDecl *TUD = dyn_cast<TranslationUnitDecl>(this))
+    return TUD;
+
+  DeclContext *DC = getDeclContext();
+  assert(DC && "This decl is not contained in a translation unit!");
+
+  while (!DC->isTranslationUnit()) {
+    DC = DC->getParent();
+    assert(DC && "This decl is not contained in a translation unit!");
+  }
+
+  return TranslationUnitDecl::castFromDeclContext(DC);
+}
+
+ASTContext &Decl::getASTContext() const {
+  return getTranslationUnitDecl()->getASTContext();
 }
 
 //===----------------------------------------------------------------------===//
