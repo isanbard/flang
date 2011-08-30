@@ -550,15 +550,25 @@ public:
 };
 
 /// \brief Represents a ValueDecl that came out of a declarator.
-/// Contains type source information through TypeSourceInfo.
 class DeclaratorDecl : public ValueDecl {
+  /// LocStart - The start of the source range for this declaration.
+  llvm::SMLoc LocStart;
 protected:
   DeclaratorDecl(Kind DK, DeclContext *DC, llvm::SMLoc L,
                  DeclarationName N, QualType T, /* TypeSourceInfo *TInfo, */
                  llvm::SMLoc StartL)
-    : ValueDecl(DK, DC, L, N, T) /*, DeclInfo(TInfo), InnerLocStart(StartL) */ {
+    : ValueDecl(DK, DC, L, N, T), /* DeclInfo(TInfo),*/ LocStart(StartL) {
   }
 public:
+  /// getLocStart - Return SMLoc representing start of source range.
+  llvm::SMLoc getLocStart() const { return LocStart; }
+  void setLocStart(llvm::SMLoc L) { LocStart = L; }
+
+  virtual SourceRange getSourceRange() const {
+    // TODO
+    return SourceRange();
+  }
+
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const DeclaratorDecl *D) { return true; }
