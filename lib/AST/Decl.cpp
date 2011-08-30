@@ -180,6 +180,16 @@ SourceRange EnumConstantDecl::getSourceRange() const {
   return SourceRange(getLocation(), End);
 }
 
+//===----------------------------------------------------------------------===//
+// FieldDecl Implementation
+//===----------------------------------------------------------------------===//
+
+FieldDecl *FieldDecl::Create(const ASTContext &C, DeclContext *DC,
+                             llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                             IdentifierInfo *Id, QualType T) {
+  return new (C) FieldDecl(Decl::Field, DC, StartLoc, IdLoc, Id, T);
+}
+
 #if 0
 //===----------------------------------------------------------------------===//
 // Creation and Destruction of StoredDeclsMaps.                               //

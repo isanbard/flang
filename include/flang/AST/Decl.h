@@ -41,7 +41,7 @@ class TypeLoc;
 class DeclContext;
 class TranslationUnitDecl;
 class NamedDecl;
-class TypedDecl;
+class TypeDecl;
 class RecordDecl;
 class ValueDecl;
 class EnumConstantDecl;
@@ -206,6 +206,8 @@ public:
   Decl::Kind getDeclKind() const {
     return static_cast<Decl::Kind>(DeclKind);
   }
+
+  bool isRecord() const { return DeclKind == Decl::Record; }
 
   /// \brief Retrieve the internal representation of the lookup structure.
   StoredDeclsMap *getLookupPtr() const { return LookupPtr; }
@@ -421,7 +423,7 @@ public:
 
 /// RecordDecl - Represents a structure. This decl will be marked invalid if
 /// *any* members are invalid.
-class RecordDecl : public TypeDecl {
+class RecordDecl : public TypeDecl, public DeclContext {
   /// IsDefinition - True if this is a definition ("struct foo {};"), false if
   /// it is a declaration ("struct foo;").
   bool IsDefinition : 1;
@@ -433,7 +435,7 @@ class RecordDecl : public TypeDecl {
 protected:
   RecordDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
              IdentifierInfo *Id, RecordDecl *PrevDecl)
-    : TypeDecl(DK, DC, IdLoc, Id) {
+    : TypeDecl(DK, DC, IdLoc, Id), DeclContext(Record) {
     IsDefinition = false;
     IsBeingDefined = false;
   }
@@ -497,6 +499,13 @@ public:
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const RecordDecl *D) { return true; }
   static bool classofKind(Kind K) { return K == Record; }
+
+  static DeclContext *castToDeclContext(const RecordDecl *D) {
+    return static_cast<DeclContext*>(const_cast<RecordDecl*>(D));
+  }
+  static RecordDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<RecordDecl*>(const_cast<DeclContext*>(DC));
+  }
 };
 
 /// ValueDecl - Represent the declaration of a variable (in which case it is an
@@ -601,15 +610,32 @@ public:
 };
 
 /// FieldDecl - An instance of this class is created by Sema::ActOnField to
-/// represent a member of a struct/union/class.
+/// represent a member of a struct.
 class FieldDecl : public DeclaratorDecl {
 protected:
   FieldDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc,
             llvm::SMLoc IdLoc, IdentifierInfo *Id,
-            QualType T /*, TypeSourceInfo *TInfo, Expr *BW, bool Mutable,
+            QualType T /*, TypeSourceInfo *TInfo, Expr *BW,
                          bool HasInit */)
     : DeclaratorDecl(DK, DC, IdLoc, Id, T, /*TInfo,*/ StartLoc) {}
 public:
+  static FieldDecl *Create(const ASTContext &C, DeclContext *DC,
+                           llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                           IdentifierInfo *Id, QualType T);
+
+  /// getParent - Returns the parent of this field declaration, which is the
+  /// struct in which this method is defined.
+  const RecordDecl *getParent() const {
+    return RecordDecl::castFromDeclContext(getDeclContext());
+  }
+  RecordDecl *getParent() {
+    return RecordDecl::castFromDeclContext(getDeclContext());
+  }
+
+  SourceRange getSourceRange() const {
+    return DeclaratorDecl::getSourceRange();
+  }
+
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const FieldDecl *D) { return true; }

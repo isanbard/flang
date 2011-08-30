@@ -26,7 +26,7 @@ class DeclContext { }
 def TranslationUnit : Decl, DeclContext;
 def Named : Decl<1>;
   def Type : DDecl<Named, 1>;
-    def Record : DDecl<Type>;
+    def Record : DDecl<Type>, DeclContext;
   def Value : DDecl<Named, 1>;
     def EnumConstant : DDecl<Value>;
     def Declarator : DDecl<Value, 1>;
