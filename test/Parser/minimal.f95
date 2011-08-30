@@ -1,3 +1,3 @@
 ! RUN: %flang < %s | FileCheck %s
-! CHECK: <END PROGRAM>
+! CHECK: </program>
 END

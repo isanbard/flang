@@ -1,5 +1,5 @@
 ! RUN: %flang < %s | FileCheck %s
-! CHECK:      <PROGRAM::TEST>
-! CHECK-NEXT: <END PROGRAM::TEST>
+! CHECK:      <program name="TEST">
+! CHECK-NEXT: </program>
 PROGRAM test
 END PROGRAM test
