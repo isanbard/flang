@@ -569,18 +569,42 @@ private:
   Type(const Type&);           // DO NOT IMPLEMENT.
   void operator=(const Type&); // DO NOT IMPLEMENT.
 
-  TypeClass TyClass;
+  /// Bitfields required by the Type class.
+  class TypeBitfields {
+    friend class Type;
+
+    /// TypeClass bitfield - Enum that specifies what subclass this belongs to.
+    unsigned TC : 8;
+  };
+  enum { NumTypeBits = 8 };
 protected:
+  // These classes allow subclasses to somewhat cleanly pack bitfields
+  // into Type.
+
+  class BuiltinTypeBitfields {
+    friend class BuiltinType;
+
+    unsigned : NumTypeBits;
+
+    /// The kind (BuiltinType::Kind) of builtin type this is.
+    unsigned Kind : 8;
+  };
+
+  union {
+    TypeBitfields TypeBits;
+    BuiltinTypeBitfields BuiltinTypeBits;
+  };
+
   Type *this_() { return this; }
   Type(TypeClass TC, QualType Canon)
     : ExtQualsTypeCommonBase(this,
-                             Canon.isNull() ? QualType(this_(), 0) : Canon),
-      TyClass(TC) {}
-  virtual ~Type();
-  virtual void Destroy(ASTContext &C);
+                             Canon.isNull() ? QualType(this_(), 0) : Canon) {
+    TypeBits.TC = TC;
+  }
+
   friend class ASTContext;
 public:
-  TypeClass getTypeClass() const { return TyClass; }
+  TypeClass getTypeClass() const { return TypeClass(TypeBits.TC); }
 
   /// \brief Determines if this type would be canonical if it had no further
   /// qualification.
@@ -623,31 +647,31 @@ public:
     Logical         = 5
   };
 protected:
-  TypeSpec TySpec;              //< Type specification.
   Selector Kind;                //< Kind selector.
 
   friend class ASTContext;      // ASTContext creates these.
-  BuiltinType() : Type(Builtin, QualType()), TySpec(Real) {}
-  BuiltinType(TypeSpec TS) : Type(Builtin, QualType()), TySpec(TS) {}
+  BuiltinType()
+    : Type(Builtin, QualType()) {
+    BuiltinTypeBits.Kind = Real;
+  }
+  BuiltinType(TypeSpec TS)
+    : Type(Builtin, QualType()) {
+    BuiltinTypeBits.Kind = TS;
+  }
   BuiltinType(TypeSpec TS, Selector K)
-    : Type(Builtin, QualType()), TySpec(TS), Kind(K)
-  {}
+    : Type(Builtin, QualType()), Kind(K) {
+    BuiltinTypeBits.Kind = TS;
+  }
 public:
   virtual ~BuiltinType();
 
-  TypeSpec getTypeSpec() const { return TySpec; }
+  TypeSpec getTypeSpec() const { return TypeSpec(BuiltinTypeBits.Kind); }
 
   bool hasKind() const { return Kind.getKindExpr().isUsable(); }
   Selector getKind() const { return Kind; }
 
-  bool isIntegerType() const { return TySpec == Integer; }
-  bool isRealType() const { return TySpec == Real; }
-  bool isDoublePrecisionType() const { return TySpec == DoublePrecision; }
-  bool isCharacterType() const { return TySpec == Character; }
-  bool isLogicalType() const { return TySpec == Logical; }
-
   virtual void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, TySpec, Kind);
+    Profile(ID, getTypeSpec(), Kind);
   }
   static void Profile(llvm::FoldingSetNodeID &ID, TypeSpec TS, Selector K) {
     ID.AddInteger(TS);
