@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/AST/Decl.h"
+#include "flang/AST/DeclContextInternals.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
 using namespace fortran;
@@ -72,6 +73,85 @@ void DeclContext::addDecl(Decl *D) {
 
   if (NamedDecl *ND = dyn_cast<NamedDecl>(D))
     ND->getDeclContext()->makeDeclVisibleInContext(ND);
+}
+
+void DeclContext::removeDecl(Decl *D) {
+  assert((D->NextDeclInContext || D == LastDecl) &&
+         "decl is not in decls list");
+
+  // Remove D from the decl chain.  This is O(n) but hopefully rare.
+  if (D == FirstDecl) {
+    if (D == LastDecl)
+      FirstDecl = LastDecl = 0;
+    else
+      FirstDecl = D->NextDeclInContext;
+  } else {
+    for (Decl *I = FirstDecl; true; I = I->NextDeclInContext) {
+      assert(I && "Decl not found in linked list");
+      if (I->NextDeclInContext == D) {
+        I->NextDeclInContext = D->NextDeclInContext;
+        if (D == LastDecl) LastDecl = I;
+        break;
+      }
+    }
+  }
+
+  // Mark that D is no longer in the decl chain.
+  D->NextDeclInContext = 0;
+
+  // Remove D from the lookup table if necessary.
+  if (NamedDecl *ND = dyn_cast<NamedDecl>(D)) {
+    // Remove only decls that have a name
+    if (!ND->getDeclName()) return;
+
+    StoredDeclsMap *Map = getPrimaryContext()->LookupPtr;
+    if (!Map) return;
+
+    StoredDeclsMap::iterator Pos = Map->find(ND->getDeclName());
+    assert(Pos != Map->end() && "No lookup entry for decl");
+    Pos->second.remove(ND);
+  }
+}
+
+/// buildLookup - Build the lookup data structure with all of the declarations
+/// in DCtx (and any other contexts linked to it or transparent contexts nested
+/// within it).
+void DeclContext::buildLookup(DeclContext *DCtx) {
+  for (decl_iterator
+         D = DCtx->decls_begin(), DEnd = DCtx->decls_end(); D != DEnd; ++D)
+    // Insert this declaration into the lookup structure, but only if it's
+    // semantically in its decl context.  During non-lazy lookup building, this
+    // is implicitly enforced by addDecl.
+    if (NamedDecl *ND = dyn_cast<NamedDecl>(*D))
+      if (D->getDeclContext() == DCtx)
+        makeDeclVisibleInContextImpl(ND);
+}
+
+DeclContext::lookup_result
+DeclContext::lookup(DeclarationName Name) {
+  DeclContext *PrimaryContext = getPrimaryContext();
+  if (PrimaryContext != this)
+    return PrimaryContext->lookup(Name);
+
+  /// If there is no lookup data structure, build one now by walking
+  /// all of the linked DeclContexts (in declaration order!) and
+  /// inserting their values.
+  if (!LookupPtr) {
+    buildLookup(this);
+
+    if (!LookupPtr)
+      return lookup_result(lookup_iterator(0), lookup_iterator(0));
+  }
+
+  StoredDeclsMap::iterator Pos = LookupPtr->find(Name);
+  if (Pos == LookupPtr->end())
+    return lookup_result(lookup_iterator(0), lookup_iterator(0));
+  return Pos->second.getLookupResult();
+}
+
+DeclContext::lookup_const_result
+DeclContext::lookup(DeclarationName Name) const {
+  return const_cast<DeclContext*>(this)->lookup(Name);
 }
 
 void DeclContext::makeDeclVisibleInContext(NamedDecl *D) {

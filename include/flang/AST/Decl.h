@@ -174,12 +174,37 @@ public:
   virtual void print(raw_ostream &OS) const;
 };
 
+class DeclContextLookupResult
+  : public std::pair<NamedDecl**,NamedDecl**> {
+public:
+  DeclContextLookupResult(NamedDecl **I, NamedDecl **E)
+    : std::pair<NamedDecl**,NamedDecl**>(I, E) {}
+  DeclContextLookupResult()
+    : std::pair<NamedDecl**,NamedDecl**>() {}
+
+  using std::pair<NamedDecl**,NamedDecl**>::operator=;
+};
+
+class DeclContextLookupConstResult
+  : public std::pair<NamedDecl*const*, NamedDecl*const*> {
+public:
+  DeclContextLookupConstResult(std::pair<NamedDecl**,NamedDecl**> R)
+    : std::pair<NamedDecl*const*, NamedDecl*const*>(R) {}
+  DeclContextLookupConstResult(NamedDecl * const *I, NamedDecl * const *E)
+    : std::pair<NamedDecl*const*, NamedDecl*const*>(I, E) {}
+  DeclContextLookupConstResult()
+    : std::pair<NamedDecl*const*, NamedDecl*const*>() {}
+
+  using std::pair<NamedDecl*const*,NamedDecl*const*>::operator=;
+};
+
 /// DeclContext - This is used only as base class of specific decl types that
 /// can act as declaration contexts. These decls are (only the top classes
 /// that directly derive from DeclContext are mentioned, not their subclasses):
 ///
 ///   TranslationUnitDecl
 ///   FunctionDecl
+///   RecordDecl
 ///
 class DeclContext {
   /// DeclKind - This indicates which class this is.
@@ -206,7 +231,13 @@ public:
     return static_cast<Decl::Kind>(DeclKind);
   }
 
-  bool isRecord() const { return DeclKind == Decl::Record; }
+  bool isTranslationUnit() const {
+    return DeclKind == Decl::TranslationUnit;
+  }
+
+  bool isRecord() const {
+    return DeclKind == Decl::Record;
+  }
 
   /// \brief Retrieve the internal representation of the lookup structure.
   StoredDeclsMap *getLookupPtr() const { return LookupPtr; }
@@ -278,6 +309,28 @@ public:
   /// context via makeDeclVisibleInContext.
   void addDecl(Decl *D);
 
+  /// @brief Removes a declaration from this context.
+  void removeDecl(Decl *D);
+
+  /// lookup_iterator - An iterator that provides access to the results of
+  /// looking up a name within this context.
+  typedef NamedDecl **lookup_iterator;
+
+  /// lookup_const_iterator - An iterator that provides non-mutable access to
+  /// the results of lookup up a name within this context.
+  typedef NamedDecl * const * lookup_const_iterator;
+
+  typedef DeclContextLookupResult lookup_result;
+  typedef DeclContextLookupConstResult lookup_const_result;
+
+  /// lookup - Find the declarations (if any) with the given Name in this
+  /// context. Returns a range of iterators that contains all of the
+  /// declarations with this name, with object, function, member, and enumerator
+  /// names preceding any tag name. Note that this routine will not look into
+  /// parent contexts.
+  lookup_result lookup(DeclarationName Name);
+  lookup_const_result lookup(DeclarationName Name) const;
+
   /// @brief Makes a declaration visible within this context.
   ///
   /// This routine makes the declaration D visible to name lookup within this
@@ -296,6 +349,7 @@ public:
 #include "flang/AST/DeclNodes.inc"
 
 private:
+  void buildLookup(DeclContext *DCtx);
   void makeDeclVisibleInContextImpl(NamedDecl *D);
 };
 
