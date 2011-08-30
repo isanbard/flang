@@ -49,7 +49,6 @@ class DeclaratorDecl;
 class FunctionDecl;
 class FieldDecl;
 class VarDecl;
-class ParmVarDecl;
 class FileScopeAsmDecl;
 
 } // end fortran namespace
@@ -681,7 +680,7 @@ public:
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const VarDecl *D) { return true; }
-  static bool classofKind(Kind K) { return K >= firstVar && K <= lastVar; }
+  static bool classofKind(Kind K) { return K == Var; }
 };
 
 class FileScopeAsmDecl : public Decl {

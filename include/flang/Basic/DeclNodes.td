@@ -33,5 +33,4 @@ def Named : Decl<1>;
       def Function : DDecl<Declarator>, DeclContext;
       def Field : DDecl<Declarator>;
       def Var : DDecl<Declarator>;
-        def ParmVar : DDecl<Var>;
 def FileScopeAsm : Decl;
