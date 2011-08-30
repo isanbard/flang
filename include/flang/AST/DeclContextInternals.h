@@ -119,17 +119,9 @@ public:
 class StoredDeclsMap : public llvm::DenseMap<DeclarationName, StoredDeclsList> {
   friend class ASTContext; // Walks the chain deleting these.
   friend class DeclContext;
-  llvm::PointerIntPair<StoredDeclsMap*, 1> Previous;
+  StoredDeclsMap *Previous;
 public:
-  static void DestroyAll(StoredDeclsMap *Map, bool Dependent);
-};
-
-class DependentStoredDeclsMap : public StoredDeclsMap {
-  friend class DependentDiagnostic;
-  friend class DeclContext; // Iterates over diagnostics.
-  DependentDiagnostic *FirstDiagnostic;
-public:
-  DependentStoredDeclsMap() : FirstDiagnostic(0) {}
+  static void DestroyAll(StoredDeclsMap *Map);
 };
 
 } // end namespace fortran

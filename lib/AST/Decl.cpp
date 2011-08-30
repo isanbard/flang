@@ -41,10 +41,6 @@ DeclContext *Decl::castToDeclContext(const Decl *D) {
 
 DeclContext::~DeclContext() {}
 
-DeclContext *DeclContext::getPrimaryContext() {
-  // FIXME: Could be more than just 'this'.
-  return this;
-}
 
 DeclContext::decl_iterator DeclContext::decls_begin() const {
   return decl_iterator(FirstDecl);
@@ -104,7 +100,7 @@ void DeclContext::removeDecl(Decl *D) {
     // Remove only decls that have a name
     if (!ND->getDeclName()) return;
 
-    StoredDeclsMap *Map = getPrimaryContext()->LookupPtr;
+    StoredDeclsMap *Map = LookupPtr;
     if (!Map) return;
 
     StoredDeclsMap::iterator Pos = Map->find(ND->getDeclName());
@@ -129,10 +125,6 @@ void DeclContext::buildLookup(DeclContext *DCtx) {
 
 DeclContext::lookup_result
 DeclContext::lookup(DeclarationName Name) {
-  DeclContext *PrimaryContext = getPrimaryContext();
-  if (PrimaryContext != this)
-    return PrimaryContext->lookup(Name);
-
   /// If there is no lookup data structure, build one now by walking
   /// all of the linked DeclContexts (in declaration order!) and
   /// inserting their values.
@@ -156,12 +148,6 @@ DeclContext::lookup(DeclarationName Name) const {
 
 void DeclContext::makeDeclVisibleInContext(NamedDecl *D) {
 #if 0
-  DeclContext *PrimaryContext = getPrimaryContext();
-  if (PrimaryContext != this) {
-    PrimaryContext->makeDeclVisibleInContext(D);
-    return;
-  }
-
   // If we already have a lookup data structure, perform the insertion
   // into it. If we haven't deserialized externally stored decls, deserialize
   // them so we can add the decl. Otherwise, be lazy and don't build that
@@ -280,19 +266,15 @@ VarDecl *VarDecl::Create(ASTContext &C, DeclContext *DC,
   return new (C) VarDecl(Var, DC, StartL, IdL, Id, T);
 }
 
-#if 0
 //===----------------------------------------------------------------------===//
 // Creation and Destruction of StoredDeclsMaps.                               //
 //===----------------------------------------------------------------------===//
 
 StoredDeclsMap *DeclContext::CreateStoredDeclsMap(ASTContext &C) const {
   assert(!LookupPtr && "Context already has a decls map");
-  assert(getPrimaryContext() == this &&
-         "Creating decls map on non-primary context");
-
   StoredDeclsMap *M = new StoredDeclsMap();
   M->Previous = C.LastSDM;
-  C.LastSDM = llvm::PointerIntPair<StoredDeclsMap*,1>(M, Dependent);
+  C.LastSDM = M;
   LookupPtr = M;
   return M;
 }
@@ -301,21 +283,14 @@ void ASTContext::ReleaseDeclContextMaps() {
   // It's okay to delete DependentStoredDeclsMaps via a StoredDeclsMap
   // pointer because the subclass doesn't add anything that needs to
   // be deleted.
-  StoredDeclsMap::DestroyAll(LastSDM.getPointer(), LastSDM.getInt());
+  StoredDeclsMap::DestroyAll(LastSDM);
 }
 
-void StoredDeclsMap::DestroyAll(StoredDeclsMap *Map, bool Dependent) {
+void StoredDeclsMap::DestroyAll(StoredDeclsMap *Map) {
   while (Map) {
     // Advance the iteration before we invalidate memory.
-    llvm::PointerIntPair<StoredDeclsMap*,1> Next = Map->Previous;
-
-    if (Dependent)
-      delete static_cast<DependentStoredDeclsMap*>(Map);
-    else
-      delete Map;
-
-    Map = Next.getPointer();
-    Dependent = Next.getInt();
+    StoredDeclsMap *Next = Map->Previous;
+    delete Map;
+    Map = Next;
   }
 }
-#endif

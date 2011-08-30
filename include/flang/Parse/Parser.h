@@ -28,9 +28,7 @@
 #include <vector>
 
 namespace llvm {
-
-class SourceMgr;
-
+  class SourceMgr;
 } // end namespace llvm
 
 namespace fortran {

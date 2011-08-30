@@ -242,16 +242,6 @@ public:
   /// \brief Retrieve the internal representation of the lookup structure.
   StoredDeclsMap *getLookupPtr() const { return LookupPtr; }
 
-  /// getPrimaryContext - There may be many different declarations of the same
-  /// entity (including forward declarations of classes, multiple definitions of
-  /// namespaces, etc.), each with a different set of declarations. This routine
-  /// returns the "primary" DeclContext structure, which will contain the
-  /// information needed to perform name lookup into this context.
-  DeclContext *getPrimaryContext();
-  const DeclContext *getPrimaryContext() const {
-    return const_cast<DeclContext*>(this)->getPrimaryContext();
-  }
-
   /// decl_iterator - Iterates through the declarations stored within this
   /// context.
   class decl_iterator {
@@ -349,6 +339,7 @@ public:
 #include "flang/AST/DeclNodes.inc"
 
 private:
+  StoredDeclsMap *CreateStoredDeclsMap(ASTContext &C) const;
   void buildLookup(DeclContext *DCtx);
   void makeDeclVisibleInContextImpl(NamedDecl *D);
 };

@@ -29,6 +29,8 @@ template <typename T> class ArrayRef;
 
 namespace fortran {
 
+class StoredDeclsMap;
+
 // Decls
 class DeclContext;
 class Decl;
@@ -121,6 +123,15 @@ public:
 
     return getTypeDeclTypeSlow(Decl);
   }
+
+private:
+  // FIXME: This currently contains the set of StoredDeclMaps used
+  // by DeclContext objects. This probably should not be in ASTContext,
+  // but we include it here so that ASTContext can quickly deallocate them.
+  StoredDeclsMap *LastSDM;
+
+  void ReleaseDeclContextMaps();
+  friend class DeclContext;
 };
 
 } // end fortran namespace
