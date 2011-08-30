@@ -648,10 +648,24 @@ public:
 class VarDecl : public DeclaratorDecl {
 #endif
 class VarDecl : public DeclaratorDecl, public llvm::FoldingSetNode {
+  /// \brief The initializer for this variable.
+  mutable Expr *Init; // FIXME: This should be a different type?
+
   const DeclSpec *DS;
 
   friend class ASTContext;  // ASTContext creates these.
+
+protected:
+  VarDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc,
+          llvm::SMLoc IdLoc, IdentifierInfo *Id,
+          QualType T) // FIXME: TypeSourceInfo
+    : DeclaratorDecl(DK, DC, IdLoc, Id, T, /*TInfo, */ StartLoc), Init() {}
+
 public:
+  static VarDecl *Create(ASTContext &C, DeclContext *DC,
+                         llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                         IdentifierInfo *Id, QualType T);
+
   VarDecl(const IdentifierInfo *Info)
     // FIXME:
     : DeclaratorDecl(Var, 0, llvm::SMLoc(), Info, QualType(), llvm::SMLoc()),

@@ -190,6 +190,16 @@ FieldDecl *FieldDecl::Create(const ASTContext &C, DeclContext *DC,
   return new (C) FieldDecl(Decl::Field, DC, StartLoc, IdLoc, Id, T);
 }
 
+//===----------------------------------------------------------------------===//
+// VarDecl Implementation
+//===----------------------------------------------------------------------===//
+
+VarDecl *VarDecl::Create(ASTContext &C, DeclContext *DC,
+                         llvm::SMLoc StartL, llvm::SMLoc IdL,
+                         IdentifierInfo *Id, QualType T) {
+  return new (C) VarDecl(Var, DC, StartL, IdL, Id, T);
+}
+
 #if 0
 //===----------------------------------------------------------------------===//
 // Creation and Destruction of StoredDeclsMaps.                               //
