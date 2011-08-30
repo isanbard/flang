@@ -102,10 +102,6 @@ public:
   /// of the specified type.
   QualType getRecordType(const RecordDecl *Decl) const;
 
-  /// getRecordType - Return the uniqued reference to the type for an
-  /// enumeration of the specified type.
-  QualType getEnumType(const EnumDecl *Decl) const;
-
   const VarDecl *getVarDecl(const IdentifierInfo *Info);
   const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclSpec *DTS,
                                     const IdentifierInfo *Info);

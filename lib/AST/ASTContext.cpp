@@ -165,15 +165,13 @@ QualType ASTContext::getTypeDeclTypeSlow(const TypeDecl *Decl) const {
   assert(Decl && "Passed null for Decl param");
   assert(!Decl->TypeForDecl && "TypeForDecl present in slow case");
 
-  if (const RecordDecl *Record = dyn_cast<RecordDecl>(Decl)) {
-    return getRecordType(Record);
-  } else if (const EnumDecl *Enum = dyn_cast<EnumDecl>(Decl)) {
-    return getEnumType(Enum);
-  } else {
+  const RecordDecl *Record = dyn_cast<RecordDecl>(Decl);
+  if (!Record) {
     llvm_unreachable("TypeDecl without a type?");
+    return QualType(Decl->TypeForDecl, 0);
   }
 
-  return QualType(Decl->TypeForDecl, 0);
+  return getRecordType(Record);
 }
 
 QualType ASTContext::getRecordType(const RecordDecl *Decl) const {
@@ -182,18 +180,6 @@ QualType ASTContext::getRecordType(const RecordDecl *Decl) const {
   if (Decl->TypeForDecl) return QualType(Decl->TypeForDecl, 0);
 
   RecordType *newType = new (*this, TypeAlignment) RecordType(Decl);
-  Decl->TypeForDecl = newType;
-  Types.push_back(newType);
-  return QualType(newType, 0);
-#endif
-}
-
-QualType ASTContext::getEnumType(const EnumDecl *Decl) const {
-  return QualType();
-#if 0
-  if (Decl->TypeForDecl) return QualType(Decl->TypeForDecl, 0);
-
-  EnumType *newType = new (*this, TypeAlignment) EnumType(Decl);
   Decl->TypeForDecl = newType;
   Types.push_back(newType);
   return QualType(newType, 0);

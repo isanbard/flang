@@ -146,23 +146,15 @@ void DeclContext::makeDeclVisibleInContextImpl(NamedDecl *D) {
 }
 
 //===----------------------------------------------------------------------===//
-// TagDecl Implementation
+// RecordDecl Implementation
 //===----------------------------------------------------------------------===//
 
-TagDecl* TagDecl::getCanonicalDecl() {
-  return this; // FIXME: getFirstDeclaration();
-}
-
-//===----------------------------------------------------------------------===//
-// EnumDecl Implementation
-//===----------------------------------------------------------------------===//
-
-EnumDecl *EnumDecl::Create(ASTContext &C, DeclContext *DC,
-                           llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-                           IdentifierInfo *Id, EnumDecl *PrevDecl) {
-  EnumDecl *Enum = new (C) EnumDecl(DC, StartLoc, IdLoc, Id, PrevDecl);
-  C.getTypeDeclType(Enum, PrevDecl);
-  return Enum;
+RecordDecl *RecordDecl::Create(const ASTContext &C, DeclContext *DC,
+                               llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                               IdentifierInfo *Id, RecordDecl *PrevDecl) {
+  RecordDecl* R = new (C) RecordDecl(Record, DC, StartLoc, IdLoc, Id, PrevDecl);
+  C.getTypeDeclType(R, PrevDecl);
+  return R;
 }
 
 //===----------------------------------------------------------------------===//

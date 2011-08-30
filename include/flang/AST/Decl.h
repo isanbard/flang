@@ -41,8 +41,6 @@ class DeclContext;
 class TranslationUnitDecl;
 class NamedDecl;
 class TypedDecl;
-class TagDecl;
-class EnumDecl;
 class RecordDecl;
 class ValueDecl;
 class EnumConstantDecl;
@@ -182,7 +180,6 @@ public:
 ///
 ///   TranslationUnitDecl
 ///   FunctionDecl
-///   TagDecl
 ///
 class DeclContext {
   /// DeclKind - This indicates which class this is.
@@ -393,7 +390,7 @@ class TypeDecl : public NamedDecl {
 
   friend class ASTContext;
   friend class DeclContext;
-  friend class TagDecl;
+  friend class RecordDecl;
   friend class TagType;
 protected:
   TypeDecl(Kind DK, DeclContext *DC, llvm::SMLoc L, IdentifierInfo *Id,
@@ -421,21 +418,9 @@ public:
   static bool classofKind(Kind K) { return K >= firstType && K <= lastType; }
 };
 
-/// TagDecl - Represents the declaration of a struct/union/class/enum.
-class TagDecl : public TypeDecl, public DeclContext {
-public:
-  /// \brief The kind of a tag type.
-  enum TagKind {
-    /// \brief A structure type.
-    TTK_Struct,
-    /// \brief An enum type.
-    TTK_Enum
-  };
-private:
-  // FIXME: This can be packed into the bitfields in Decl.
-  /// TagDeclKind - The TagKind enum.
-  unsigned TagDeclKind : 2;
-
+/// RecordDecl - Represents a structure. This decl will be marked invalid if
+/// *any* members are invalid.
+class RecordDecl : public TypeDecl {
   /// IsDefinition - True if this is a definition ("struct foo {};"), false if
   /// it is a declaration ("struct foo;").
   bool IsDefinition : 1;
@@ -443,27 +428,19 @@ private:
   /// IsBeingDefined - True if this is currently being defined.
   bool IsBeingDefined : 1;
 
+  friend class ASTContext;
 protected:
-  // These are used by (and only defined for) EnumDecl.
-  unsigned NumPositiveBits : 8;
-  unsigned NumNegativeBits : 8;
-
-  TagDecl(Kind DK, TagKind TK, DeclContext *DC, llvm::SMLoc L,
-          IdentifierInfo *Id, TagDecl *PrevDecl, llvm::SMLoc StartL)
-    : TypeDecl(DK, DC, L, Id, StartL), DeclContext(DK) {
-    assert((DK != Enum || TK == TTK_Enum) &&
-           "EnumDecl not matched with TTK_Enum");
-    TagDeclKind = TK;
+  RecordDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+             IdentifierInfo *Id, RecordDecl *PrevDecl)
+    : TypeDecl(DK, DC, IdLoc, Id) {
     IsDefinition = false;
     IsBeingDefined = false;
   }
-
-  /// @brief Completes the definition of this tag declaration.
-  void completeDefinition() {
-    IsDefinition = true;
-    IsBeingDefined = false;
-  }
 public:
+  static RecordDecl *Create(const ASTContext &C, DeclContext *DC,
+                            llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                            IdentifierInfo *Id, RecordDecl *PrevDecl = 0);
+
   /// getOuterLocStart - Return SMLoc representing start of source range taking
   /// into account any outer template declarations.
   virtual SourceRange getSourceRange() const {
@@ -473,15 +450,18 @@ public:
       return SourceRange(getLocation());
   }
 
-  virtual TagDecl* getCanonicalDecl();
-  const TagDecl* getCanonicalDecl() const {
-    return const_cast<TagDecl*>(this)->getCanonicalDecl();
+  // FIXME: Could be more than just 'this'.
+  virtual RecordDecl *getCanonicalDecl() { return this; }
+  const RecordDecl *getCanonicalDecl() const {
+    return const_cast<RecordDecl*>(this)->getCanonicalDecl();
   }
 
-  /// isThisDeclarationADefinition() - Return true if this declaration
-  /// defines the type.  Provided for consistency.
-  bool isThisDeclarationADefinition() const {
-    return isDefinition();
+  /// completeDefinition - Notes that the definition of this type is now
+  /// complete.
+  virtual void completeDefinition() {
+    assert(!isDefinition() && "Cannot redefine record!");
+    IsDefinition = true;
+    IsBeingDefined = false;
   }
 
   /// isDefinition - Return true if this decl has its body specified.
@@ -494,81 +474,24 @@ public:
     return IsBeingDefined;
   }
 
-  /// @brief Starts the definition of this tag declaration.
+  /// @brief Starts the definition of this struct declaration.
   ///
   /// This method should be invoked at the beginning of the definition of this
-  /// tag declaration. It will set the tag type into a state where it is in the
-  /// process of being defined.
+  /// struct declaration. It will set the struct type into a state where it is
+  /// in the process of being defined.
   void startDefinition() { IsBeingDefined = true; }
 
-  /// getDefinition - Returns the TagDecl that actually defines this
-  /// struct/enum.  When determining whether or not a struct/enum is completely
-  /// defined, one should use this method as opposed to 'isDefinition'.
-  /// 'isDefinition' indicates whether or not a specific TagDecl is defining
-  /// declaration, not whether or not the struct/enum type is defined.  This
-  /// method returns NULL if there is no TagDecl that defines the struct/enum.
-  TagDecl *getDefinition() const {
-    return isDefinition() ? const_cast<TagDecl*>(this) : 0;
+  /// getDefinition - Returns the RecordDecl that actually defines this struct.
+  /// When determining whether or not a struct is completely defined, one should
+  /// use this method as opposed to 'isDefinition'. 'isDefinition' indicates
+  /// whether or not a specific RecordDecl is defining declaration, not whether
+  /// or not the struct type is defined. This method returns NULL if there is
+  /// no RecordDecl that defines the struct.
+  RecordDecl *getDefinition() const {
+    return isDefinition() ? const_cast<RecordDecl*>(this) : 0;
   }
 
   void setDefinition(bool V) { IsDefinition = V; }
-
-  TagKind getTagKind() const { return TagKind(TagDeclKind); }
-
-  void setTagKind(TagKind TK) { TagDeclKind = TK; }
-
-  bool isStruct() const { return getTagKind() == TTK_Struct; }
-  bool isEnum()   const { return getTagKind() == TTK_Enum; }
-
-  // Implement isa/cast/dyncast/etc.
-  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
-  static bool classof(const TagDecl *D) { return true; }
-  static bool classofKind(Kind K) { return K >= firstTag && K <= lastTag; }
-
-  static DeclContext *castToDeclContext(const TagDecl *D) {
-    return static_cast<DeclContext *>(const_cast<TagDecl*>(D));
-  }
-  static TagDecl *castFromDeclContext(const DeclContext *DC) {
-    return static_cast<TagDecl *>(const_cast<DeclContext*>(DC));
-  }
-};
-
-/// EnumDecl - Represents an enum.
-class EnumDecl : public TagDecl {
-  EnumDecl(DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-           IdentifierInfo *Id, EnumDecl *PrevDecl)
-    : TagDecl(Enum, TTK_Enum, DC, IdLoc, Id, PrevDecl, StartLoc) {
-    NumNegativeBits = 0;
-    NumPositiveBits = 0;
-  }
-public:
-  static EnumDecl *Create(ASTContext &C, DeclContext *DC,
-                          llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-                          IdentifierInfo *Id, EnumDecl *PrevDecl);
-
-  EnumDecl *getCanonicalDecl() {
-    return cast<EnumDecl>(TagDecl::getCanonicalDecl());
-  }
-  const EnumDecl *getCanonicalDecl() const {
-    return cast<EnumDecl>(TagDecl::getCanonicalDecl());
-  }
-
-  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
-  static bool classof(const EnumDecl *D) { return true; }
-  static bool classofKind(Kind K) { return K == Enum; }
-};
-
-/// RecordDecl - Represents a struct/union/class.  For example:
-///   struct X;                  // Forward declaration, no "body".
-///   union Y { int A, B; };     // Has body with members A and B (FieldDecls).
-/// This decl will be marked invalid if *any* members are invalid.
-///
-class RecordDecl : public TagDecl {
-protected:
-  RecordDecl(Kind DK, TagKind TK, DeclContext *DC,
-             llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-             IdentifierInfo *Id, RecordDecl *PrevDecl);
-public:
 
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const RecordDecl *D) { return true; }
@@ -595,9 +518,7 @@ public:
 };
 
 /// EnumConstantDecl - An instance of this object exists for each enum constant
-/// that is defined.  For example, in "enum X {a,b}", each of a/b are
-/// EnumConstantDecl's, X is an instance of EnumDecl, and the type of a/b is a
-/// TagType for the X EnumDecl.
+/// that is defined.
 class EnumConstantDecl : public ValueDecl {
 protected:
   EnumConstantDecl(DeclContext *DC, llvm::SMLoc L,
