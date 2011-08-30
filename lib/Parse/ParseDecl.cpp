@@ -369,19 +369,19 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
   //    or LOGICAL [ kind-selector ]
   BuiltinType::TypeSpec TS;
   switch (Tok.getKind()) {
-  default:                TS = BuiltinType::TS_Invalid;   break;
-  case tok::kw_INTEGER:   TS = BuiltinType::TS_Integer;   break;
-  case tok::kw_REAL:      TS = BuiltinType::TS_Real;      break;
-  case tok::kw_COMPLEX:   TS = BuiltinType::TS_Complex;   break;
-  case tok::kw_CHARACTER: TS = BuiltinType::TS_Character; break;
-  case tok::kw_LOGICAL:   TS = BuiltinType::TS_Logical;   break;
+  default:                TS = BuiltinType::Invalid;   break;
+  case tok::kw_INTEGER:   TS = BuiltinType::Integer;   break;
+  case tok::kw_REAL:      TS = BuiltinType::Real;      break;
+  case tok::kw_COMPLEX:   TS = BuiltinType::Complex;   break;
+  case tok::kw_CHARACTER: TS = BuiltinType::Character; break;
+  case tok::kw_LOGICAL:   TS = BuiltinType::Logical;   break;
   case tok::kw_DOUBLEPRECISION:
-    TS = BuiltinType::TS_DoublePrecision;
+    TS = BuiltinType::DoublePrecision;
     break;
   }
 
   switch (TS) {
-  case BuiltinType::TS_Invalid:
+  case BuiltinType::Invalid:
     // We're parsing a TYPE or CLASS.
     break;
   default: {
@@ -400,7 +400,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
     DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
-  case BuiltinType::TS_DoublePrecision: {
+  case BuiltinType::DoublePrecision: {
     Lex();
     if (Tok.is(tok::l_paren))
       return Diag.ReportError(Tok.getLocation(),
@@ -409,7 +409,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
     DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
     return false;
   }
-  case BuiltinType::TS_Character: {
+  case BuiltinType::Character: {
     // [4.4.4.1] R424:
     //   char-selector :=
     //       length-selector

@@ -35,13 +35,13 @@ void ASTContext::InitBuiltinType(QualType &R, BuiltinType::TypeSpec K) {
 }
 
 void ASTContext::InitBuiltinTypes() {
-  // R404:
-  InitBuiltinType(IntegerTy,         BuiltinType::TS_Integer);
-  InitBuiltinType(RealTy,            BuiltinType::TS_Real);
-  InitBuiltinType(DoublePrecisionTy, BuiltinType::TS_DoublePrecision);
-  InitBuiltinType(ComplexTy,         BuiltinType::TS_Complex);
-  InitBuiltinType(CharacterTy,       BuiltinType::TS_Character);
-  InitBuiltinType(LogicalTy,         BuiltinType::TS_Logical);
+  // [R404]
+  InitBuiltinType(IntegerTy,         BuiltinType::Integer);
+  InitBuiltinType(RealTy,            BuiltinType::Real);
+  InitBuiltinType(DoublePrecisionTy, BuiltinType::DoublePrecision);
+  InitBuiltinType(ComplexTy,         BuiltinType::Complex);
+  InitBuiltinType(CharacterTy,       BuiltinType::Character);
+  InitBuiltinType(LogicalTy,         BuiltinType::Logical);
 }
 
 //===----------------------------------------------------------------------===//

@@ -614,20 +614,20 @@ public:
   /// TypeSpec - The intrinsic Fortran type specifications. REAL is the default
   /// if "IMPLICIT NONE" isn't specified.
   enum TypeSpec {
-    TS_Invalid         = -1,
-    TS_Integer         = 0,
-    TS_Real            = 1,
-    TS_DoublePrecision = 2,
-    TS_Complex         = 3,
-    TS_Character       = 4,
-    TS_Logical         = 5
+    Invalid         = -1,
+    Integer         = 0,
+    Real            = 1,
+    DoublePrecision = 2,
+    Complex         = 3,
+    Character       = 4,
+    Logical         = 5
   };
 protected:
   TypeSpec TySpec;              //< Type specification.
   Selector Kind;                //< Kind selector.
 
   friend class ASTContext;      // ASTContext creates these.
-  BuiltinType() : Type(Builtin, QualType()), TySpec(TS_Real) {}
+  BuiltinType() : Type(Builtin, QualType()), TySpec(Real) {}
   BuiltinType(TypeSpec TS) : Type(Builtin, QualType()), TySpec(TS) {}
   BuiltinType(TypeSpec TS, Selector K)
     : Type(Builtin, QualType()), TySpec(TS), Kind(K)
@@ -640,11 +640,11 @@ public:
   bool hasKind() const { return Kind.getKindExpr().isUsable(); }
   Selector getKind() const { return Kind; }
 
-  bool isIntegerType() const { return TySpec == TS_Integer; }
-  bool isRealType() const { return TySpec == TS_Real; }
-  bool isDoublePrecisionType() const { return TySpec == TS_DoublePrecision; }
-  bool isCharacterType() const { return TySpec == TS_Character; }
-  bool isLogicalType() const { return TySpec == TS_Logical; }
+  bool isIntegerType() const { return TySpec == Integer; }
+  bool isRealType() const { return TySpec == Real; }
+  bool isDoublePrecisionType() const { return TySpec == DoublePrecision; }
+  bool isCharacterType() const { return TySpec == Character; }
+  bool isLogicalType() const { return TySpec == Logical; }
 
   virtual void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, TySpec, Kind);
@@ -666,7 +666,7 @@ class CharacterBuiltinType : public BuiltinType {
   Selector Len;             //< Optional length selector.
   friend class ASTContext;  // ASTContext creates these.
   CharacterBuiltinType(Selector L, Selector K)
-    : BuiltinType(TS_Character, K), Len(L) {}
+    : BuiltinType(Character, K), Len(L) {}
 public:
   virtual ~CharacterBuiltinType();
 
@@ -679,7 +679,7 @@ public:
     Profile(ID, Len, Kind);
   }
   static void Profile(llvm::FoldingSetNodeID &ID, Selector L, Selector K) {
-    ID.AddInteger(TS_Character);
+    ID.AddInteger(Character);
     ID.AddPointer(L.getKindExpr().get());
     ID.AddPointer(K.getKindExpr().get());
   }

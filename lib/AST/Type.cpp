@@ -40,19 +40,19 @@ BuiltinType::~BuiltinType() {
 void BuiltinType::print(llvm::raw_ostream &O) const {
   switch (getTypeSpec()) {
   default: assert(false && "Invalid built-in type!");
-  case BuiltinType::TS_Integer:
+  case BuiltinType::Integer:
     O << "integer";
     break;
-  case BuiltinType::TS_Real:
+  case BuiltinType::Real:
     O << "real";
     break;
-  case BuiltinType::TS_DoublePrecision:
+  case BuiltinType::DoublePrecision:
     O << "double_precision";
     break;
-  case BuiltinType::TS_Complex:
+  case BuiltinType::Complex:
     O << "complex";
     break;
-  case BuiltinType::TS_Logical:
+  case BuiltinType::Logical:
     O << "logical";
     break;
   }
