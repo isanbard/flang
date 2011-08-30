@@ -22,10 +22,6 @@ using namespace fortran;
 //                             Subtype Methods
 //===----------------------------------------------------------------------===//
 
-BuiltinType::~BuiltinType() {
-  delete Kind.getKindExpr().take();
-}
-
 void BuiltinType::print(llvm::raw_ostream &O) const {
   switch (getTypeSpec()) {
   default: assert(false && "Invalid built-in type!");
@@ -51,10 +47,6 @@ void BuiltinType::print(llvm::raw_ostream &O) const {
     Kind.print(O);
     O << "\"";
   }
-}
-
-CharacterBuiltinType::~CharacterBuiltinType() {
-  delete Len.getKindExpr().take();
 }
 
 void CharacterBuiltinType::print(llvm::raw_ostream &O) const {

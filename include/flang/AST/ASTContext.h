@@ -53,8 +53,11 @@ class ASTContext {
   /// VariableDecls - The various variables in a program.
   mutable llvm::FoldingSet<VarDecl>     VariableDecls;
 
-  /// MallocAlloc - The allocator objects used to create AST objects.
-  mutable llvm::MallocAllocator         MallocAlloc;
+  /// \brief The allocator used to create AST objects.
+  ///
+  /// AST objects are never destructed; rather, all memory associated with the
+  /// AST objects will be released when the ASTContext itself is destroyed.
+  mutable llvm::BumpPtrAllocator        BumpAlloc;
 
   TranslationUnitDecl *TUDecl;
 
@@ -84,10 +87,10 @@ public:
   const llvm::SourceMgr &getSourceManager() const { return SrcMgr; }
 
   void *Allocate(unsigned Size, unsigned Align = 8) const {
-    return MallocAlloc.Allocate(Size, Align);
+    return BumpAlloc.Allocate(Size, Align);
   }
   void Deallocate(void *Ptr) const {
-    MallocAlloc.Deallocate(Ptr);
+    BumpAlloc.Deallocate(Ptr);
   }
 
   // Builtin Types: [R404]

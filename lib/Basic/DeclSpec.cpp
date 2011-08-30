@@ -31,7 +31,16 @@ DeclSpec::~DeclSpec() {}
 IntrinsicDeclSpec::~IntrinsicDeclSpec() {}
 
 void IntrinsicDeclSpec::print(llvm::raw_ostream &O) {
-  Ty->print(O);
+  if (const CharacterBuiltinType *CT = dyn_cast<CharacterBuiltinType>(Ty))
+    CT->print(O);
+  else if (const BuiltinType *BT = dyn_cast<BuiltinType>(Ty))
+    BT->print(O);
+  else if (const PointerType *PT = dyn_cast<PointerType>(Ty))
+    PT->print(O);
+  else if (const ArrayType *AT = dyn_cast<ArrayType>(Ty))
+    AT->print(O);
+  else if (const RecordType *RT = dyn_cast<RecordType>(Ty))
+    RT->print(O);
 }
 
 //===----------------------------------------------------------------------===//

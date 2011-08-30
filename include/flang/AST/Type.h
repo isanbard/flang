@@ -627,8 +627,6 @@ public:
   bool isDoublePrecisionType() const;
   bool isLogicalType() const;
 
-  virtual void print(llvm::raw_ostream &O) const = 0;
-
   static bool classof(const Type *) { return true; }
 };
 
@@ -663,8 +661,6 @@ protected:
     BuiltinTypeBits.Kind = TS;
   }
 public:
-  virtual ~BuiltinType();
-
   TypeSpec getTypeSpec() const { return TypeSpec(BuiltinTypeBits.Kind); }
 
   bool hasKind() const { return Kind.getKindExpr().isUsable(); }
@@ -678,7 +674,7 @@ public:
     ID.AddPointer(K.getKindExpr().get());
   }
 
-  virtual void print(llvm::raw_ostream &O) const;
+  void print(llvm::raw_ostream &O) const;
 
   static bool classof(const Type *T) { return T->getTypeClass() == Builtin; }
   static bool classof(const BuiltinType *) { return true; }
@@ -692,8 +688,6 @@ class CharacterBuiltinType : public BuiltinType {
   CharacterBuiltinType(Selector L, Selector K)
     : BuiltinType(Character, K), Len(L) {}
 public:
-  virtual ~CharacterBuiltinType();
-
   bool hasLen() const { return Len.getKindExpr().isUsable(); }
   Selector getLen() const { return Len; }
   void setLen(Selector L) { Len = L; }
@@ -708,7 +702,7 @@ public:
     ID.AddPointer(K.getKindExpr().get());
   }
 
-  virtual void print(llvm::raw_ostream &O) const;
+  void print(llvm::raw_ostream &O) const;
 
   static bool classof(const Type *T) {
     return T->getTypeClass() == Builtin &&
@@ -738,7 +732,7 @@ public:
     ID.AddInteger(NumDims);
   }
 
-  virtual void print(llvm::raw_ostream &O) const {} // FIXME
+  void print(llvm::raw_ostream &O) const {} // FIXME
 
   static bool classof(const Type *T) { return T->getTypeClass() == Pointer; }
   static bool classof(const PointerType *) { return true; }
@@ -780,7 +774,7 @@ public:
       ID.AddPointer(*I);
   }
 
-  virtual void print(llvm::raw_ostream &O) const {} // FIXME
+  void print(llvm::raw_ostream &O) const {} // FIXME
 
   static bool classof(const Type *T) { return T->getTypeClass() == Array; }
   static bool classof(const ArrayType *) { return true; }
@@ -804,7 +798,7 @@ public:
       ID.AddPointer(*I);
   }
 
-  virtual void print(llvm::raw_ostream &O) const {} // FIXME
+  void print(llvm::raw_ostream &O) const {} // FIXME
 
   static bool classof(const Type *T) { return T->getTypeClass() == Record; }
   static bool classof(const RecordType *) { return true; }
