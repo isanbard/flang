@@ -17,20 +17,11 @@
 #include "flang/AST/ASTContext.h"
 using namespace fortran;
 
+//===----------------------------------------------------------------------===//
+// DeclContext Implementation
+//===----------------------------------------------------------------------===//
+
 DeclContext::~DeclContext() {}
-
-
-DeclContext::decl_iterator DeclContext::decls_begin() const {
-  return decl_iterator(FirstDecl);
-}
-
-DeclContext::decl_iterator DeclContext::decls_end() const {
-  return decl_iterator();
-}
-
-bool DeclContext::decls_empty() const {
-  return !FirstDecl;
-}
 
 void DeclContext::addDecl(Decl *D) {
   assert(D->getDeclContext() == this &&
@@ -117,11 +108,6 @@ DeclContext::lookup(DeclarationName Name) {
   if (Pos == LookupPtr->end())
     return lookup_result(lookup_iterator(0), lookup_iterator(0));
   return Pos->second.getLookupResult();
-}
-
-DeclContext::lookup_const_result
-DeclContext::lookup(DeclarationName Name) const {
-  return const_cast<DeclContext*>(this)->lookup(Name);
 }
 
 void DeclContext::makeDeclVisibleInContext(NamedDecl *D) {
@@ -221,6 +207,14 @@ ASTContext &Decl::getASTContext() const {
 }
 
 //===----------------------------------------------------------------------===//
+// TranslationUnitDecl Implementation
+//===----------------------------------------------------------------------===//
+
+TranslationUnitDecl *TranslationUnitDecl::Create(ASTContext &C) {
+  return new (C) TranslationUnitDecl(C);
+}
+
+//===----------------------------------------------------------------------===//
 // RecordDecl Implementation
 //===----------------------------------------------------------------------===//
 
@@ -233,12 +227,8 @@ RecordDecl *RecordDecl::Create(const ASTContext &C, DeclContext *DC,
 }
 
 //===----------------------------------------------------------------------===//
-// Other Decl Allocation/Deallocation Method Implementations
+// EnumConstantDecl Implementation
 //===----------------------------------------------------------------------===//
-
-TranslationUnitDecl *TranslationUnitDecl::Create(ASTContext &C) {
-  return new (C) TranslationUnitDecl(C);
-}
 
 EnumConstantDecl *EnumConstantDecl::Create(ASTContext &C, DeclContext *DC,
                                            llvm::SMLoc L, IdentifierInfo *Id,
@@ -275,7 +265,7 @@ VarDecl *VarDecl::Create(ASTContext &C, DeclContext *DC,
 }
 
 //===----------------------------------------------------------------------===//
-// Creation and Destruction of StoredDeclsMaps.                               //
+// Creation and Destruction of StoredDeclsMaps
 //===----------------------------------------------------------------------===//
 
 StoredDeclsMap *DeclContext::CreateStoredDeclsMap(ASTContext &C) const {

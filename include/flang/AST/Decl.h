@@ -300,9 +300,15 @@ public:
 
   /// decls_begin/decls_end - Iterate over the declarations stored in this
   /// context.
-  decl_iterator decls_begin() const;
-  decl_iterator decls_end() const;
-  bool decls_empty() const;
+  decl_iterator decls_begin() const {
+    return decl_iterator(FirstDecl);
+  }
+  decl_iterator decls_end() const {
+    return decl_iterator();
+  }
+  bool decls_empty() const {
+    return !FirstDecl;
+  }
 
   /// @brief Add the declaration D into this context.
   ///
@@ -337,7 +343,9 @@ public:
   /// names preceding any tag name. Note that this routine will not look into
   /// parent contexts.
   lookup_result lookup(DeclarationName Name);
-  lookup_const_result lookup(DeclarationName Name) const;
+  lookup_const_result lookup(DeclarationName Name) const {
+    return const_cast<DeclContext*>(this)->lookup(Name);
+  }
 
   /// @brief Makes a declaration visible within this context.
   ///
