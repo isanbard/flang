@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/AST/Decl.h"
+#include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
 using namespace fortran;
 
@@ -163,6 +164,20 @@ RecordDecl *RecordDecl::Create(const ASTContext &C, DeclContext *DC,
 
 TranslationUnitDecl *TranslationUnitDecl::Create(ASTContext &C) {
   return new (C) TranslationUnitDecl(C);
+}
+
+EnumConstantDecl *EnumConstantDecl::Create(ASTContext &C, DeclContext *DC,
+                                           llvm::SMLoc L, IdentifierInfo *Id,
+                                           QualType T, Expr *E,
+                                           const llvm::APSInt &V) {
+  return new (C) EnumConstantDecl(DC, L, Id, T, E, V);
+}
+
+SourceRange EnumConstantDecl::getSourceRange() const {
+  llvm::SMLoc End = getLocation();
+  if (Init)
+    End = Init->getLocation();  // FIXME: getLocEnd() ?
+  return SourceRange(getLocation(), End);
 }
 
 #if 0

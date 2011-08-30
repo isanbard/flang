@@ -18,6 +18,7 @@
 #include "flang/AST/Type.h"
 #include "flang/Basic/IdentifierTable.h"
 #include "flang/Basic/SourceLocation.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
@@ -520,12 +521,28 @@ public:
 /// EnumConstantDecl - An instance of this object exists for each enum constant
 /// that is defined.
 class EnumConstantDecl : public ValueDecl {
+  Expr *Init;                   // An integer constant expression.
+  llvm::APSInt Val;             // The value.
 protected:
   EnumConstantDecl(DeclContext *DC, llvm::SMLoc L,
-                   IdentifierInfo *Id, QualType T /*, Expr *E,
-                                                    const llvm::APSInt &V */)
-    : ValueDecl(EnumConstant, DC, L, Id, T) {}
+                   IdentifierInfo *Id, QualType T, Expr *E,
+                   const llvm::APSInt &V)
+    : ValueDecl(EnumConstant, DC, L, Id, T), Init(E), Val(V) {}
 public:
+  static EnumConstantDecl *Create(ASTContext &C, DeclContext *DC,
+                                  llvm::SMLoc L, IdentifierInfo *Id,
+                                  QualType T, Expr *E,
+                                  const llvm::APSInt &V);
+
+  const Expr *getInitExpr() const { return Init; }
+  Expr *getInitExpr() { return Init; }
+  const llvm::APSInt &getInitVal() const { return Val; }
+
+  void setInitExpr(Expr *E) { Init = E; }
+  void setInitVal(const llvm::APSInt &V) { Val = V; }
+
+  SourceRange getSourceRange() const;
+
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const EnumConstantDecl *D) { return true; }
