@@ -56,6 +56,8 @@ class ASTContext {
   /// MallocAlloc - The allocator objects used to create AST objects.
   mutable llvm::MallocAllocator         MallocAlloc;
 
+  TranslationUnitDecl *TUDecl;
+
   /// SourceMgr - The associated SourceMgr object.
   llvm::SourceMgr &SrcMgr;
 
@@ -69,9 +71,14 @@ private:
 
   QualType getTypeDeclTypeSlow(const TypeDecl *Decl) const;
 
+  void InitBuiltinTypes();
+  void InitBuiltinType(QualType &R, BuiltinType::TypeSpec K);
+
 public:
-  ASTContext(llvm::SourceMgr &SM) : SrcMgr(SM) {}
+  ASTContext(llvm::SourceMgr &SM);
   ~ASTContext();
+
+  TranslationUnitDecl *getTranslationUnitDecl() const { return TUDecl; }
 
   llvm::SourceMgr &getSourceManager() { return SrcMgr; }
   const llvm::SourceMgr &getSourceManager() const { return SrcMgr; }
@@ -82,6 +89,14 @@ public:
   void Deallocate(void *Ptr) const {
     MallocAlloc.Deallocate(Ptr);
   }
+
+  // Builtin Types: [R404]
+  QualType IntegerTy;
+  QualType RealTy;
+  QualType DoublePrecisionTy;
+  QualType CharacterTy;
+  QualType LogicalTy;
+  QualType ComplexTy;
 
   /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
   /// type.
@@ -123,6 +138,8 @@ public:
 
     return getTypeDeclTypeSlow(Decl);
   }
+
+  const std::vector<Type*> &getTypes() const { return Types; }
 
 private:
   // FIXME: This currently contains the set of StoredDeclMaps used

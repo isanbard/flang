@@ -16,12 +16,32 @@
 #include "llvm/Support/ErrorHandling.h"
 using namespace fortran;
 
+ASTContext::ASTContext(llvm::SourceMgr &SM)
+  : SrcMgr(SM), LastSDM(0) {
+  TUDecl = TranslationUnitDecl::Create(*this);
+  InitBuiltinTypes();
+}
+
 ASTContext::~ASTContext() {
-  // Deallocate all the types.
-  while (!Types.empty()) {
-    Types.back()->Destroy(*this);
-    Types.pop_back();
-  }
+  // Release the DenseMaps associated with DeclContext objects.
+  // FIXME: Is this the ideal solution?
+  ReleaseDeclContextMaps();
+}
+
+void ASTContext::InitBuiltinType(QualType &R, BuiltinType::TypeSpec K) {
+  BuiltinType *Ty = new (*this, TypeAlignment) BuiltinType(K);
+  R = QualType(Ty, 0);
+  Types.push_back(Ty);
+}
+
+void ASTContext::InitBuiltinTypes() {
+  // R404:
+  InitBuiltinType(IntegerTy,         BuiltinType::TS_Integer);
+  InitBuiltinType(RealTy,            BuiltinType::TS_Real);
+  InitBuiltinType(DoublePrecisionTy, BuiltinType::TS_DoublePrecision);
+  InitBuiltinType(ComplexTy,         BuiltinType::TS_Complex);
+  InitBuiltinType(CharacterTy,       BuiltinType::TS_Character);
+  InitBuiltinType(LogicalTy,         BuiltinType::TS_Logical);
 }
 
 //===----------------------------------------------------------------------===//
