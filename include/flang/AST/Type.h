@@ -639,7 +639,7 @@ public:
 };
 
 /// BuiltinType - Intrinsic Fortran types.
-class BuiltinType : public Type, public llvm::FoldingSetNode {
+class BuiltinType : public Type {
 public:
   /// TypeSpec - The intrinsic Fortran type specifications. REAL is the default
   /// if "IMPLICIT NONE" isn't specified.
@@ -674,14 +674,6 @@ public:
   bool hasKind() const { return Kind.getKindExpr().isUsable(); }
   Selector getKind() const { return Kind; }
 
-  virtual void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, getTypeSpec(), Kind);
-  }
-  static void Profile(llvm::FoldingSetNodeID &ID, TypeSpec TS, Selector K) {
-    ID.AddInteger(TS);
-    ID.AddPointer(K.getKindExpr().get());
-  }
-
   void print(llvm::raw_ostream &O) const;
 
   static bool classof(const Type *T) { return T->getTypeClass() == Builtin; }
@@ -699,16 +691,6 @@ public:
   bool hasLen() const { return Len.getKindExpr().isUsable(); }
   Selector getLen() const { return Len; }
   void setLen(Selector L) { Len = L; }
-
-  virtual void Profile(llvm::FoldingSetNodeID &ID) {
-    BuiltinType::Profile(ID);
-    Profile(ID, Len, Kind);
-  }
-  static void Profile(llvm::FoldingSetNodeID &ID, Selector L, Selector K) {
-    ID.AddInteger(Character);
-    ID.AddPointer(L.getKindExpr().get());
-    ID.AddPointer(K.getKindExpr().get());
-  }
 
   void print(llvm::raw_ostream &O) const;
 

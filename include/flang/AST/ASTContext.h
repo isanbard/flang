@@ -45,7 +45,6 @@ class ASTContext {
 
   mutable std::vector<Type*>            Types;
   mutable llvm::FoldingSet<ExtQuals>    ExtQualNodes;
-  mutable llvm::FoldingSet<BuiltinType> BuiltinTypes;
   mutable llvm::FoldingSet<PointerType> PointerTypes;
   mutable llvm::FoldingSet<ArrayType>   ArrayTypes;
   mutable llvm::FoldingSet<RecordType>  RecordTypes;
