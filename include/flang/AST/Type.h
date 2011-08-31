@@ -620,6 +620,7 @@ public:
   bool isRealType() const;
   bool isCharacterType() const;
   bool isDoublePrecisionType() const;
+  bool isComplexType() const;
   bool isLogicalType() const;
 
   static bool classof(const Type *) { return true; }
@@ -803,27 +804,32 @@ inline bool Type::isBuiltinType() const {
 }
 inline bool Type::isIntegerType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
-    return BT->isIntegerType();
+    return BT->getTypeSpec() == BuiltinType::Integer;
   return false;
 }
 inline bool Type::isRealType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
-    return BT->isRealType();
+    return BT->getTypeSpec() == BuiltinType::Real;
   return false;
 }
 inline bool Type::isCharacterType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
-    return BT->isCharacterType();
+    return BT->getTypeSpec() == BuiltinType::Character;
   return false;
 }
 inline bool Type::isDoublePrecisionType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
-    return BT->isDoublePrecisionType();
+    return BT->getTypeSpec() == BuiltinType::DoublePrecision;
   return false;
 }
 inline bool Type::isLogicalType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
-    return BT->isLogicalType();
+    return BT->getTypeSpec() == BuiltinType::Logical;
+  return false;
+}
+inline bool Type::isComplexType() const {
+  if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
+    return BT->getTypeSpec() == BuiltinType::Complex;
   return false;
 }
 
