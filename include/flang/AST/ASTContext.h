@@ -70,8 +70,8 @@ class ASTContext {
 
 private:
   /// getExtQualType - Return a type with extended qualifiers.
-  QualType getExtQualType(const Type *Base, Qualifiers Quals) const;
-
+  QualType getExtQualType(const Type *Base, Qualifiers Quals,
+                          Expr *KindSel) const;
   QualType getTypeDeclTypeSlow(const TypeDecl *Decl) const;
 
   void InitBuiltinTypes();

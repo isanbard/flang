@@ -503,13 +503,17 @@ class ExtQuals : public ExtQualsTypeCommonBase, public llvm::FoldingSetNode {
   /// contains extended qualifiers.
   Qualifiers Quals;
 
+  /// KindSelector - The kind-selector for a type.
+  Expr *KindSelector;
+
   ExtQuals *this_() { return this; }
 
 public:
-  ExtQuals(const Type *BaseTy, QualType Canon, Qualifiers Quals) 
+  ExtQuals(const Type *BaseTy, QualType Canon, Qualifiers Quals,
+           Expr *KS)
     : ExtQualsTypeCommonBase(BaseTy,
                              Canon.isNull() ? QualType(this_(), 0) : Canon),
-      Quals(Quals)
+      Quals(Quals), KindSelector(KS)
   {}
 
   Qualifiers getQualifiers() const { return Quals; }
@@ -525,13 +529,17 @@ public:
 
   const Type *getBaseType() const { return BaseType; }
 
+  bool hasKindSelector() const { return KindSelector != 0; }
+  Expr *getKindSelector() const { return KindSelector; }
+
   void Profile(llvm::FoldingSetNodeID &ID) const {
-    Profile(ID, getBaseType(), Quals);
+    Profile(ID, getBaseType(), Quals, KindSelector);
   }
   static void Profile(llvm::FoldingSetNodeID &ID,
                       const Type *BaseType,
-                      Qualifiers Quals) {
+                      Qualifiers Quals, Expr *KS) {
     ID.AddPointer(BaseType);
+    ID.AddPointer(KS);
     Quals.Profile(ID);
   }
 };
