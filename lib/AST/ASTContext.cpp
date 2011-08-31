@@ -46,9 +46,7 @@ void ASTContext::InitBuiltinTypes() {
 
 QualType ASTContext::getBuiltinQualType(BuiltinType::TypeSpec TS) const {
   switch (TS) {
-  default:
-    assert(false && "Invalid type spec!");
-    break;
+  case BuiltinType::Invalid: assert(false && "Invalid type spec!"); break;
   case BuiltinType::Integer:         return IntegerTy;
   case BuiltinType::Real:            return RealTy;
   case BuiltinType::DoublePrecision: return DoublePrecisionTy;

@@ -176,27 +176,12 @@ ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
 QualType PrintAction::ActOnBuiltinType(ASTContext *Ctx,
                                        BuiltinType::TypeSpec TS,
                                        Expr *Kind) {
-  return QualType();
-#if 0
-  QualType Ty = Ctx->getBuiltinQualType(TS);
-  const Type *BaseTy = Ty.getTypePtr();
-
-  if (Kind.getKindExpr().get() != NULL) {
-    // FIXME:
-    Ty = Ctx->getExtQualType(BaseTy, Qualifiers(),
-                             Kind.getKindExpr().get());
-  }
-
   return Ctx->getBuiltinType(TS, Kind);
-#endif
 }
 
 QualType PrintAction::ActOnCharacterBuiltinType(ASTContext *Ctx, Expr *Len,
                                                 Expr *Kind) {
-  return QualType();
-#if 0
   return Ctx->getCharacterBuiltinType(Len, Kind);
-#endif
 }
 
 DeclSpec *PrintAction::ActOnTypeDeclSpec(ASTContext *Ctx) {
