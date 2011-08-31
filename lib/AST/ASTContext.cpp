@@ -96,21 +96,13 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
 
 /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
 /// type.
-BuiltinType *ASTContext::getBuiltinType(BuiltinType::TypeSpec TS,
-                                        Selector Kind) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  BuiltinType::Profile(ID, TS, Kind);
+QualType ASTContext::getBuiltinType(BuiltinType::TypeSpec TS, Selector Kind) {
+  QualType Ty = getBuiltinQualType(TS);
+  if (Kind.getKindExpr().get() == 0)
+    return Ty;
 
-  void *InsertPos = 0;
-  if (BuiltinType *BT = BuiltinTypes.FindNodeOrInsertPos(ID, InsertPos))
-    return BT;
-
-  BuiltinType *New = new (*this) BuiltinType(TS, Kind);
-  Types.push_back(New);
-  BuiltinTypes.InsertNode(New, InsertPos);
-  return New;
+  // FIXME: This is gross.
+  return getExtQualType(Ty.getTypePtr(), Qualifiers(),Kind.getKindExpr().get());
 }
 
 /// getCharacterBuiltinType - Return the uniqued reference to the type for a
