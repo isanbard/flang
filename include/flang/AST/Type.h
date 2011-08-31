@@ -544,19 +544,6 @@ public:
   }
 };
 
-/// Selector - A selector is a modifier on a type that indicates different
-/// properties for the type: precision, length, etc.
-class Selector {
-  friend class ASTContext;      // ASTContext creates these.
-  ExprResult KindExpr;
-public:
-  const ExprResult getKindExpr() const { return KindExpr; }
-  ExprResult getKindExpr() { return KindExpr; }
-  void setKindExpr(ExprResult KE) { KindExpr = KE; }
-
-  void print(llvm::raw_ostream &O) const;
-};
-
 /// Type - This is the base class for the type hierarchy.
 ///
 /// Types are immutable once created.
@@ -653,7 +640,7 @@ public:
     Logical         = 5
   };
 protected:
-  Selector Kind;                //< Kind selector.
+  Expr *Kind;
 
   friend class ASTContext;      // ASTContext creates these.
   BuiltinType()
@@ -664,15 +651,8 @@ protected:
     : Type(Builtin, QualType()) {
     BuiltinTypeBits.Kind = TS;
   }
-  BuiltinType(TypeSpec TS, Selector K)
-    : Type(Builtin, QualType()), Kind(K) {
-    BuiltinTypeBits.Kind = TS;
-  }
 public:
   TypeSpec getTypeSpec() const { return TypeSpec(BuiltinTypeBits.Kind); }
-
-  bool hasKind() const { return Kind.getKindExpr().isUsable(); }
-  Selector getKind() const { return Kind; }
 
   void print(llvm::raw_ostream &O) const;
 
@@ -683,14 +663,14 @@ public:
 /// CharacterBuiltinType - A character builtin type has an optional 'LEN' kind
 /// selector.
 class CharacterBuiltinType : public BuiltinType {
-  Selector Len;             //< Optional length selector.
+  Expr *Len;
   friend class ASTContext;  // ASTContext creates these.
-  CharacterBuiltinType(Selector L, Selector K)
-    : BuiltinType(Character, K), Len(L) {}
+  CharacterBuiltinType(Expr *L, Expr *K)
+    : BuiltinType(Character), Len(L) {}
 public:
-  bool hasLen() const { return Len.getKindExpr().isUsable(); }
-  Selector getLen() const { return Len; }
-  void setLen(Selector L) { Len = L; }
+  bool hasLen() const { return Len != 0; }
+  Expr *getLen() const { return Len; }
+  void setLen(Expr *L) { Len = L; }
 
   void print(llvm::raw_ostream &O) const;
 

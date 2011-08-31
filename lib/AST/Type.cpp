@@ -42,9 +42,9 @@ void BuiltinType::print(llvm::raw_ostream &O) const {
     break;
   }
 
-  if (Kind.getKindExpr().isUsable()) {
+  if (Kind) {
     O << " kind=\"";
-    Kind.print(O);
+    Kind->print(O);
     O << "\"";
   }
 }
@@ -52,23 +52,15 @@ void BuiltinType::print(llvm::raw_ostream &O) const {
 void CharacterBuiltinType::print(llvm::raw_ostream &O) const {
   O << "character";
 
-  if (Len.getKindExpr().isUsable()) {
+  if (Len) {
     O << " length=\"";
-    Len.print(O);
+    Len->print(O);
     O << "\"";
   }
 
-  if (Kind.getKindExpr().isUsable()) {
+  if (Kind) {
     O << " kind=\"";
-    Kind.print(O);
+    Kind->print(O);
     O << "\"";
   }
-}
-
-//===----------------------------------------------------------------------===//
-//                             Selector Methods
-//===----------------------------------------------------------------------===//
-
-void Selector::print(llvm::raw_ostream &O) const {
-  KindExpr.get()->print(O);
 }

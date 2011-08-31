@@ -61,10 +61,10 @@ public:
 
   virtual QualType ActOnBuiltinType(ASTContext *Ctx,
                                     BuiltinType::TypeSpec TS,
-                                    Selector Kind) = 0;
+                                    Expr *Kind) = 0;
   virtual QualType ActOnCharacterBuiltinType(ASTContext *Ctx,
-                                             Selector Len,
-                                             Selector Kind) = 0;
+                                             Expr *Len,
+                                             Expr *Kind) = 0;
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) = 0;
   virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD) = 0;
@@ -105,10 +105,10 @@ public:
 
   virtual QualType ActOnBuiltinType(ASTContext *Ctx,
                                     BuiltinType::TypeSpec TS,
-                                    Selector Kind);
+                                    Expr *Kind);
   virtual QualType ActOnCharacterBuiltinType(ASTContext *Ctx,
-                                             Selector Len,
-                                             Selector Kind);
+                                             Expr *Len,
+                                             Expr *Kind);
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx);
   virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD);

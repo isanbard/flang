@@ -237,8 +237,8 @@ private:
 
   // Declaration construct functions
   bool ParseDeclarationTypeSpec(DeclSpec *&DTS);
-  bool ParseKindSelector(Selector &Kind);
-  bool ParseLengthSelector(Selector &Len);
+  bool ParseKindSelector(ExprResult &Kind);
+  bool ParseLengthSelector(ExprResult &Len);
   bool ParseDerivedTypeSpec(DeclSpec *&DS);
   bool ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims);
 

@@ -105,11 +105,11 @@ public:
 
   /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
   /// type.
-  QualType getBuiltinType(BuiltinType::TypeSpec TS, Selector Kind);
+  QualType getBuiltinType(BuiltinType::TypeSpec TS, Expr *Kind);
 
   /// getCharacterBuiltinType - Return the uniqued reference to the type for a
   /// character type.
-  QualType getCharacterBuiltinType(Selector Len, Selector Kind);
+  QualType getCharacterBuiltinType(Expr *Len, Expr *Kind);
 
   /// getPointerType - Return the uniqued reference to the type for a pointer to
   /// the specified type.

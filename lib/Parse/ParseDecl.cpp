@@ -272,7 +272,7 @@ bool Parser::ParseTypeDeclarationStmt() {
 ///   [4.4.1] R405:
 ///     kind-selector :=
 ///         ( [ KIND = ] scalar-int-initialization-expr )
-bool Parser::ParseKindSelector(Selector &Kind) {
+bool Parser::ParseKindSelector(ExprResult &Kind) {
   if (EatIfPresent(tok::kw_KIND)) {
     if (!EatIfPresent(tok::equal)) {
       if (Tok.isNot(tok::l_paren))
@@ -287,7 +287,7 @@ bool Parser::ParseKindSelector(Selector &Kind) {
   if (KindExpr.isInvalid())
     return true;
 
-  Kind.setKindExpr(KindExpr);
+  Kind = KindExpr;
   return false;
 }
 
@@ -296,7 +296,7 @@ bool Parser::ParseKindSelector(Selector &Kind) {
 ///   [4.4.4.1] R425:
 ///     length-selector :=
 ///         ( [ LEN = ] type-param-value )
-bool Parser::ParseLengthSelector(Selector &Len) {
+bool Parser::ParseLengthSelector(ExprResult &Len) {
   if (EatIfPresent(tok::kw_LEN) && !EatIfPresent(tok::equal))
     return Diag.ReportError(Tok.getLocation(), "invalid length selector");
 
@@ -304,7 +304,7 @@ bool Parser::ParseLengthSelector(Selector &Len) {
   if (KindExpr.isInvalid())
     return true;
 
-  Len.setKindExpr(KindExpr);
+  Len = KindExpr;
   return false;
 }
 
@@ -387,7 +387,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
   default: {
     Lex();
 
-    Selector Kind;
+    ExprResult Kind;
     if (EatIfPresent(tok::l_paren)) {
       if (ParseKindSelector(Kind))
         return true;
@@ -397,7 +397,8 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
                                 "expected ')' after kind selector");
     }
 
-    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
+    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS,
+                                                        Kind.get()));
     return false;
   }
   case BuiltinType::DoublePrecision: {
@@ -405,8 +406,9 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
     if (Tok.is(tok::l_paren))
       return Diag.ReportError(Tok.getLocation(),
                              "'DOUBLE PRECISION' doesn't take a kind selector");
-    Selector Kind;
-    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS, Kind));
+    ExprResult Kind;
+    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS,
+                                                        Kind.get()));
     return false;
   }
   case BuiltinType::Character: {
@@ -435,13 +437,13 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
     //    or :
     Lex();
 
-    Selector Len;
-    Selector Kind;
+    ExprResult Len;
+    ExprResult Kind;
 
     if (Tok.is(tok::star)) {
       Lex();
       ExprResult KindExpr = ParseExpression();
-      Len.setKindExpr(KindExpr);
+      Len = KindExpr;
     } else {
       if (Tok.is(tok::l_paren)) {
         Lex(); // Eat '('.
@@ -454,31 +456,31 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
             return true;
         } else {
           ExprResult KindExpr = ParseExpression();
-          Len.setKindExpr(KindExpr);
+          Len = KindExpr;
         }
 
         if (Tok.is(tok::comma)) {
           Lex(); // Eat ','.
 
           if (Tok.is(tok::kw_LEN)) {
-            if (Len.getKindExpr().isInvalid())
+            if (Len.isInvalid())
               return Diag.ReportError(Tok.getLocation(),
                                       "multiple LEN selectors for this type");
             if (ParseLengthSelector(Len))
               return true;
           } else if (Tok.is(tok::kw_KIND)) {
-            if (Kind.getKindExpr().isInvalid())
+            if (Kind.isInvalid())
               return Diag.ReportError(Tok.getLocation(),
                                       "multiple KIND selectors for this type");
             if (ParseKindSelector(Kind))
               return true;
           } else {
-            if (Kind.getKindExpr().isInvalid())
+            if (Kind.isInvalid())
               return Diag.ReportError(Tok.getLocation(),
                                       "multiple KIND selectors for this type");
 
             ExprResult KindExpr = ParseExpression();
-            Kind.setKindExpr(KindExpr);
+            Kind = KindExpr;
           }
         }
 
@@ -489,9 +491,10 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
       }
     }
 
-    DS = new IntrinsicDeclSpec(Actions.ActOnCharacterBuiltinType(&Context,
-                                                                 Len,
-                                                                 Kind));
+    DS = new IntrinsicDeclSpec(Actions.
+                               ActOnCharacterBuiltinType(&Context,
+                                                         Len.get(),
+                                                         Kind.get()));
     return false;
   }
   }

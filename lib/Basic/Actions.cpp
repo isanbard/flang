@@ -175,7 +175,7 @@ ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
 
 QualType PrintAction::ActOnBuiltinType(ASTContext *Ctx,
                                        BuiltinType::TypeSpec TS,
-                                       Selector Kind) {
+                                       Expr *Kind) {
   return QualType();
 #if 0
   QualType Ty = Ctx->getBuiltinQualType(TS);
@@ -191,8 +191,8 @@ QualType PrintAction::ActOnBuiltinType(ASTContext *Ctx,
 #endif
 }
 
-QualType PrintAction::ActOnCharacterBuiltinType(ASTContext *Ctx, Selector Len,
-                                                Selector Kind) {
+QualType PrintAction::ActOnCharacterBuiltinType(ASTContext *Ctx, Expr *Len,
+                                                Expr *Kind) {
   return QualType();
 #if 0
   return Ctx->getCharacterBuiltinType(Len, Kind);

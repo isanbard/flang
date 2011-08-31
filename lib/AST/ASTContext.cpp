@@ -96,26 +96,25 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
 
 /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
 /// type.
-QualType ASTContext::getBuiltinType(BuiltinType::TypeSpec TS, Selector Kind) {
+QualType ASTContext::getBuiltinType(BuiltinType::TypeSpec TS, Expr *Kind) {
   QualType Ty = getBuiltinQualType(TS);
-  if (Kind.getKindExpr().get() == 0)
+  if (!Kind)
     return Ty;
 
   // FIXME: This is gross.
-  return getExtQualType(Ty.getTypePtr(), Qualifiers(),Kind.getKindExpr().get());
+  return getExtQualType(Ty.getTypePtr(), Qualifiers(), Kind);
 }
 
 /// getCharacterBuiltinType - Return the uniqued reference to the type for a
 /// character type.
-QualType ASTContext::getCharacterBuiltinType(Selector Len, Selector Kind) {
+QualType ASTContext::getCharacterBuiltinType(Expr *Len, Expr *Kind) {
   QualType Ty = getBuiltinQualType(BuiltinType::Character);
-  if (Len.getKindExpr().isInvalid() && Kind.getKindExpr().isInvalid())
+  if (!Len && !Kind)
     return Ty;
 
-  if (!Kind.getKindExpr().isInvalid())
+  if (Kind)
     // FIXME: This is gross.
-    Ty = getExtQualType(Ty.getTypePtr(), Qualifiers(),
-                        Kind.getKindExpr().get());
+    Ty = getExtQualType(Ty.getTypePtr(), Qualifiers(), Kind);
 
   // TODO: Construct an array here.
 
