@@ -44,6 +44,21 @@ void ASTContext::InitBuiltinTypes() {
   InitBuiltinType(LogicalTy,         BuiltinType::Logical);
 }
 
+QualType ASTContext::getBuiltinQualType(BuiltinType::TypeSpec TS) const {
+  switch (TS) {
+  default:
+    assert(false && "Invalid type spec!");
+    break;
+  case BuiltinType::Integer:         return IntegerTy;
+  case BuiltinType::Real:            return RealTy;
+  case BuiltinType::DoublePrecision: return DoublePrecisionTy;
+  case BuiltinType::Character:       return CharacterTy;
+  case BuiltinType::Logical:         return LogicalTy;
+  case BuiltinType::Complex:         return ComplexTy;
+  }
+  return QualType();
+}
+
 //===----------------------------------------------------------------------===//
 //                   Type creation/memoization methods
 //===----------------------------------------------------------------------===//

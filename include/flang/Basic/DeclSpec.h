@@ -14,6 +14,7 @@
 #ifndef FORTRAN_DECL_SPEC_H__
 #define FORTRAN_DECL_SPEC_H__
 
+#include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -24,7 +25,6 @@ class raw_ostream;
 
 namespace fortran {
 
-class Type;
 class Expr;
 
 //===----------------------------------------------------------------------===//
@@ -109,14 +109,14 @@ public:
 //===----------------------------------------------------------------------===//
 /// IntrinsicDeclSpec - A declaration type specifier for an intrinsic type.
 class IntrinsicDeclSpec : public DeclSpec {
-  const Type *Ty;
+  QualType Ty;
 public:
-  IntrinsicDeclSpec(const Type *T)
+  IntrinsicDeclSpec(QualType T)
     : DeclSpec(IntrinsicTypeSpec), Ty(T) {}
   virtual ~IntrinsicDeclSpec();
 
-  const Type *getType() const { return Ty; }
-  void setType(const Type *ty) { Ty = ty; }
+  QualType getType() const { return Ty; }
+  void setType(QualType ty) { Ty = ty; }
 
   virtual void print(llvm::raw_ostream &);
 

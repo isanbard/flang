@@ -59,12 +59,12 @@ public:
   ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
                     Token &StmtLabel) = 0;
 
-  virtual const BuiltinType *ActOnBuiltinType(ASTContext *Ctx,
-                                              BuiltinType::TypeSpec TS,
-                                              Selector Kind) = 0;
-  virtual const BuiltinType *ActOnCharacterBuiltinType(ASTContext *Ctx,
-                                                       Selector Len,
-                                                       Selector Kind) = 0;
+  virtual QualType ActOnBuiltinType(ASTContext *Ctx,
+                                    BuiltinType::TypeSpec TS,
+                                    Selector Kind) = 0;
+  virtual QualType ActOnCharacterBuiltinType(ASTContext *Ctx,
+                                             Selector Len,
+                                             Selector Kind) = 0;
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) = 0;
   virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD) = 0;
@@ -103,12 +103,12 @@ public:
   ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
                     Token &StmtLabel);
 
-  virtual const BuiltinType *ActOnBuiltinType(ASTContext *Ctx,
-                                              BuiltinType::TypeSpec TS,
-                                              Selector Kind);
-  virtual const BuiltinType *ActOnCharacterBuiltinType(ASTContext *Ctx,
-                                                       Selector Len,
-                                                       Selector Kind);
+  virtual QualType ActOnBuiltinType(ASTContext *Ctx,
+                                    BuiltinType::TypeSpec TS,
+                                    Selector Kind);
+  virtual QualType ActOnCharacterBuiltinType(ASTContext *Ctx,
+                                             Selector Len,
+                                             Selector Kind);
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx);
   virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
                             const VarDecl *VD);

@@ -101,6 +101,9 @@ public:
   QualType LogicalTy;
   QualType ComplexTy;
 
+  /// getBuiltinQualType - Return the QualType for the specified builtin type.
+  QualType getBuiltinQualType(BuiltinType::TypeSpec TS) const;
+
   /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
   /// type.
   BuiltinType *getBuiltinType(BuiltinType::TypeSpec TS, Selector Kind);
