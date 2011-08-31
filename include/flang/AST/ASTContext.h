@@ -110,7 +110,7 @@ public:
 
   /// getCharacterBuiltinType - Return the uniqued reference to the type for a
   /// character type.
-  BuiltinType *getCharacterBuiltinType(Selector Len, Selector Kind);
+  QualType getCharacterBuiltinType(Selector Len, Selector Kind);
 
   /// getPointerType - Return the uniqued reference to the type for a pointer to
   /// the specified type.

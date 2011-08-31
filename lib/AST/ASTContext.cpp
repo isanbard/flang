@@ -107,20 +107,19 @@ QualType ASTContext::getBuiltinType(BuiltinType::TypeSpec TS, Selector Kind) {
 
 /// getCharacterBuiltinType - Return the uniqued reference to the type for a
 /// character type.
-BuiltinType *ASTContext::getCharacterBuiltinType(Selector Len, Selector Kind) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  CharacterBuiltinType::Profile(ID, Len, Kind);
+QualType ASTContext::getCharacterBuiltinType(Selector Len, Selector Kind) {
+  QualType Ty = getBuiltinQualType(BuiltinType::Character);
+  if (Len.getKindExpr().isInvalid() && Kind.getKindExpr().isInvalid())
+    return Ty;
 
-  void *InsertPos = 0;
-  if (BuiltinType *BT = BuiltinTypes.FindNodeOrInsertPos(ID, InsertPos))
-    return BT;
+  if (!Kind.getKindExpr().isInvalid())
+    // FIXME: This is gross.
+    Ty = getExtQualType(Ty.getTypePtr(), Qualifiers(),
+                        Kind.getKindExpr().get());
 
-  CharacterBuiltinType *New = new (*this) CharacterBuiltinType(Len, Kind);
-  Types.push_back(New);
-  BuiltinTypes.InsertNode(New, InsertPos);
-  return New;
+  // TODO: Construct an array here.
+
+  return QualType();
 }
 
 /// getPointerType - Return the uniqued reference to the type for a pointer to
