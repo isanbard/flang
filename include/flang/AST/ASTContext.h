@@ -117,8 +117,7 @@ public:
 
   /// getArrayType - Return the uniqued reference to the type for an array of
   /// the specified type.
-  ArrayType *getArrayType(const Type *Ty,
-                          const llvm::SmallVectorImpl<Expr*> &Dims);
+  ArrayType *getArrayType(QualType EltTy, Expr *Length);
 
   /// getRecordType - Return the uniqued reference to the type for a structure
   /// of the specified type.
@@ -145,6 +144,13 @@ public:
   }
 
   const std::vector<Type*> &getTypes() const { return Types; }
+
+  /// getQualifiedType - Returns a type with additional qualifiers.
+  QualType getQualifiedType(const Type *T, Qualifiers Qs) const {
+    if (!Qs.hasNonFastQualifiers())
+      return QualType(T, Qs.getFastQualifiers());
+    return getExtQualType(T, Qs, 0);
+  }
 
 private:
   // FIXME: This currently contains the set of StoredDeclMaps used

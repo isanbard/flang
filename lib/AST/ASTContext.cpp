@@ -139,18 +139,28 @@ PointerType *ASTContext::getPointerType(const Type *Ty, unsigned NumDims) {
 
 /// getArrayType - Return the uniqued reference to the type for an array to the
 /// specified type.
-ArrayType *ASTContext::getArrayType(const Type *Ty,
-                                    const llvm::SmallVectorImpl<Expr*> &Dims) {
+ArrayType *ASTContext::getArrayType(QualType EltTy, Expr *Length) {
   // Unique pointers, to guarantee there is only one pointer of a particular
   // structure.
   llvm::FoldingSetNodeID ID;
-  ArrayType::Profile(ID, Ty, Dims);
+  ArrayType::Profile(ID, EltTy, Length);
 
   void *InsertPos = 0;
   if (ArrayType *AT = ArrayTypes.FindNodeOrInsertPos(ID, InsertPos))
     return AT;
 
-  ArrayType *New = new (*this) ArrayType(Ty, Dims);
+  // If the element type isn't canonical or has qualifiers, this won't be a
+  // canonical type either, so fill in the canonical type field.
+  QualType Canon;
+  if (!EltTy.isCanonical() || EltTy.hasLocalQualifiers()) {
+    SplitQualType CanonSplit = EltTy.split();
+    Canon = getQualifiedType(CanonSplit.first, CanonSplit.second);
+
+    // Re-find the insert position.
+    (void) ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos);
+  }
+
+  ArrayType *New = new (*this) ArrayType(EltTy, Canon);
   Types.push_back(New);
   ArrayTypes.InsertNode(New, InsertPos);
   return New;

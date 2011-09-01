@@ -340,7 +340,7 @@ typedef std::pair<const Type*, Qualifiers> SplitQualType;
 /// part of the type.
 class QualType {
   // Thankfully, these are efficiently composable.
-  llvm::PointerIntPair<llvm::PointerUnion<const Type*,const ExtQuals*>,
+  llvm::PointerIntPair<llvm::PointerUnion<const Type*, const ExtQuals*>,
                        Qualifiers::FastWidth> Value;
 
   const ExtQuals *getExtQualsUnsafe() const {
@@ -554,10 +554,9 @@ protected:
   enum TypeClass {
     None    = 0,
     Builtin = 1,
-    Complex = 2,
-    Array   = 3,
-    Record  = 4,
-    Pointer = 5
+    Array   = 2,
+    Record  = 3,
+    Pointer = 4
   };
 
 private:
@@ -711,38 +710,26 @@ public:
 
 /// ArrayType - Array types.
 class ArrayType : public Type, public llvm::FoldingSetNode {
-  const Type *ElemType;
-  llvm::SmallVector<Expr*, 4> Dimensions;
+  QualType ElementType;
+  Expr *Length;
+protected:
+  ArrayType(QualType et, QualType can)
+    : Type(Array, can), ElementType(et) {}
+
   friend class ASTContext;  // ASTContext creates these.
-  ArrayType(const Type *ElemTy, llvm::ArrayRef<Expr*> Dims)
-    : Type(Array, QualType()), ElemType(ElemTy) {
-    Dimensions.append(Dims.begin(), Dims.end());
-  }
 public:
-  const Type *getElementType() const { return ElemType; }
-  const llvm::SmallVectorImpl<Expr*> &getDimensions() const {
-    return Dimensions;
-  }
+  QualType getElementType() const { return ElementType; }
 
-  typedef llvm::SmallVectorImpl<Expr*>::iterator dim_iterator;
-  typedef llvm::SmallVectorImpl<Expr*>::const_iterator const_dim_iterator;
-
-  size_t size() const              { return Dimensions.size(); }
-  dim_iterator begin()             { return Dimensions.begin(); }
-  dim_iterator end()               { return Dimensions.end(); }
-  const_dim_iterator begin() const { return Dimensions.begin(); }
-  const_dim_iterator end() const   { return Dimensions.end(); }
+  Expr *getLength() const { return Length; }
+  void setLength(Expr *L) { Length = L; }
 
   void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, ElemType, Dimensions);
+    Profile(ID, ElementType, Length);
   }
-  static void Profile(llvm::FoldingSetNodeID &ID, const Type *ElemTy,
-                      const llvm::SmallVectorImpl<Expr*> &Dims) {
-    ID.AddPointer(ElemTy);
-
-    for (llvm::SmallVectorImpl<Expr*>::const_iterator
-           I = Dims.begin(), E = Dims.end(); I != E; ++I)
-      ID.AddPointer(*I);
+  static void Profile(llvm::FoldingSetNodeID &ID, QualType ET,
+                      Expr *Len) {
+    ID.AddPointer(ET.getAsOpaquePtr());
+    ID.AddPointer(Len);
   }
 
   void print(llvm::raw_ostream &O) const {} // FIXME
