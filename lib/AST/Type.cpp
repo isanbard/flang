@@ -18,6 +18,22 @@
 #include "llvm/Support/raw_ostream.h"
 using namespace fortran;
 
+QualType
+QualifierCollector::apply(const ASTContext &Context, QualType QT) const {
+  if (!hasNonFastQualifiers())
+    return QT.withFastQualifiers(getFastQualifiers());
+
+  return Context.getQualifiedType(QT, *this);
+}
+
+QualType
+QualifierCollector::apply(const ASTContext &Context, const Type *T) const {
+  if (!hasNonFastQualifiers())
+    return QualType(T, getFastQualifiers());
+
+  return Context.getQualifiedType(T, *this);
+}
+
 //===----------------------------------------------------------------------===//
 //                             Subtype Methods
 //===----------------------------------------------------------------------===//

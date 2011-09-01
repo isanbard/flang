@@ -16,6 +16,7 @@
 
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/PointerUnion.h"
 #include "llvm/ADT/SmallVector.h"
@@ -391,6 +392,21 @@ public:
     return T;
   }
 
+  void addFastQualifiers(unsigned TQs) {
+    assert(!(TQs & ~Qualifiers::FastMask)
+           && "Non-fast qualifier bits set in mask!");
+    Value.setInt(Value.getInt() | TQs);
+  }
+
+  // Qualifiers already on this type.
+  QualType withFastQualifiers(unsigned TQs) const {
+    QualType T = *this;
+    T.addFastQualifiers(TQs);
+    return T;
+  }
+
+  QualType getCanonicalType() const;
+
   /// \brief Determine whether this particular QualType instance has any
   /// "non-fast" qualifiers, e.g., those that are stored in an ExtQualType
   /// instance.
@@ -554,9 +570,10 @@ protected:
   enum TypeClass {
     None    = 0,
     Builtin = 1,
-    Array   = 2,
-    Record  = 3,
-    Pointer = 4
+    Record  = 2,
+    Pointer = 3,
+    Array   = 4,
+    ConstantArray = 5
   };
 
 private:
@@ -621,6 +638,8 @@ public:
   bool isDoublePrecisionType() const;
   bool isComplexType() const;
   bool isLogicalType() const;
+  bool isArrayType() const;
+  bool isConstantArrayType() const;
 
   static bool classof(const Type *) { return true; }
 };
@@ -711,31 +730,46 @@ public:
 /// ArrayType - Array types.
 class ArrayType : public Type, public llvm::FoldingSetNode {
   QualType ElementType;
-  Expr *Length;
 protected:
-  ArrayType(QualType et, QualType can)
-    : Type(Array, can), ElementType(et) {}
+  ArrayType(TypeClass tc, QualType et, QualType can)
+    : Type(tc, can), ElementType(et) {}
 
   friend class ASTContext;  // ASTContext creates these.
 public:
   QualType getElementType() const { return ElementType; }
 
-  Expr *getLength() const { return Length; }
-  void setLength(Expr *L) { Length = L; }
-
-  void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, ElementType, Length);
-  }
-  static void Profile(llvm::FoldingSetNodeID &ID, QualType ET,
-                      Expr *Len) {
-    ID.AddPointer(ET.getAsOpaquePtr());
-    ID.AddPointer(Len);
-  }
-
   void print(llvm::raw_ostream &O) const {} // FIXME
 
-  static bool classof(const Type *T) { return T->getTypeClass() == Array; }
+  static bool classof(const Type *T) {
+    return T->getTypeClass() == ConstantArray;
+  }
   static bool classof(const ArrayType *) { return true; }
+};
+
+/// ConstantArrayType - This class represents the canonical version of
+/// Fortran arrays with a specified constant size.
+class ConstantArrayType : public ArrayType {
+  llvm::APInt Size;
+
+  ConstantArrayType(QualType et, QualType canon, const llvm::APInt &size)
+    : ArrayType(ConstantArray, et, canon), Size(size) {}
+protected:
+  friend class ASTContext;
+public:
+  const llvm::APInt &getSize() const { return Size; }
+
+  void Profile(llvm::FoldingSetNodeID &ID) {
+    Profile(ID, getElementType(), getSize());
+  }
+  static void Profile(llvm::FoldingSetNodeID &ID, QualType ET,
+                      const llvm::APInt &ArraySize) {
+    ID.AddPointer(ET.getAsOpaquePtr());
+    ID.AddInteger(ArraySize.getZExtValue());
+  }
+  static bool classof(const Type *T) {
+    return T->getTypeClass() == ConstantArray;
+  }
+  static bool classof(const ConstantArrayType *) { return true; }
 };
 
 /// RecordType - Record types.
@@ -762,6 +796,31 @@ public:
   static bool classof(const RecordType *) { return true; }
 };
 
+/// A qualifier set is used to build a set of qualifiers.
+class QualifierCollector : public Qualifiers {
+public:
+  QualifierCollector(Qualifiers Qs = Qualifiers()) : Qualifiers(Qs) {}
+
+  /// Collect any qualifiers on the given type and return an
+  /// unqualified type.  The qualifiers are assumed to be consistent
+  /// with those already in the type.
+  const Type *strip(QualType type) {
+    addFastQualifiers(type.getLocalFastQualifiers());
+    if (!type.hasLocalNonFastQualifiers())
+      return type.getTypePtrUnsafe();
+      
+    const ExtQuals *extQuals = type.getExtQualsUnsafe();
+    addConsistentQualifiers(extQuals->getQualifiers());
+    return extQuals->getBaseType();
+  }
+
+  /// Apply the collected qualifiers to the given type.
+  QualType apply(const ASTContext &Context, QualType QT) const;
+
+  /// Apply the collected qualifiers to the given type.
+  QualType apply(const ASTContext &Context, const Type* T) const;
+};
+
 // Inline function definitions.
 
 inline const Type *QualType::getTypePtr() const {
@@ -770,11 +829,9 @@ inline const Type *QualType::getTypePtr() const {
 inline const Type *QualType::getTypePtrOrNull() const {
   return (isNull() ? 0 : getCommonPtr()->BaseType);
 }
-
 inline bool QualType::isCanonical() const {
   return getTypePtr()->isCanonicalUnqualified();
 }
-
 inline SplitQualType QualType::split() const {
   if (!hasLocalNonFastQualifiers())
     return SplitQualType(getTypePtrUnsafe(),
@@ -785,6 +842,11 @@ inline SplitQualType QualType::split() const {
   Qs.addFastQualifiers(getLocalFastQualifiers());
   return SplitQualType(EQ->getBaseType(), Qs);
 }
+inline QualType QualType::getCanonicalType() const {
+  QualType canon = getCommonPtr()->CanonicalType;
+  return canon.withFastQualifiers(getLocalFastQualifiers());
+}
+
 
 inline bool Type::isBuiltinType() const {
   return isa<BuiltinType>(CanonicalType);
@@ -818,6 +880,12 @@ inline bool Type::isComplexType() const {
   if (const BuiltinType *BT = dyn_cast<BuiltinType>(CanonicalType))
     return BT->getTypeSpec() == BuiltinType::Complex;
   return false;
+}
+inline bool Type::isArrayType() const {
+  return isa<ArrayType>(CanonicalType);
+}
+inline bool Type::isConstantArrayType() const {
+  return isa<ConstantArrayType>(CanonicalType);
 }
 
 } // end fortran namespace

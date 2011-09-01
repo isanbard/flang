@@ -43,20 +43,20 @@ class TypeDecl;
 class ASTContext {
   ASTContext &this_() { return *this; }
 
-  mutable std::vector<Type*>            Types;
-  mutable llvm::FoldingSet<ExtQuals>    ExtQualNodes;
-  mutable llvm::FoldingSet<PointerType> PointerTypes;
-  mutable llvm::FoldingSet<ArrayType>   ArrayTypes;
-  mutable llvm::FoldingSet<RecordType>  RecordTypes;
+  mutable std::vector<Type*>                  Types;
+  mutable llvm::FoldingSet<ExtQuals>          ExtQualNodes;
+  mutable llvm::FoldingSet<PointerType>       PointerTypes;
+  mutable llvm::FoldingSet<ConstantArrayType> ConstantArrayTypes;
+  mutable llvm::FoldingSet<RecordType>        RecordTypes;
 
   /// VariableDecls - The various variables in a program.
-  mutable llvm::FoldingSet<VarDecl>     VariableDecls;
+  mutable llvm::FoldingSet<VarDecl>           VariableDecls;
 
   /// \brief The allocator used to create AST objects.
   ///
   /// AST objects are never destructed; rather, all memory associated with the
   /// AST objects will be released when the ASTContext itself is destroyed.
-  mutable llvm::BumpPtrAllocator        BumpAlloc;
+  mutable llvm::BumpPtrAllocator BumpAlloc;
 
   TranslationUnitDecl *TUDecl;
 
@@ -115,9 +115,10 @@ public:
   /// the specified type.
   PointerType *getPointerType(const Type *Ty, unsigned NumDims);
 
-  /// getArrayType - Return the uniqued reference to the type for an array of
-  /// the specified type.
-  ArrayType *getArrayType(QualType EltTy, Expr *Length);
+  /// getConstantArrayType - Return the unique reference to the type for a
+  /// constant array of the specified element type.
+  QualType getConstantArrayType(QualType EltTy,
+                                const llvm::APInt &ArySize) const;
 
   /// getRecordType - Return the uniqued reference to the type for a structure
   /// of the specified type.
@@ -146,10 +147,34 @@ public:
   const std::vector<Type*> &getTypes() const { return Types; }
 
   /// getQualifiedType - Returns a type with additional qualifiers.
+  QualType getQualifiedType(QualType T, Qualifiers Qs) const {
+    if (!Qs.hasNonFastQualifiers())
+      return T.withFastQualifiers(Qs.getFastQualifiers());
+    QualifierCollector Qc(Qs);
+    const Type *Ptr = Qc.strip(T);
+    return getExtQualType(Ptr, Qc, 0);
+  }
+
+  /// getQualifiedType - Returns a type with additional qualifiers.
   QualType getQualifiedType(const Type *T, Qualifiers Qs) const {
     if (!Qs.hasNonFastQualifiers())
       return QualType(T, Qs.getFastQualifiers());
     return getExtQualType(T, Qs, 0);
+  }
+
+  //===--------------------------------------------------------------------===//
+  //                            Type Operators
+  //===--------------------------------------------------------------------===//
+
+  /// getCanonicalType - Return the canonical (structural) type corresponding to
+  /// the specified potentially non-canonical type.
+  QualType getCanonicalType(QualType T) const {
+    return QualType();
+    //    return CanQualType::CreateUnsafe(T.getCanonicalType());
+  }
+
+  const Type *getCanonicalType(const Type *T) const {
+    return T->getCanonicalTypeInternal().getTypePtr();
   }
 
 private:

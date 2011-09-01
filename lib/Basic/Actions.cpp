@@ -182,11 +182,8 @@ QualType PrintAction::ActOnBuiltinType(ASTContext *Ctx,
 QualType PrintAction::ActOnCharacterBuiltinType(ASTContext *Ctx, Expr *Len,
                                                 Expr *Kind) {
   QualType EltTy = Ctx->getBuiltinType(BuiltinType::Character, Kind);
-  QualType ArrTy(Ctx->getArrayType(EltTy, Len), 0);
-  return ArrTy;
-#if 0
-  return Ctx->getCharacterBuiltinType(Len, Kind);
-#endif
+  llvm::APInt Length; Length = 0; // FIXME: Evaluate Len.
+  return Ctx->getConstantArrayType(EltTy, Length);
 }
 
 DeclSpec *PrintAction::ActOnTypeDeclSpec(ASTContext *Ctx) {

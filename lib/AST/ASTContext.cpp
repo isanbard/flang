@@ -137,33 +137,42 @@ PointerType *ASTContext::getPointerType(const Type *Ty, unsigned NumDims) {
   return New;
 }
 
-/// getArrayType - Return the uniqued reference to the type for an array to the
-/// specified type.
-ArrayType *ASTContext::getArrayType(QualType EltTy, Expr *Length) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
+/// getConstantArrayType - Return the unique reference to the type for an
+/// array of the specified element type.
+QualType ASTContext::getConstantArrayType(QualType EltTy,
+                                          const llvm::APInt &ArySizeIn) const {
+  // Convert the array size into a canonical width matching the pointer size for
+  // the target.
+  llvm::APInt ArySize(ArySizeIn);
+  ArySize = ArySize.zextOrTrunc(8); // FIXME: Need to get target pointer width!
+
   llvm::FoldingSetNodeID ID;
-  ArrayType::Profile(ID, EltTy, Length);
+  ConstantArrayType::Profile(ID, EltTy, ArySize);
 
   void *InsertPos = 0;
-  if (ArrayType *AT = ArrayTypes.FindNodeOrInsertPos(ID, InsertPos))
-    return AT;
+  if (ConstantArrayType *ATP =
+      ConstantArrayTypes.FindNodeOrInsertPos(ID, InsertPos))
+    return QualType(ATP, 0);
 
   // If the element type isn't canonical or has qualifiers, this won't be a
   // canonical type either, so fill in the canonical type field.
   QualType Canon;
   if (!EltTy.isCanonical() || EltTy.hasLocalQualifiers()) {
-    SplitQualType CanonSplit = EltTy.split();
-    Canon = getQualifiedType(CanonSplit.first, CanonSplit.second);
+    SplitQualType canonSplit = getCanonicalType(EltTy).split();
+    Canon = getConstantArrayType(QualType(canonSplit.first, 0), ArySize);
+    Canon = getQualifiedType(Canon, canonSplit.second);
 
-    // Re-find the insert position.
-    (void) ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos);
+    // Get the new insert position for the node we care about.
+    ConstantArrayType *NewIP =
+      ConstantArrayTypes.FindNodeOrInsertPos(ID, InsertPos);
+    assert(NewIP == 0 && "Shouldn't be in the map!"); (void)NewIP;
   }
 
-  ArrayType *New = new (*this) ArrayType(EltTy, Canon);
+  ConstantArrayType *New = new (*this,TypeAlignment)
+    ConstantArrayType(EltTy, Canon, ArySize);
+  ConstantArrayTypes.InsertNode(New, InsertPos);
   Types.push_back(New);
-  ArrayTypes.InsertNode(New, InsertPos);
-  return New;
+  return QualType(New, 0);
 }
 
 const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
