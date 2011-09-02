@@ -24,7 +24,7 @@
 #include <vector>
 
 namespace llvm {
-template <typename T> class ArrayRef;
+  template <typename T> class ArrayRef;
 } // end llvm namespac
 
 namespace flang {
@@ -34,9 +34,7 @@ class StoredDeclsMap;
 // Decls
 class DeclContext;
 class Decl;
-class FieldDecl;
 class RecordDecl;
-class TagDecl;
 class TranslationUnitDecl;
 class TypeDecl;
 
