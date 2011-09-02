@@ -124,8 +124,8 @@ private:
 
   UseStmt(ModuleNature MN, const IdentifierInfo *Info, Token StmtLabelTok);
 public:
-  UseStmt *Create(ModuleNature MN, const IdentifierInfo *Info,
-                  Token StmtLabelTok);
+  static UseStmt *Create(ModuleNature MN, const IdentifierInfo *Info,
+                         Token StmtLabelTok);
 
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
@@ -175,8 +175,8 @@ class AsynchronousStmt : public Stmt {
   AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
                    Token StmtLabelTok);
 public:
-  AsynchronousStmt *Create(llvm::ArrayRef<const IdentifierInfo*> objNames,
-                           Token StmtLabelTok);
+  static AsynchronousStmt*Create(llvm::ArrayRef<const IdentifierInfo*> objNames,
+                                  Token StmtLabelTok);
 
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
