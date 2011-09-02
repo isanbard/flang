@@ -14,7 +14,7 @@
 #include "flang/Basic/Diagnostic.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/Twine.h"
-using namespace fortran;
+using namespace flang;
 
 bool Diagnostic::hadErrors() {
   return Client->getNumErrors() != 0;

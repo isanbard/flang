@@ -26,7 +26,7 @@ namespace llvm {
   class raw_ostream;
 } // end llvm namespace
 
-namespace fortran {
+namespace flang {
   enum {
     TypeAlignmentInBits = 4,
     TypeAlignment = 1 << TypeAlignmentInBits
@@ -40,29 +40,29 @@ namespace llvm {
   template <typename T>
   class PointerLikeTypeTraits;
   template<>
-  class PointerLikeTypeTraits< ::fortran::Type*> {
+  class PointerLikeTypeTraits< ::flang::Type*> {
   public:
-    static inline void *getAsVoidPointer(::fortran::Type *P) { return P; }
-    static inline ::fortran::Type *getFromVoidPointer(void *P) {
-      return static_cast< ::fortran::Type*>(P);
+    static inline void *getAsVoidPointer(::flang::Type *P) { return P; }
+    static inline ::flang::Type *getFromVoidPointer(void *P) {
+      return static_cast< ::flang::Type*>(P);
     }
-    enum { NumLowBitsAvailable = fortran::TypeAlignmentInBits };
+    enum { NumLowBitsAvailable = flang::TypeAlignmentInBits };
   };
   template<>
-  class PointerLikeTypeTraits< ::fortran::ExtQuals*> {
+  class PointerLikeTypeTraits< ::flang::ExtQuals*> {
   public:
-    static inline void *getAsVoidPointer(::fortran::ExtQuals *P) { return P; }
-    static inline ::fortran::ExtQuals *getFromVoidPointer(void *P) {
-      return static_cast< ::fortran::ExtQuals*>(P);
+    static inline void *getAsVoidPointer(::flang::ExtQuals *P) { return P; }
+    static inline ::flang::ExtQuals *getFromVoidPointer(void *P) {
+      return static_cast< ::flang::ExtQuals*>(P);
     }
-    enum { NumLowBitsAvailable = fortran::TypeAlignmentInBits };
+    enum { NumLowBitsAvailable = flang::TypeAlignmentInBits };
   };
 
   template <>
-  struct isPodLike<fortran::QualType> { static const bool value = true; };
+  struct isPodLike<flang::QualType> { static const bool value = true; };
 }
 
-namespace fortran {
+namespace flang {
 
 class ASTContext;
 class Decl;
@@ -460,24 +460,24 @@ namespace llvm {
 
 /// Implement simplify_type for QualType, so that we can dyn_cast from QualType
 /// to a specific Type class.
-template<> struct simplify_type<const ::fortran::QualType> {
-  typedef const ::fortran::Type *SimpleType;
-  static SimpleType getSimplifiedValue(const ::fortran::QualType &Val) {
+template<> struct simplify_type<const ::flang::QualType> {
+  typedef const ::flang::Type *SimpleType;
+  static SimpleType getSimplifiedValue(const ::flang::QualType &Val) {
     return Val.getTypePtr();
   }
 };
-template<> struct simplify_type< ::fortran::QualType>
-  : public simplify_type<const ::fortran::QualType> {};
+template<> struct simplify_type< ::flang::QualType>
+  : public simplify_type<const ::flang::QualType> {};
 
 // Teach SmallPtrSet that QualType is "basically a pointer".
 template<>
-class PointerLikeTypeTraits<fortran::QualType> {
+class PointerLikeTypeTraits<flang::QualType> {
 public:
-  static inline void *getAsVoidPointer(fortran::QualType P) {
+  static inline void *getAsVoidPointer(flang::QualType P) {
     return P.getAsOpaquePtr();
   }
-  static inline fortran::QualType getFromVoidPointer(void *P) {
-    return fortran::QualType::getFromOpaquePtr(P);
+  static inline flang::QualType getFromVoidPointer(void *P) {
+    return flang::QualType::getFromOpaquePtr(P);
   }
   // Various qualifiers go in low bits.
   enum { NumLowBitsAvailable = 0 };
@@ -485,7 +485,7 @@ public:
 
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 /// \brief Base class that is common to both the \c ExtQuals and \c Type 
 /// classes, which allows \c QualType to access the common fields between the

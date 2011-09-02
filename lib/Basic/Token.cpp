@@ -14,7 +14,7 @@
 #include "flang/Basic/Token.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
-using namespace fortran;
+using namespace flang;
 
 static inline bool isHorizontalWhitespace(char C) {
   return C == ' ' || C == '\t' || C == '\f' || C == '\v';

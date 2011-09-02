@@ -9,7 +9,7 @@
 
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // Expression D'tors

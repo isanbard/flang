@@ -15,7 +15,7 @@
 #include "flang/AST/DeclContextInternals.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // DeclContext Implementation

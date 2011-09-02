@@ -23,7 +23,7 @@ namespace llvm {
   class SourceMgr;
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 class LangOptions;
 
@@ -38,6 +38,6 @@ public:
                                 const llvm::Twine &Msg);
 };
 
-} // end namespace fortran
+} // end namespace flang
 
 #endif

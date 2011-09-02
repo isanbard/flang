@@ -29,7 +29,7 @@ namespace llvm {
   class SourceMgr;
 }
 
-namespace fortran {
+namespace flang {
 
 class ASTContext;
 class DeclSpec;
@@ -57,8 +57,8 @@ namespace llvm {
 
 // DeclContext* is only 4-byte aligned on 32-bit systems.
 template<>
-  class PointerLikeTypeTraits<fortran::DeclContext*> {
-  typedef fortran::DeclContext* PT;
+  class PointerLikeTypeTraits<flang::DeclContext*> {
+  typedef flang::DeclContext* PT;
 public:
   static inline void *getAsVoidPointer(PT P) { return P; }
   static inline PT getFromVoidPointer(void *P) {
@@ -69,7 +69,7 @@ public:
 
 } // end llvm namespace
 
-namespace fortran {
+namespace flang {
 
 //===----------------------------------------------------------------------===//
 /// Decl - Base class for declarations.

@@ -28,7 +28,7 @@ class SourceMgr;
 
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 class Diagnostic;
 
@@ -193,6 +193,6 @@ public:
   void PrintError(const char *Loc, const std::string &Msg) const;
 };
 
-} // end namespace fortran
+} // end namespace flang
 
 #endif

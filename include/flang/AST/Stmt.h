@@ -21,7 +21,7 @@ namespace llvm {
   class StringRef;
 }
 
-namespace fortran {
+namespace flang {
 
 class IdentifierInfo;
 

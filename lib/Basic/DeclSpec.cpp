@@ -16,7 +16,7 @@
 #include "flang/AST/Type.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/ArrayRef.h"
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // Declaration Type Specifier

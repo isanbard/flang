@@ -20,7 +20,7 @@
 #include "llvm/ADT/Twine.h"
 #include <string>
 
-namespace fortran {
+namespace flang {
 
 class LangOptions;
 class IdentifierInfo;
@@ -350,6 +350,6 @@ public:
   void AddPredefineds(const LangOptions &LangOpts);
 };
 
-}  // end namespace fortran
+}  // end namespace flang
 
 #endif

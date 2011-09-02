@@ -22,7 +22,7 @@ namespace llvm {
   class Twine;
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 class DiagnosticClient;
 class DiagnosticErrorTrap;
@@ -182,6 +182,6 @@ public:
                                 const llvm::Twine &Msg);
 };
 
-} // end namespace fortran
+} // end namespace flang
 
 #endif

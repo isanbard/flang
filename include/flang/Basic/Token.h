@@ -23,7 +23,7 @@ namespace llvm {
   class Twine;
 } // end llvm namespace
 
-namespace fortran {
+namespace flang {
 
 class IdentifierInfo;
 
@@ -167,6 +167,6 @@ public:
   }
 };
 
-} // end namespace fortran
+} // end namespace flang
 
 #endif

@@ -23,7 +23,7 @@ template <typename T> class ArrayRef;
 class raw_ostream;
 } // end llvm namespace
 
-namespace fortran {
+namespace flang {
 
 class Expr;
 

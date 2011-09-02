@@ -21,7 +21,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/StringRef.h"
 
-namespace fortran {
+namespace flang {
 
 class IdentifierInfo;
 class Decl;

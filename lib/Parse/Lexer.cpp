@@ -16,7 +16,7 @@
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/Twine.h"
-using namespace fortran;
+using namespace flang;
 
 static void InitCharacterInfo();
 

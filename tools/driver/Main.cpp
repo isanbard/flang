@@ -26,7 +26,7 @@
 #include "llvm/Support/system_error.h"
 #include "llvm/ADT/OwningPtr.h"
 using namespace llvm;
-using namespace fortran;
+using namespace flang;
 
 llvm::sys::Path GetExecutablePath(const char *Argv0, bool CanonicalPrefixes) {
   if (!CanonicalPrefixes)

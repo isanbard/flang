@@ -18,7 +18,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 
-namespace fortran {
+namespace flang {
 
 class Decl;
 class UsingDirectiveDecl;
@@ -147,6 +147,6 @@ public:
   void Init(Scope *parent, unsigned flags);
 };
 
-}  // end namespace fortran
+}  // end namespace flang
 
 #endif

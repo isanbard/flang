@@ -16,7 +16,7 @@
 
 #include <string>
 
-namespace fortran {
+namespace flang {
 
 /// LangOptions - This class keeps track of the various options that can be
 /// enabled, which controls the dialect of Fortran that is accepted.
@@ -46,6 +46,6 @@ public:
   }
 };
 
-}  // end namespace fortran
+}  // end namespace flang
 
 #endif

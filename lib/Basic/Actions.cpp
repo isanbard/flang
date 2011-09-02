@@ -21,7 +21,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Twine.h"
-using namespace fortran;
+using namespace flang;
 
 static inline void PrintStmtLabel(Token &StmtLabel) {
   if (StmtLabel.isNot(tok::statement_label)) return;

@@ -14,7 +14,7 @@
 #ifndef LLVM_FORTRAN_TOKENKINDS_H__
 #define LLVM_FORTRAN_TOKENKINDS_H__
 
-namespace fortran {
+namespace flang {
 namespace tok {
 
 /// TokenKind - This provides a simple uniform namespace for tokens from all
@@ -39,6 +39,6 @@ const char *getTokenName(enum TokenKind Kind);
 const char *getTokenSimpleSpelling(enum TokenKind Kind);
 
 }  // end namespace tok
-}  // end namespace fortran
+}  // end namespace flang
 
 #endif

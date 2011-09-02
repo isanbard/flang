@@ -20,7 +20,7 @@
 #include "flang/Basic/TokenKinds.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
-using namespace fortran;
+using namespace flang;
 
 /// ParseExecutableConstruct - Parse the executable construct.
 ///

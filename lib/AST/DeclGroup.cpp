@@ -15,7 +15,7 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/ASTContext.h"
 #include "llvm/Support/Allocator.h"
-using namespace fortran;
+using namespace flang;
 
 DeclGroup *DeclGroup::Create(ASTContext &C, Decl **Decls, unsigned NumDecls) {
   assert(NumDecls > 1 && "Invalid DeclGroup");

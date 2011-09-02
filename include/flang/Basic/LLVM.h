@@ -32,7 +32,7 @@ namespace llvm {
 }
 
 
-namespace fortran {
+namespace flang {
   // Casting operators.
   using llvm::isa;
   using llvm::cast;
@@ -48,6 +48,6 @@ namespace fortran {
   using llvm::SmallVectorImpl;
   
   using llvm::raw_ostream;
-} // end namespace fortran.
+} // end namespace flang.
 
 #endif

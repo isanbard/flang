@@ -18,7 +18,7 @@
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringExtras.h"
 #include <algorithm>
-using namespace fortran;
+using namespace flang;
 
 static const enum llvm::raw_ostream::Colors noteColor =
   llvm::raw_ostream::BLACK;

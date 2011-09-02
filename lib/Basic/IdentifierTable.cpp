@@ -17,7 +17,7 @@
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/StringRef.h"
 #include <cstdio>
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // IdentifierInfo Implementation

@@ -23,7 +23,7 @@
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallString.h"
-using namespace fortran;
+using namespace flang;
 
 static void VectorToString(const llvm::SmallVectorImpl<llvm::StringRef> &Vec,
                            llvm::SmallVectorImpl<char> &Str) {

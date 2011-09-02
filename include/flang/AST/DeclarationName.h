@@ -22,7 +22,7 @@ namespace llvm {
   template <typename T> struct DenseMapInfo;
 }
 
-namespace fortran {
+namespace flang {
 
 class DeclarationNameTable;
 class IdentifierInfo;
@@ -277,32 +277,32 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   return OS;
 }
 
-}  // end namespace fortran
+}  // end namespace flang
 
 namespace llvm {
 
 /// Define DenseMapInfo so that DeclarationNames can be used as keys in DenseMap
 /// and DenseSets.
 template<>
-struct DenseMapInfo<fortran::DeclarationName> {
-  static inline fortran::DeclarationName getEmptyKey() {
-    return fortran::DeclarationName::getEmptyMarker();
+struct DenseMapInfo<flang::DeclarationName> {
+  static inline flang::DeclarationName getEmptyKey() {
+    return flang::DeclarationName::getEmptyMarker();
   }
 
-  static inline fortran::DeclarationName getTombstoneKey() {
-    return fortran::DeclarationName::getTombstoneMarker();
+  static inline flang::DeclarationName getTombstoneKey() {
+    return flang::DeclarationName::getTombstoneMarker();
   }
 
-  static unsigned getHashValue(fortran::DeclarationName);
+  static unsigned getHashValue(flang::DeclarationName);
 
   static inline bool
-  isEqual(fortran::DeclarationName LHS, fortran::DeclarationName RHS) {
+  isEqual(flang::DeclarationName LHS, flang::DeclarationName RHS) {
     return LHS == RHS;
   }
 };
 
 template <>
-struct isPodLike<fortran::DeclarationName> { static const bool value = true; };
+struct isPodLike<flang::DeclarationName> { static const bool value = true; };
 
 }  // end namespace llvm
 

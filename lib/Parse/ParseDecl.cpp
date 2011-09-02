@@ -15,7 +15,7 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/Basic/Actions.h"
-using namespace fortran;
+using namespace flang;
 
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
 /// the list, but reports an error if that attribute was all ready assigned.

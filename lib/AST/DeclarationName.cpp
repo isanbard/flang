@@ -19,7 +19,7 @@
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // DeclarationName Implementation
@@ -151,7 +151,7 @@ llvm::SMLoc DeclarationNameInfo::getEndLoc() const {
 //===----------------------------------------------------------------------===//
 
 unsigned
-llvm::DenseMapInfo<fortran::DeclarationName>::
-getHashValue(fortran::DeclarationName N) {
+llvm::DenseMapInfo<flang::DeclarationName>::
+getHashValue(flang::DeclarationName N) {
   return DenseMapInfo<void*>::getHashValue(N.getAsOpaquePtr());
 }

@@ -31,7 +31,7 @@ namespace llvm {
   class SourceMgr;
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 class Action;
 class DeclGroupRef;
@@ -121,8 +121,8 @@ private:
 public:
   typedef OpaquePtr<DeclGroupRef> DeclGroupPtrTy;
 
-  typedef fortran::ExprResult ExprResult;
-  typedef fortran::StmtResult StmtResult;
+  typedef flang::ExprResult ExprResult;
+  typedef flang::StmtResult StmtResult;
 
   bool isaIdentifier(const llvm::StringRef &ID) const {
     return Identifiers.isaIdentifier(ID);

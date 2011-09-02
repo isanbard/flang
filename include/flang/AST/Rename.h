@@ -16,7 +16,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_stream.h"
 
-namespace fortran {
+namespace flang {
 
 //===----------------------------------------------------------------------===//
 /// Rename - Used in a 'USE' statement to rename a module name to a local name.

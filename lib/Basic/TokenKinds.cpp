@@ -14,7 +14,7 @@
 #include "flang/Basic/TokenKinds.h"
 #include <cassert>
 
-using namespace fortran;
+using namespace flang;
 
 static char const * const TokNames[] = {
 #define TOK(X)       #X,

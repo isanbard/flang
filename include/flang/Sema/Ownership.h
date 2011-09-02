@@ -16,7 +16,7 @@
 
 #include "llvm/ADT/PointerIntPair.h"
 
-namespace fortran {
+namespace flang {
 
 class Expr;
 class Stmt;

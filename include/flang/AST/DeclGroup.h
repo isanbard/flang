@@ -17,7 +17,7 @@
 #include "llvm/Support/DataTypes.h"
 #include <cassert>
 
-namespace fortran {
+namespace flang {
 
 class ASTContext;
 class Decl;
@@ -137,13 +137,13 @@ namespace llvm {
   template <typename T>
   class PointerLikeTypeTraits;
   template <>
-  class PointerLikeTypeTraits<fortran::DeclGroupRef> {
+  class PointerLikeTypeTraits<flang::DeclGroupRef> {
   public:
-    static inline void *getAsVoidPointer(fortran::DeclGroupRef P) {
+    static inline void *getAsVoidPointer(flang::DeclGroupRef P) {
       return P.getAsOpaquePtr();
     }
-    static inline fortran::DeclGroupRef getFromVoidPointer(void *P) {
-      return fortran::DeclGroupRef::getFromOpaquePtr(P);
+    static inline flang::DeclGroupRef getFromVoidPointer(void *P) {
+      return flang::DeclGroupRef::getFromOpaquePtr(P);
     }
     enum { NumLowBitsAvailable = 0 };
   };

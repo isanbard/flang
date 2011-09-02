@@ -14,7 +14,7 @@
 #include "flang/AST/ASTContext.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/ErrorHandling.h"
-using namespace fortran;
+using namespace flang;
 
 ASTContext::ASTContext(llvm::SourceMgr &SM)
   : SrcMgr(SM), LastSDM(0) {

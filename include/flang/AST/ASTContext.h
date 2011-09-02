@@ -27,7 +27,7 @@ namespace llvm {
 template <typename T> class ArrayRef;
 } // end llvm namespac
 
-namespace fortran {
+namespace flang {
 
 class StoredDeclsMap;
 
@@ -169,8 +169,7 @@ public:
   /// getCanonicalType - Return the canonical (structural) type corresponding to
   /// the specified potentially non-canonical type.
   QualType getCanonicalType(QualType T) const {
-    return QualType();
-    //    return CanQualType::CreateUnsafe(T.getCanonicalType());
+    return T.getCanonicalType();
   }
 
   const Type *getCanonicalType(const Type *T) const {
@@ -217,7 +216,7 @@ private:
 /// @param Alignment The alignment of the allocated memory (if the underlying
 ///                  allocator supports it).
 /// @return The allocated memory. Could be NULL.
-inline void *operator new(size_t Bytes, const fortran::ASTContext &C,
+inline void *operator new(size_t Bytes, const flang::ASTContext &C,
                           size_t Alignment = 8) throw () {
   return C.Allocate(Bytes, Alignment);
 }
@@ -228,7 +227,7 @@ inline void *operator new(size_t Bytes, const fortran::ASTContext &C,
 /// invoking it directly; see the new operator for more details. This operator
 /// is called implicitly by the compiler if a placement new expression using the
 /// ASTContext throws in the object constructor.
-inline void operator delete(void *Ptr, const fortran::ASTContext &C, size_t)
+inline void operator delete(void *Ptr, const flang::ASTContext &C, size_t)
               throw () {
   C.Deallocate(Ptr);
 }
@@ -255,7 +254,7 @@ inline void operator delete(void *Ptr, const fortran::ASTContext &C, size_t)
 /// @param Alignment The alignment of the allocated memory (if the underlying
 ///                  allocator supports it).
 /// @return The allocated memory. Could be NULL.
-inline void *operator new[](size_t Bytes, const fortran::ASTContext& C,
+inline void *operator new[](size_t Bytes, const flang::ASTContext& C,
                             size_t Alignment = 8) throw () {
   return C.Allocate(Bytes, Alignment);
 }
@@ -266,7 +265,7 @@ inline void *operator new[](size_t Bytes, const fortran::ASTContext& C,
 /// invoking it directly; see the new[] operator for more details. This operator
 /// is called implicitly by the compiler if a placement new[] expression using
 /// the ASTContext throws in the object constructor.
-inline void operator delete[](void *Ptr, const fortran::ASTContext &C, size_t)
+inline void operator delete[](void *Ptr, const flang::ASTContext &C, size_t)
               throw () {
   C.Deallocate(Ptr);
 }

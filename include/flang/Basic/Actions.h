@@ -25,7 +25,7 @@ namespace llvm {
   class raw_ostream;
 } // end namespace llvm
 
-namespace fortran {
+namespace flang {
 
 class ASTContext;
 class DeclSpec;

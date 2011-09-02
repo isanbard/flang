@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Sema/Scope.h"
-using namespace fortran;
+using namespace flang;
 
 void Scope::Init(Scope *parent, unsigned flags) {
   AnyParent = parent;

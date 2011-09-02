@@ -22,7 +22,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include <algorithm>
 
-namespace fortran {
+namespace flang {
 
 class DependentDiagnostic;
 
@@ -138,6 +138,6 @@ public:
   static void DestroyAll(StoredDeclsMap *Map);
 };
 
-} // end namespace fortran
+} // end namespace flang
 
 #endif

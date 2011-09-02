@@ -14,7 +14,7 @@
 #include "flang/AST/Stmt.h"
 #include "flang/Basic/IdentifierTable.h"
 #include "llvm/ADT/StringRef.h"
-using namespace fortran;
+using namespace flang;
 
 //===----------------------------------------------------------------------===//
 // Statement Base Class
