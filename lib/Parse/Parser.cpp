@@ -307,17 +307,19 @@ bool Parser::ParseMainProgram() {
 
   // If the PROGRAM statement has an identifier, create a DeclarationNameInfo
   // object for the main-program action.
-  const IdentifierInfo *IDInfo = 0;
-  llvm::SMLoc NameLoc;
-  if (ProgStmt.isUsable()) {
-    ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
-    IDInfo = PS->getProgramName();
-    NameLoc = PS->getNameLocation();
-  }
+  {
+    const IdentifierInfo *IDInfo = 0;
+    llvm::SMLoc NameLoc;
+    if (ProgStmt.isUsable()) {
+      ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
+      IDInfo = PS->getProgramName();
+      NameLoc = PS->getNameLocation();
+    }
 
-  DeclarationName DN(IDInfo);
-  DeclarationNameInfo DNI(DN, NameLoc);
-  Actions.ActOnMainProgram(DNI);
+    DeclarationName DN(IDInfo);
+    DeclarationNameInfo DNI(DN, NameLoc);
+    Actions.ActOnMainProgram(DNI);
+  }
 
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
     ParseSpecificationPart();
@@ -330,8 +332,17 @@ bool Parser::ParseMainProgram() {
   }
 
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
+  if (!EndProgStmt.isUsable()) return true;
 
-  Actions.ActOnEndProgramUnit();
+  {
+    EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
+    const IdentifierInfo *IDInfo = EPS->getProgramName();
+    llvm::SMLoc NameLoc = EPS->getNameLocation();
+
+    DeclarationName DN(IDInfo);
+    DeclarationNameInfo DNI(DN, NameLoc);
+    Actions.ActOnEndMainProgram(DNI);
+  }
   return false;
 }
 
