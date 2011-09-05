@@ -126,12 +126,13 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
   }
   Lex();
 
-  if (Tok.is(tok::eof))
-    // The program name wasn't specified in the 'END PROGRAM' statement.
-    return Actions.ActOnENDPROGRAM(Context, 0, Loc, llvm::SMLoc(),StmtLabelTok);
+  const IdentifierInfo *IDInfo = 0;
+  llvm::SMLoc NameLoc;
+  if (Tok.isNot(tok::eof)) { // FIXME: EOF is not the only situation possible.
+    IDInfo = Tok.getIdentifierInfo();
+    NameLoc = Tok.getLocation();
+    Lex(); // Eat the ending token.
+  }
 
-  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
-  llvm::SMLoc NameLoc = Tok.getLocation();
-  if (!Tok.is(tok::eof)) Lex(); // Eat the ending token.
   return Actions.ActOnENDPROGRAM(Context, IDInfo, Loc, NameLoc, StmtLabelTok);
 }
