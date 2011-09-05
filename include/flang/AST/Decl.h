@@ -650,12 +650,13 @@ public:
 
 class MainProgramDecl : public DeclaratorDecl, public DeclContext {
 protected:
-  MainProgramDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
-               QualType T)
-    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
-      DeclContext(DK) {
-  }
+  MainProgramDecl(DeclContext *DC, const DeclarationNameInfo &NameInfo)
+    : DeclaratorDecl(MainProgram, DC, NameInfo.getLoc(), NameInfo.getName(),
+                     QualType()),
+      DeclContext(MainProgram) {}
 public:
+  static MainProgramDecl *Create(ASTContext &C, DeclContext *DC,
+                                 const DeclarationNameInfo &NameInfo);
 
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }

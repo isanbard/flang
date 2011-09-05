@@ -29,6 +29,7 @@ namespace flang {
 
 class ASTContext;
 class DeclSpec;
+class DeclarationNameInfo;
 class Diagnostic;
 class IdentifierInfo;
 class Token;
@@ -39,7 +40,11 @@ class Action {
 public:
   virtual ~Action();
   virtual void ActOnTranslationUnit() = 0;
+  virtual void ActOnMainProgram(const DeclarationNameInfo &NameInfo) = 0;
+  virtual void ActOnEndProgramUnit() = 0;
+
   virtual StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName,
+                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                   Token &StmtLabel)=0;
   virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,
                                       const IdentifierInfo *ProgName,
@@ -84,7 +89,11 @@ class PrintAction : public Action {
 public:
   PrintAction(Diagnostic &D) : Diag(D), Indent(0) {}
   virtual void ActOnTranslationUnit();
+  virtual void ActOnMainProgram(const DeclarationNameInfo &NameInfo);
+  virtual void ActOnEndProgramUnit();
+
   virtual StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName,
+                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                   Token &StmtLabel);
   virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,
                                       const IdentifierInfo *ProgName,

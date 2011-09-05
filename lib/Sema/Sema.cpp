@@ -15,6 +15,7 @@
 #include "flang/Sema/Sema.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
+#include "flang/AST/Stmt.h"
 using namespace flang;
 
 Sema::Sema(ASTContext &ctxt, llvm::SourceMgr &sm)
@@ -45,6 +46,18 @@ void Sema::ActOnTranslationUnit() {
   PushDeclContext(Context.getTranslationUnitDecl());
 }
 
+void Sema::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {
+  PushDeclContext(MainProgramDecl::Create(Context,
+                                          Context.getTranslationUnitDecl(),
+                                          NameInfo));
+}
+
 void Sema::ActOnEndProgramUnit() {
   PopDeclContext();
+}
+
+StmtResult Sema::ActOnPROGRAM(const IdentifierInfo *ProgName,
+                              llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                              Token &StmtLabelTok) {
+  return ProgramStmt::Create(ProgName, Loc, NameLoc, StmtLabelTok);
 }

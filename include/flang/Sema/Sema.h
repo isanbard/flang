@@ -15,13 +15,18 @@
 #ifndef FLANG_SEMA_SEMA_H__
 #define FLANG_SEMA_SEMA_H__
 
+#include "flang/Sema/Ownership.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/SMLoc.h"
 
 namespace flang {
 
 class ASTContext;
 class DeclContext;
+class DeclarationNameInfo;
 class Expr;
+class IdentifierInfo;
+class Token;
 
 /// Sema - This implements semantic analysis and AST buiding for Fortran.
 class Sema {
@@ -46,8 +51,12 @@ public:
   void PopDeclContext();
 
   void ActOnTranslationUnit();
-
+  void ActOnMainProgram(const DeclarationNameInfo &NameInfo);
   void ActOnEndProgramUnit();
+
+
+  StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName, llvm::SMLoc Loc,
+                          llvm::SMLoc NameLoc, Token &StmtLabelTok);
 };
 
 } // end flang namespace

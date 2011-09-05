@@ -16,6 +16,7 @@
 
 #include "flang/Basic/Token.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/Support/SMLoc.h"
 
 namespace llvm {
   class StringRef;
@@ -39,17 +40,23 @@ public:
   };
 private:
   StmtTy StmtID;
+  llvm::SMLoc Loc;
   Token StmtLabelTok;
 
   Stmt(const Stmt &);           // Do not implement!
 protected:
-  Stmt(StmtTy ID) : StmtID(ID), StmtLabelTok(Token()) {}
-  Stmt(StmtTy ID, Token SLT) : StmtID(ID), StmtLabelTok(SLT) {}
+  Stmt(StmtTy ID, llvm::SMLoc L)
+    : StmtID(ID), Loc(L), StmtLabelTok(Token()) {}
+  Stmt(StmtTy ID, llvm::SMLoc L, Token SLT)
+    : StmtID(ID), Loc(L), StmtLabelTok(SLT) {}
 public:
   virtual ~Stmt();
 
   /// getStatementID - Get the ID of the statement.
   StmtTy getStatementID() const { return StmtID; }
+
+  /// getLocation - Get the location of the statement.
+  llvm::SMLoc getLocation() const { return Loc; }
 
   /// getStmtLabel - Get the statement label for this statement.
   const Token &getStmtLabel() const { return StmtLabelTok; }
@@ -62,18 +69,26 @@ public:
 ///
 class ProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
+  llvm::SMLoc NameLoc;
 
-  ProgramStmt(const IdentifierInfo *progName)
-    : Stmt(Program), ProgName(progName) {}
-  ProgramStmt(const IdentifierInfo *progName, Token SLT)
-    : Stmt(Program, SLT), ProgName(progName) {}
+  ProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
+              llvm::SMLoc NameL)
+    : Stmt(Program, Loc), ProgName(progName), NameLoc(NameL) {}
+  ProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
+              llvm::SMLoc NameL, Token SLT)
+    : Stmt(Program, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   ProgramStmt(const ProgramStmt &); // Do not implement!
 public:
-  static ProgramStmt *Create(const IdentifierInfo *ProgName);
-  static ProgramStmt *Create(const IdentifierInfo *ProgName,Token StmtLabelTok);
+  static ProgramStmt *Create(const IdentifierInfo *ProgName, llvm::SMLoc L,
+                             llvm::SMLoc NameL);
+  static ProgramStmt *Create(const IdentifierInfo *ProgName, llvm::SMLoc L,
+                             llvm::SMLoc NameL, Token StmtLabelTok);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
+
+  /// getNameLocation - Get the location of the program name.
+  llvm::SMLoc getNameLocation() const { return NameLoc; }
 
   static bool classof(const ProgramStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -88,9 +103,9 @@ class EndProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
 
   EndProgramStmt(const IdentifierInfo *progName)
-    : Stmt(Program), ProgName(progName) {}
+    : Stmt(EndProgram, llvm::SMLoc()), ProgName(progName) {}
   EndProgramStmt(const IdentifierInfo *progName, Token SLT)
-    : Stmt(Program, SLT), ProgName(progName) {}
+    : Stmt(EndProgram, llvm::SMLoc(), SLT), ProgName(progName) {}
   EndProgramStmt(const EndProgramStmt &); // Do not implement!
 public:
   static EndProgramStmt *Create(const IdentifierInfo *ProgName);

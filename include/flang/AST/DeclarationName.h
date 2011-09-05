@@ -202,44 +202,17 @@ public:
   }
 };
 
-/// DeclarationNameLoc - Additional source/type location info for a declaration
-/// name. Needs a DeclarationName in order to be interpreted correctly.
-struct DeclarationNameLoc {
-  union {
-    // The source location for identifier stored elsewhere.
-    // struct {} Identifier;
-
-    // Type info for constructors, destructors and conversion functions.
-    // Locations (if any) for the tilde (destructor) or operator keyword
-    // (conversion) are stored elsewhere.
-    struct {
-      TypeSourceInfo *TInfo;
-    } NamedType;
-  };
-
-  DeclarationNameLoc(DeclarationName Name);
-  // FIXME: this should go away once all DNLocs are properly initialized.
-  DeclarationNameLoc() { std::memset((void*) this, 0, sizeof(*this)); }
-};
-
 /// DeclarationNameInfo - A collector data type for bundling together a
 /// DeclarationName and the correspnding source/type location info.
-struct DeclarationNameInfo {
-private:
+class DeclarationNameInfo {
   /// Name - The declaration name, also encoding name kind.
   DeclarationName Name;
   /// Loc - The main source location for the declaration name.
   llvm::SMLoc NameLoc;
-  /// Info - Further source/type location info for special kinds of names.
-  DeclarationNameLoc LocInfo;
 
 public:
   DeclarationNameInfo(DeclarationName Name, llvm::SMLoc NameLoc)
-    : Name(Name), NameLoc(NameLoc), LocInfo(Name) {}
-
-  DeclarationNameInfo(DeclarationName Name, llvm::SMLoc NameLoc,
-                      DeclarationNameLoc LocInfo)
-    : Name(Name), NameLoc(NameLoc), LocInfo(LocInfo) {}
+    : Name(Name), NameLoc(NameLoc) {}
 
   /// getName - Returns the embedded declaration name.
   DeclarationName getName() const { return Name; }
@@ -250,10 +223,6 @@ public:
   llvm::SMLoc getLoc() const { return NameLoc; }
   /// setLoc - Sets the main location of the declaration name.
   void setLoc(llvm::SMLoc L) { NameLoc = L; }
-
-  const DeclarationNameLoc &getInfo() const { return LocInfo; }
-  DeclarationNameLoc &getInfo() { return LocInfo; }
-  void setInfo(const DeclarationNameLoc &Info) { LocInfo = Info; }
 
   /// getAsString - Retrieve the human-readable string for this name.
   std::string getAsString() const;

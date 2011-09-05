@@ -105,17 +105,6 @@ void DeclarationName::dump() const {
 DeclarationNameTable::~DeclarationNameTable() {}
 
 //===----------------------------------------------------------------------===//
-// DeclarationNameLoc Implementation
-//===----------------------------------------------------------------------===//
-
-DeclarationNameLoc::DeclarationNameLoc(DeclarationName Name) {
-  switch (Name.getNameKind()) {
-  case DeclarationName::Identifier:
-    break;
-  }
-}
-
-//===----------------------------------------------------------------------===//
 // DeclarationNameInfo Implementation
 //===----------------------------------------------------------------------===//
 

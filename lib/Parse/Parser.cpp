@@ -298,10 +298,15 @@ bool Parser::ParseProgramUnit() {
 bool Parser::ParseMainProgram() {
   // If the PROGRAM statement didn't have an identifier, pretend like it did for
   // the time being.
+  StmtResult ProgStmt;
   if (Tok.is(tok::kw_PROGRAM)) {
-    ParsePROGRAMStmt();
+    ProgStmt = ParsePROGRAMStmt();
     ParseStatementLabel();
   }
+
+  DeclarationName DN(cast<ProgramStmt>(ProgStmt.get())->getProgramName());
+  DeclarationNameInfo DNI(DN, cast<ProgramStmt>(ProgStmt.get())->getNameLocation());
+  Actions.ActOnMainProgram(DNI);
 
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
     ParseSpecificationPart();
@@ -314,6 +319,8 @@ bool Parser::ParseMainProgram() {
   }
 
   ParseEND_PROGRAMStmt();
+
+  Actions.ActOnEndProgramUnit();
   return false;
 }
 
@@ -573,7 +580,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   llvm::SMLoc ProgramLoc = Tok.getLocation();
   if (!isaKeyword(IDInfo->getName()) || Tok.isNot(tok::kw_PROGRAM))
-    return Actions.ActOnPROGRAM(0, StmtLabelTok);
+    return Actions.ActOnPROGRAM(0, ProgramLoc, llvm::SMLoc(), StmtLabelTok);
 
   // Parse the program name.
   Lex();
@@ -583,9 +590,10 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
     return StmtResult();
   }
 
+  llvm::SMLoc NameLoc = Tok.getLocation();
   IDInfo = Tok.getIdentifierInfo();
   Lex(); // Eat program name.
-  return Actions.ActOnPROGRAM(IDInfo, StmtLabelTok);
+  return Actions.ActOnPROGRAM(IDInfo, ProgramLoc, NameLoc, StmtLabelTok);
 }
 
 /// ParseUSEStmt - Parse the 'USE' statement.

@@ -26,13 +26,15 @@ Stmt::~Stmt() {}
 // Program Statement
 //===----------------------------------------------------------------------===//
 
-ProgramStmt *ProgramStmt::Create(const IdentifierInfo *ProgName) {
-  return new ProgramStmt(ProgName);
+ProgramStmt *ProgramStmt::Create(const IdentifierInfo *ProgName,
+                                 llvm::SMLoc Loc, llvm::SMLoc NameLoc) {
+  return new ProgramStmt(ProgName, Loc, NameLoc);
 }
 
 ProgramStmt *ProgramStmt::Create(const IdentifierInfo *ProgName,
+                                 llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                  Token StmtLabelTok) {
-  return new ProgramStmt(ProgName, StmtLabelTok);
+  return new ProgramStmt(ProgName, Loc, NameLoc, StmtLabelTok);
 }
 
 //===----------------------------------------------------------------------===//
@@ -53,7 +55,7 @@ EndProgramStmt *EndProgramStmt::Create(const IdentifierInfo *ProgName,
 //===----------------------------------------------------------------------===//
 
 UseStmt::UseStmt(ModuleNature MN, const IdentifierInfo *Info,Token StmtLabelTok)
-  : Stmt(Use, StmtLabelTok), ModNature(MN), ModName(Info) {}
+  : Stmt(Use, llvm::SMLoc(), StmtLabelTok), ModNature(MN), ModName(Info) {}
 
 UseStmt *UseStmt::Create(ModuleNature MN, const IdentifierInfo *Info,
                          Token StmtLabelTok) {
@@ -69,11 +71,11 @@ llvm::StringRef UseStmt::getModuleName() const {
 //===----------------------------------------------------------------------===//
 
 ImportStmt::ImportStmt(Token StmtLabelTok)
-  : Stmt(Import, StmtLabelTok) {
+  : Stmt(Import, llvm::SMLoc(), StmtLabelTok) {
 }
 ImportStmt::ImportStmt(llvm::ArrayRef<const IdentifierInfo*> names,
                        Token StmtLabelTok)
-  : Stmt(Import, StmtLabelTok) {
+  : Stmt(Import, llvm::SMLoc(), StmtLabelTok) {
   Names.resize(names.size());
   std::copy(names.begin(), names.end(), Names.begin());
 }
@@ -94,7 +96,7 @@ ImportStmt *ImportStmt::Create(llvm::ArrayRef<const IdentifierInfo*> Names,
 AsynchronousStmt::
 AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
                  Token StmtLabelTok)
-  : Stmt(Asynchronous, StmtLabelTok) {
+  : Stmt(Asynchronous, llvm::SMLoc(), StmtLabelTok) {
   std::copy(objNames.begin(), objNames.end(), ObjNames.begin());
 }
 
