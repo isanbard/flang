@@ -66,8 +66,8 @@ public:
                                              Expr *Len,
                                              Expr *Kind) = 0;
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) = 0;
-  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
-                            const VarDecl *VD) = 0;
+  virtual Decl *ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
+                             const VarDecl *VD) = 0;
 
   virtual bool ActOnArraySpec() = 0;
 
@@ -110,8 +110,8 @@ public:
                                              Expr *Len,
                                              Expr *Kind);
   virtual DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx);
-  virtual bool ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
-                            const VarDecl *VD);
+  virtual Decl *ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
+                             const VarDecl *VD);
   virtual bool ActOnArraySpec();
   virtual ExprResult ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs);
 };

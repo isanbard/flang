@@ -190,12 +190,15 @@ DeclSpec *PrintAction::ActOnTypeDeclSpec(ASTContext *Ctx) {
   return 0;
 }
 
-bool PrintAction::ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
-                               const VarDecl *VD) {
+Decl *PrintAction::ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
+                                const VarDecl *VD) {
+  return 0;
+#if 0
   llvm::outs().indent(Indent * 2) << '<';
   DTS->print(llvm::outs());
   llvm::outs() << " name=\"" << VD->getIdentifier()->getName() << "\" />\n";
   return false;
+#endif
 }
 
 bool PrintAction::ActOnArraySpec() {

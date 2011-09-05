@@ -616,19 +616,12 @@ public:
 
 /// \brief Represents a ValueDecl that came out of a declarator.
 class DeclaratorDecl : public ValueDecl {
-  /// LocStart - The start of the source range for this declaration.
-  llvm::SMLoc LocStart;
 protected:
   DeclaratorDecl(Kind DK, DeclContext *DC, llvm::SMLoc L,
-                 DeclarationName N, QualType T, /* TypeSourceInfo *TInfo, */
-                 llvm::SMLoc StartL)
-    : ValueDecl(DK, DC, L, N, T), /* DeclInfo(TInfo),*/ LocStart(StartL) {
+                 DeclarationName N, QualType T)
+    : ValueDecl(DK, DC, L, N, T) {
   }
 public:
-  /// getLocStart - Return SMLoc representing start of source range.
-  llvm::SMLoc getLocStart() const { return LocStart; }
-  void setLocStart(llvm::SMLoc L) { LocStart = L; }
-
   virtual SourceRange getSourceRange() const {
     // TODO
     return SourceRange();
@@ -644,11 +637,9 @@ public:
 
 class FunctionDecl : public DeclaratorDecl, public DeclContext {
 protected:
-  FunctionDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc,
-               const DeclarationNameInfo &NameInfo,
-               QualType T /*, TypeSourceInfo *TInfo, */)
-    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T, /*TInfo, */
-                     StartLoc),
+  FunctionDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
+               QualType T)
+    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
       DeclContext(DK) {
   }
 public:
@@ -669,15 +660,12 @@ public:
 /// represent a member of a struct.
 class FieldDecl : public DeclaratorDecl {
 protected:
-  FieldDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc,
-            llvm::SMLoc IdLoc, IdentifierInfo *Id,
-            QualType T /*, TypeSourceInfo *TInfo, Expr *BW,
-                         bool HasInit */)
-    : DeclaratorDecl(DK, DC, IdLoc, Id, T, /*TInfo,*/ StartLoc) {}
+  FieldDecl(Kind DK, DeclContext *DC, llvm::SMLoc IdLoc, IdentifierInfo *Id,
+            QualType T)
+    : DeclaratorDecl(DK, DC, IdLoc, Id, T) {}
 public:
   static FieldDecl *Create(const ASTContext &C, DeclContext *DC,
-                           llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-                           IdentifierInfo *Id, QualType T);
+                           llvm::SMLoc IdLoc, IdentifierInfo *Id, QualType T);
 
   /// getParent - Returns the parent of this field declaration, which is the
   /// struct in which this method is defined.
@@ -713,24 +701,22 @@ class VarDecl : public DeclaratorDecl, public llvm::FoldingSetNode {
   friend class ASTContext;  // ASTContext creates these.
 
 protected:
-  VarDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc,
-          llvm::SMLoc IdLoc, IdentifierInfo *Id,
-          QualType T) // FIXME: TypeSourceInfo
-    : DeclaratorDecl(DK, DC, IdLoc, Id, T, /*TInfo, */ StartLoc), Init() {}
+  VarDecl(Kind DK, DeclContext *DC, llvm::SMLoc IdLoc, IdentifierInfo *Id,
+          QualType T)
+    : DeclaratorDecl(DK, DC, IdLoc, Id, T), Init() {}
 
 public:
   static VarDecl *Create(ASTContext &C, DeclContext *DC,
-                         llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
-                         IdentifierInfo *Id, QualType T);
+                         llvm::SMLoc IdLoc, IdentifierInfo *Id, QualType T);
 
   VarDecl(const IdentifierInfo *Info)
     // FIXME:
-    : DeclaratorDecl(Var, 0, llvm::SMLoc(), Info, QualType(), llvm::SMLoc()),
+    : DeclaratorDecl(Var, 0, llvm::SMLoc(), Info, QualType()),
       DS(0)
   {}
   VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
     // FIXME:
-    : DeclaratorDecl(Var, 0, L, Info, QualType(), llvm::SMLoc()),
+    : DeclaratorDecl(Var, 0, L, Info, QualType()),
       DS(dts)
   {}
 
@@ -755,8 +741,7 @@ public:
 };
 
 class FileScopeAsmDecl : public Decl {
-  FileScopeAsmDecl(DeclContext *DC, /*StringLiteral *asmstring,*/
-                   llvm::SMLoc StartL, llvm::SMLoc EndL)
+  FileScopeAsmDecl(DeclContext *DC, llvm::SMLoc StartL, llvm::SMLoc EndL)
     : Decl(FileScopeAsm, DC, StartL) {}
 public:
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }

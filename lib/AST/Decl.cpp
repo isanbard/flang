@@ -249,9 +249,9 @@ SourceRange EnumConstantDecl::getSourceRange() const {
 //===----------------------------------------------------------------------===//
 
 FieldDecl *FieldDecl::Create(const ASTContext &C, DeclContext *DC,
-                             llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
+                             /*llvm::SMLoc StartLoc,*/ llvm::SMLoc IdLoc,
                              IdentifierInfo *Id, QualType T) {
-  return new (C) FieldDecl(Decl::Field, DC, StartLoc, IdLoc, Id, T);
+  return new (C) FieldDecl(Decl::Field, DC, IdLoc, Id, T);
 }
 
 //===----------------------------------------------------------------------===//
@@ -259,9 +259,9 @@ FieldDecl *FieldDecl::Create(const ASTContext &C, DeclContext *DC,
 //===----------------------------------------------------------------------===//
 
 VarDecl *VarDecl::Create(ASTContext &C, DeclContext *DC,
-                         llvm::SMLoc StartL, llvm::SMLoc IdL,
+                         /*llvm::SMLoc StartL,*/ llvm::SMLoc IdLoc,
                          IdentifierInfo *Id, QualType T) {
-  return new (C) VarDecl(Var, DC, StartL, IdL, Id, T);
+  return new (C) VarDecl(Var, DC, IdLoc, Id, T);
 }
 
 //===----------------------------------------------------------------------===//
