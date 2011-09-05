@@ -126,6 +126,7 @@ KEYWORD(LOGICAL                , KEYALL)
 
 KEYWORD(ASSOCIATE              , KEYALL)
 KEYWORD(FILE                   , KEYALL)
+KEYWORD(SUBROUTINE             , KEYALL)
 KEYWORD(FUNCTION               , KEYALL)
 KEYWORD(INTERFACE              , KEYALL)
 KEYWORD(SUBPROGRAM             , KEYALL)
@@ -138,6 +139,7 @@ KEYWORD(TO                     , KEYALL)
 KEYWORD(ENTRY                  , KEYALL)
 KEYWORD(ENUM                   , KEYALL)
 KEYWORD(MODULE                 , KEYNOTF77)
+KEYWORD(SUBMODULE              , KEYNOTF77)
 KEYWORD(BLOCK                  , KEYALL) // DATA defined below.
 
 KEYWORD(CLASS                  , KEYNOTF77) // [5.2]    declaration-type-spec
