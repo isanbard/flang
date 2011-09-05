@@ -24,6 +24,7 @@ namespace llvm {
 
 namespace flang {
 
+class ASTContext;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
@@ -44,6 +45,7 @@ private:
   Token StmtLabelTok;
 
   Stmt(const Stmt &);           // Do not implement!
+  friend class ASTContext;
 protected:
   Stmt(StmtTy ID, llvm::SMLoc L)
     : StmtID(ID), Loc(L), StmtLabelTok(Token()) {}
@@ -79,10 +81,9 @@ class ProgramStmt : public Stmt {
     : Stmt(Program, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   ProgramStmt(const ProgramStmt &); // Do not implement!
 public:
-  static ProgramStmt *Create(const IdentifierInfo *ProgName, llvm::SMLoc L,
-                             llvm::SMLoc NameL);
-  static ProgramStmt *Create(const IdentifierInfo *ProgName, llvm::SMLoc L,
-                             llvm::SMLoc NameL, Token StmtLabelTok);
+  static ProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
+                             llvm::SMLoc L, llvm::SMLoc NameL,
+                             Token StmtLabelTok);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }

@@ -55,8 +55,9 @@ public:
   void ActOnEndProgramUnit();
 
 
-  StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName, llvm::SMLoc Loc,
-                          llvm::SMLoc NameLoc, Token &StmtLabelTok);
+  StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
+                          llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                          Token &StmtLabelTok);
 };
 
 } // end flang namespace

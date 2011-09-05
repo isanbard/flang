@@ -40,7 +40,8 @@ void PrintAction::ActOnTranslationUnit() {}
 void PrintAction::ActOnEndProgramUnit() {}
 void PrintAction::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {}
 
-StmtResult PrintAction::ActOnPROGRAM(const IdentifierInfo *ProgName,
+StmtResult PrintAction::ActOnPROGRAM(ASTContext &C,
+                                     const IdentifierInfo *ProgName,
                                      llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                      Token &StmtLabel) {
   ProgramName = ProgName;
@@ -50,7 +51,7 @@ StmtResult PrintAction::ActOnPROGRAM(const IdentifierInfo *ProgName,
     llvm::outs() << " name=\"" << ProgName->getName() << "\"";
   llvm::outs() << ">\n";
   ++Indent;
-  return ProgramStmt::Create(ProgName, Loc, NameLoc, StmtLabel);
+  return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
 StmtResult PrintAction::ActOnEND_PROGRAM(llvm::SMLoc Loc,

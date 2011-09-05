@@ -580,7 +580,8 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   llvm::SMLoc ProgramLoc = Tok.getLocation();
   if (!isaKeyword(IDInfo->getName()) || Tok.isNot(tok::kw_PROGRAM))
-    return Actions.ActOnPROGRAM(0, ProgramLoc, llvm::SMLoc(), StmtLabelTok);
+    return Actions.ActOnPROGRAM(Context, 0, ProgramLoc, llvm::SMLoc(),
+                                StmtLabelTok);
 
   // Parse the program name.
   Lex();
@@ -593,7 +594,8 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   llvm::SMLoc NameLoc = Tok.getLocation();
   IDInfo = Tok.getIdentifierInfo();
   Lex(); // Eat program name.
-  return Actions.ActOnPROGRAM(IDInfo, ProgramLoc, NameLoc, StmtLabelTok);
+  return Actions.ActOnPROGRAM(Context, IDInfo, ProgramLoc, NameLoc,
+                              StmtLabelTok);
 }
 
 /// ParseUSEStmt - Parse the 'USE' statement.

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/AST/Stmt.h"
+#include "flang/AST/ASTContext.h"
 #include "flang/Basic/IdentifierTable.h"
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
@@ -26,15 +27,10 @@ Stmt::~Stmt() {}
 // Program Statement
 //===----------------------------------------------------------------------===//
 
-ProgramStmt *ProgramStmt::Create(const IdentifierInfo *ProgName,
-                                 llvm::SMLoc Loc, llvm::SMLoc NameLoc) {
-  return new ProgramStmt(ProgName, Loc, NameLoc);
-}
-
-ProgramStmt *ProgramStmt::Create(const IdentifierInfo *ProgName,
+ProgramStmt *ProgramStmt::Create(ASTContext &C, const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                  Token StmtLabelTok) {
-  return new ProgramStmt(ProgName, Loc, NameLoc, StmtLabelTok);
+  return new (C) ProgramStmt(ProgName, Loc, NameLoc, StmtLabelTok);
 }
 
 //===----------------------------------------------------------------------===//

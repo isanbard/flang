@@ -56,8 +56,8 @@ void Sema::ActOnEndProgramUnit() {
   PopDeclContext();
 }
 
-StmtResult Sema::ActOnPROGRAM(const IdentifierInfo *ProgName,
+StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                               llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                               Token &StmtLabelTok) {
-  return ProgramStmt::Create(ProgName, Loc, NameLoc, StmtLabelTok);
+  return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabelTok);
 }
