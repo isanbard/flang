@@ -148,7 +148,7 @@ public:
   const Lexer &getLexer() const { return TheLexer; }
   Lexer &getLexer() { return TheLexer; }
 
-  bool ParseTranslationUnit();
+  bool ParseProgramUnits();
 
 private:
   // High-level parsing methods.

@@ -23,7 +23,7 @@ class DDecl<Decl base, bit abstract = 0> : Decl<abstract> {
 
 class DeclContext { }
 
-def TranslationUnit : Decl, DeclContext;
+def MainProgram : Decl, DeclContext;
 def Named : Decl<1>;
   def Type : DDecl<Named, 1>;
     def Record : DDecl<Type>, DeclContext;
@@ -31,6 +31,9 @@ def Named : Decl<1>;
     def EnumConstant : DDecl<Value>;
     def Declarator : DDecl<Value, 1>;
       def Function : DDecl<Declarator>, DeclContext;
+      def Subroutine : DDecl<Declarator>, DeclContext;
+      def Module : DDecl<Declarator>, DeclContext;
+      def Submodule : DDecl<Declarator>, DeclContext;
       def Field : DDecl<Declarator>;
       def Var : DDecl<Declarator>;
 def FileScopeAsm : Decl;

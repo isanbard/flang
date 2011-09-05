@@ -234,9 +234,9 @@ void Parser::ParseStatementLabel() {
 //
 //   C101 (R103) scalar-xyz shall be scalar.
 
-/// ParseTranslationUnit - Main entry point to the parser. Parses the current
+/// ParseProgramUnits - Main entry point to the parser. Parses the current
 /// source.
-bool Parser::ParseTranslationUnit() {
+bool Parser::ParseProgramUnits() {
   // Prime the lexer.
   Lex();
   Tok.setFlag(Token::StartOfStatement);

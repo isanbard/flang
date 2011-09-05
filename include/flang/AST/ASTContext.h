@@ -35,7 +35,6 @@ class StoredDeclsMap;
 class DeclContext;
 class Decl;
 class RecordDecl;
-class TranslationUnitDecl;
 class TypeDecl;
 
 class ASTContext {
@@ -56,7 +55,7 @@ class ASTContext {
   /// AST objects will be released when the ASTContext itself is destroyed.
   mutable llvm::BumpPtrAllocator BumpAlloc;
 
-  TranslationUnitDecl *TUDecl;
+  MainProgramDecl *MPDecl;
 
   /// SourceMgr - The associated SourceMgr object.
   llvm::SourceMgr &SrcMgr;
@@ -78,7 +77,7 @@ public:
   ASTContext(llvm::SourceMgr &SM);
   ~ASTContext();
 
-  TranslationUnitDecl *getTranslationUnitDecl() const { return TUDecl; }
+  MainProgramDecl *getMainProgramDecl() const { return MPDecl; }
 
   llvm::SourceMgr &getSourceManager() { return SrcMgr; }
   const llvm::SourceMgr &getSourceManager() const { return SrcMgr; }

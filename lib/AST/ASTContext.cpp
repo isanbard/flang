@@ -18,7 +18,7 @@ using namespace flang;
 
 ASTContext::ASTContext(llvm::SourceMgr &SM)
   : SrcMgr(SM), LastSDM(0) {
-  TUDecl = TranslationUnitDecl::Create(*this);
+  MPDecl = MainProgramDecl::Create(*this);
   InitBuiltinTypes();
 }
 

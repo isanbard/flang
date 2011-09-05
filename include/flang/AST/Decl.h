@@ -39,7 +39,7 @@ class TypeLoc;
 
 // Decls
 class DeclContext;
-class TranslationUnitDecl;
+class MainProgramDecl;
 class NamedDecl;
 class TypeDecl;
 class RecordDecl;
@@ -47,6 +47,9 @@ class ValueDecl;
 class EnumConstantDecl;
 class DeclaratorDecl;
 class FunctionDecl;
+class SubroutineDecl;
+class ModuleDecl;
+class SubmoduleDecl;
 class FieldDecl;
 class VarDecl;
 class FileScopeAsmDecl;
@@ -142,9 +145,9 @@ public:
   const DeclContext *getDeclContext() const { return DeclCtx; }
   void setDeclContext(DeclContext *DC) { DeclCtx = DC; }
 
-  TranslationUnitDecl *getTranslationUnitDecl();
-  const TranslationUnitDecl *getTranslationUnitDecl() const {
-    return const_cast<Decl*>(this)->getTranslationUnitDecl();
+  MainProgramDecl *getMainProgramDecl();
+  const MainProgramDecl *getMainProgramDecl() const {
+    return const_cast<Decl*>(this)->getMainProgramDecl();
   }
 
   ASTContext &getASTContext() const;
@@ -209,8 +212,11 @@ public:
 /// can act as declaration contexts. These decls are (only the top classes
 /// that directly derive from DeclContext are mentioned, not their subclasses):
 ///
-///   TranslationUnitDecl
+///   MainProgramDecl
 ///   FunctionDecl
+///   SubroutineDecl
+///   ModuleDecl
+///   SubmoduleDecl
 ///   RecordDecl
 ///
 class DeclContext {
@@ -249,7 +255,11 @@ public:
     return static_cast<Decl::Kind>(DeclKind);
   }
 
-  bool isTranslationUnit() const { return DeclKind == Decl::TranslationUnit; }
+  bool isMainProgram() const { return DeclKind == Decl::MainProgram; }
+  bool isFunction() const { return DeclKind == Decl::Function; }
+  bool isSubroutine() const { return DeclKind == Decl::Subroutine; }
+  bool isModule() const { return DeclKind == Decl::Module; }
+  bool isSubmodule() const { return DeclKind == Decl::Submodule; }
   bool isRecord() const { return DeclKind == Decl::Record; }
 
   /// \brief Retrieve the internal representation of the lookup structure.
@@ -383,27 +393,27 @@ public:
 #endif
 };
 
-/// TranslationUnitDecl - The top declaration context.
-class TranslationUnitDecl : public Decl, public DeclContext {
+/// MainProgramDecl - The top declaration context.
+class MainProgramDecl : public Decl, public DeclContext {
   ASTContext &Ctx;
 
-  explicit TranslationUnitDecl(ASTContext &ctx)
-    : Decl(TranslationUnit, 0, llvm::SMLoc()),
-      DeclContext(TranslationUnit), Ctx(ctx) {}
+  explicit MainProgramDecl(ASTContext &ctx)
+    : Decl(MainProgram, 0, llvm::SMLoc()),
+      DeclContext(MainProgram), Ctx(ctx) {}
 public:
   ASTContext &getASTContext() const { return Ctx; }
 
-  static TranslationUnitDecl *Create(ASTContext &C);
+  static MainProgramDecl *Create(ASTContext &C);
 
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
-  static bool classof(const TranslationUnitDecl *D) { return true; }
-  static bool classofKind(Kind K) { return K == TranslationUnit; }
-  static DeclContext *castToDeclContext(const TranslationUnitDecl *D) {
-    return static_cast<DeclContext*>(const_cast<TranslationUnitDecl*>(D));
+  static bool classof(const MainProgramDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == MainProgram; }
+  static DeclContext *castToDeclContext(const MainProgramDecl *D) {
+    return static_cast<DeclContext*>(const_cast<MainProgramDecl*>(D));
   }
-  static TranslationUnitDecl *castFromDeclContext(const DeclContext *DC) {
-    return static_cast<TranslationUnitDecl*>(const_cast<DeclContext*>(DC));
+  static MainProgramDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<MainProgramDecl*>(const_cast<DeclContext*>(DC));
   }
 };
 
@@ -653,6 +663,69 @@ public:
   }
   static FunctionDecl *castFromDeclContext(const DeclContext *DC) {
     return static_cast<FunctionDecl *>(const_cast<DeclContext*>(DC));
+  }
+};
+
+class SubroutineDecl : public DeclaratorDecl, public DeclContext {
+protected:
+  SubroutineDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
+                 QualType T)
+    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
+      DeclContext(DK) {
+  }
+public:
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
+  static bool classof(const SubroutineDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == Subroutine; }
+  static DeclContext *castToDeclContext(const SubroutineDecl *D) {
+    return static_cast<DeclContext *>(const_cast<SubroutineDecl*>(D));
+  }
+  static SubroutineDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<SubroutineDecl *>(const_cast<DeclContext*>(DC));
+  }
+};
+
+class ModuleDecl : public DeclaratorDecl, public DeclContext {
+protected:
+  ModuleDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
+             QualType T)
+    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
+      DeclContext(DK) {
+  }
+public:
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
+  static bool classof(const ModuleDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == Module; }
+  static DeclContext *castToDeclContext(const ModuleDecl *D) {
+    return static_cast<DeclContext *>(const_cast<ModuleDecl*>(D));
+  }
+  static ModuleDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<ModuleDecl *>(const_cast<DeclContext*>(DC));
+  }
+};
+
+class SubmoduleDecl : public DeclaratorDecl, public DeclContext {
+protected:
+  SubmoduleDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
+                QualType T)
+    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
+      DeclContext(DK) {
+  }
+public:
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
+  static bool classof(const SubmoduleDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == Submodule; }
+  static DeclContext *castToDeclContext(const SubmoduleDecl *D) {
+    return static_cast<DeclContext *>(const_cast<SubmoduleDecl*>(D));
+  }
+  static SubmoduleDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<SubmoduleDecl *>(const_cast<DeclContext*>(DC));
   }
 };
 

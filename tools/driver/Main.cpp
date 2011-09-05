@@ -80,7 +80,7 @@ static bool ParseFile(const std::string &Filename,
   Diagnostic Diag(&SrcMgr, &TDP, false);
   PrintAction PA(Diag);
   Parser P(SrcMgr, Opts, Diag, PA);
-  return P.ParseTranslationUnit();
+  return P.ParseProgramUnits();
 }
 
 int main(int argc, char **argv) {

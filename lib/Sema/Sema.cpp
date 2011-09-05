@@ -43,5 +43,5 @@ void Sema::PopDeclContext() {
 }
 
 void Sema::ActOnMainProgram() {
-  PushDeclContext(Context.getTranslationUnitDecl());
+  PushDeclContext(Context.getMainProgramDecl());
 }
