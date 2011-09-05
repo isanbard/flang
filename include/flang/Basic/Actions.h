@@ -46,9 +46,10 @@ public:
   virtual StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                                   llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                   Token &StmtLabel)=0;
-  virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,
-                                      const IdentifierInfo *ProgName,
-                                      Token &StmtLabel) = 0;
+  virtual StmtResult ActOnENDPROGRAM(ASTContext &C,
+                                     const IdentifierInfo *ProgName,
+                                     llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                                     Token &StmtLabel) = 0;
   virtual StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
                                  Token &StmtLabel) = 0;
   virtual StmtResult ActOnIMPLICIT(Token &StmtLabel) = 0;
@@ -95,9 +96,10 @@ public:
   virtual StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                                   llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                   Token &StmtLabel);
-  virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,
-                                      const IdentifierInfo *ProgName,
-                                      Token &StmtLabel);
+  virtual StmtResult ActOnENDPROGRAM(ASTContext &C,
+                                     const IdentifierInfo *ProgName,
+                                     llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                                     Token &StmtLabel);
   virtual StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*> Names,
                                  Token &StmtLabel);
   virtual StmtResult ActOnIMPLICIT(Token &StmtLabel);

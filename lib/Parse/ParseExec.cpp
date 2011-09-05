@@ -117,6 +117,7 @@ bool Parser::ParseActionStmt() {
 Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
   bool sawEnd = Tok.is(tok::kw_END);
   bool sawEndProgram = Tok.is(tok::kw_ENDPROGRAM);
+  llvm::SMLoc Loc = Tok.getLocation();
 
   if (!sawEnd && !sawEndProgram) {
     Diag.ReportError(Tok.getLocation(),
@@ -125,12 +126,12 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
   }
   Lex();
 
-  llvm::SMLoc TokLoc = Tok.getLocation();
   if (Tok.is(tok::eof))
     // The program name wasn't specified in the 'END PROGRAM' statement.
-    return Actions.ActOnEND_PROGRAM(TokLoc, 0, StmtLabelTok);
+    return Actions.ActOnENDPROGRAM(Context, 0, Loc, llvm::SMLoc(),StmtLabelTok);
 
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
+  llvm::SMLoc NameLoc = Tok.getLocation();
   if (!Tok.is(tok::eof)) Lex(); // Eat the ending token.
-  return Actions.ActOnEND_PROGRAM(TokLoc, IDInfo, StmtLabelTok);
+  return Actions.ActOnENDPROGRAM(Context, IDInfo, Loc, NameLoc, StmtLabelTok);
 }

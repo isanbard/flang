@@ -97,16 +97,22 @@ public:
 ///
 class EndProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
+  llvm::SMLoc NameLoc;
 
-  EndProgramStmt(const IdentifierInfo *progName, Token SLT)
-    : Stmt(EndProgram, llvm::SMLoc(), SLT), ProgName(progName) {}
+  EndProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
+                 llvm::SMLoc NameL, Token SLT)
+    : Stmt(EndProgram, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   EndProgramStmt(const EndProgramStmt &); // Do not implement!
 public:
-  static EndProgramStmt *Create(const IdentifierInfo *ProgName,
+  static EndProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
+                                llvm::SMLoc L, llvm::SMLoc NameL,
                                 Token StmtLabelTok);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
+
+  /// getNameLocation - Get the location of the program name.
+  llvm::SMLoc getNameLocation() const { return NameLoc; }
 
   static bool classof(const EndProgramStmt*) { return true; }
   static bool classof(const Stmt *S) {

@@ -54,9 +54,10 @@ StmtResult PrintAction::ActOnPROGRAM(ASTContext &C,
   return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
-StmtResult PrintAction::ActOnEND_PROGRAM(llvm::SMLoc Loc,
-                                         const IdentifierInfo *ProgName,
-                                         Token &StmtLabel) {
+StmtResult PrintAction::ActOnENDPROGRAM(ASTContext &C,
+                                        const IdentifierInfo *ProgName,
+                                        llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                                        Token &StmtLabel) {
   Indent = 0;
 
   // This name, if specified, must match the name specified on the 'PROGRAM'
@@ -73,7 +74,7 @@ StmtResult PrintAction::ActOnEND_PROGRAM(llvm::SMLoc Loc,
   llvm::outs() << "</program";
   PrintStmtLabel(StmtLabel);
   llvm::outs() << ">\n";
-  return StmtResult();          // FIXME:
+  return EndProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
 StmtResult PrintAction::ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*> Names,

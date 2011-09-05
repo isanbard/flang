@@ -58,6 +58,13 @@ void Sema::ActOnEndProgramUnit() {
 
 StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                               llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                              Token &StmtLabelTok) {
-  return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabelTok);
+                              Token StmtLabel) {
+  return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
+}
+
+StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
+                                 const IdentifierInfo *ProgName,
+                                 llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                                 Token StmtLabel) {
+  return EndProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }

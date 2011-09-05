@@ -15,6 +15,7 @@
 #ifndef FLANG_SEMA_SEMA_H__
 #define FLANG_SEMA_SEMA_H__
 
+#include "flang/Basic/Token.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/SMLoc.h"
@@ -57,7 +58,11 @@ public:
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                          Token &StmtLabelTok);
+                          Token StmtLabelTok);
+  StmtResult ActOnENDPROGRAM(ASTContext &C,
+                             const IdentifierInfo *ProgName,
+                             llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                             Token StmtLabel);
 };
 
 } // end flang namespace
