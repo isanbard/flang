@@ -45,7 +45,7 @@ public:
   void PushDeclContext(DeclContext *DC);
   void PopDeclContext();
 
-  void ActOnMainProgram();
+  void ActOnTranslationUnit();
 
   void ActOnEndProgramUnit();
 };

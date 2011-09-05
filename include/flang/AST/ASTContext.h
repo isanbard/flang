@@ -55,7 +55,7 @@ class ASTContext {
   /// AST objects will be released when the ASTContext itself is destroyed.
   mutable llvm::BumpPtrAllocator BumpAlloc;
 
-  MainProgramDecl *MPDecl;
+  TranslationUnitDecl *TUDecl;
 
   /// SourceMgr - The associated SourceMgr object.
   llvm::SourceMgr &SrcMgr;
@@ -77,7 +77,7 @@ public:
   ASTContext(llvm::SourceMgr &SM);
   ~ASTContext();
 
-  MainProgramDecl *getMainProgramDecl() const { return MPDecl; }
+  TranslationUnitDecl *getTranslationUnitDecl() const { return TUDecl; }
 
   llvm::SourceMgr &getSourceManager() { return SrcMgr; }
   const llvm::SourceMgr &getSourceManager() const { return SrcMgr; }

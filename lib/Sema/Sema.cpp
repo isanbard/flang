@@ -41,8 +41,8 @@ void Sema::PopDeclContext() {
   assert(CurContext && "Popped translation unit!");
 }
 
-void Sema::ActOnMainProgram() {
-  PushDeclContext(Context.getMainProgramDecl());
+void Sema::ActOnTranslationUnit() {
+  PushDeclContext(Context.getTranslationUnitDecl());
 }
 
 void Sema::ActOnEndProgramUnit() {

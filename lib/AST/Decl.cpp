@@ -187,31 +187,31 @@ DeclContext *Decl::castToDeclContext(const Decl *D) {
   }
 }
 
-MainProgramDecl *Decl::getMainProgramDecl() {
-  if (MainProgramDecl *TUD = dyn_cast<MainProgramDecl>(this))
+TranslationUnitDecl *Decl::getTranslationUnitDecl() {
+  if (TranslationUnitDecl *TUD = dyn_cast<TranslationUnitDecl>(this))
     return TUD;
 
   DeclContext *DC = getDeclContext();
   assert(DC && "This decl is not contained in a program unit!");
 
-  while (!DC->isMainProgram()) {
+  while (!DC->isTranslationUnit()) {
     DC = DC->getParent();
     assert(DC && "This decl is not contained in a program unit!");
   }
 
-  return MainProgramDecl::castFromDeclContext(DC);
+  return TranslationUnitDecl::castFromDeclContext(DC);
 }
 
 ASTContext &Decl::getASTContext() const {
-  return getMainProgramDecl()->getASTContext();
+  return getTranslationUnitDecl()->getASTContext();
 }
 
 //===----------------------------------------------------------------------===//
-// MainProgramDecl Implementation
+// TranslationUnitDecl Implementation
 //===----------------------------------------------------------------------===//
 
-MainProgramDecl *MainProgramDecl::Create(ASTContext &C) {
-  return new (C) MainProgramDecl(C);
+TranslationUnitDecl *TranslationUnitDecl::Create(ASTContext &C) {
+  return new (C) TranslationUnitDecl(C);
 }
 
 //===----------------------------------------------------------------------===//

@@ -39,13 +39,14 @@ class TypeLoc;
 
 // Decls
 class DeclContext;
-class MainProgramDecl;
+class TranslationUnitDecl;
 class NamedDecl;
 class TypeDecl;
 class RecordDecl;
 class ValueDecl;
 class EnumConstantDecl;
 class DeclaratorDecl;
+class MainProgramDecl;
 class FunctionDecl;
 class SubroutineDecl;
 class ModuleDecl;
@@ -145,9 +146,9 @@ public:
   const DeclContext *getDeclContext() const { return DeclCtx; }
   void setDeclContext(DeclContext *DC) { DeclCtx = DC; }
 
-  MainProgramDecl *getMainProgramDecl();
-  const MainProgramDecl *getMainProgramDecl() const {
-    return const_cast<Decl*>(this)->getMainProgramDecl();
+  TranslationUnitDecl *getTranslationUnitDecl();
+  const TranslationUnitDecl *getTranslationUnitDecl() const {
+    return const_cast<Decl*>(this)->getTranslationUnitDecl();
   }
 
   ASTContext &getASTContext() const;
@@ -212,6 +213,7 @@ public:
 /// can act as declaration contexts. These decls are (only the top classes
 /// that directly derive from DeclContext are mentioned, not their subclasses):
 ///
+///   TranslationUnitDecl
 ///   MainProgramDecl
 ///   FunctionDecl
 ///   SubroutineDecl
@@ -255,6 +257,7 @@ public:
     return static_cast<Decl::Kind>(DeclKind);
   }
 
+  bool isTranslationUnit() const { return DeclKind == Decl::TranslationUnit; }
   bool isMainProgram() const { return DeclKind == Decl::MainProgram; }
   bool isFunction() const { return DeclKind == Decl::Function; }
   bool isSubroutine() const { return DeclKind == Decl::Subroutine; }
@@ -393,27 +396,27 @@ public:
 #endif
 };
 
-/// MainProgramDecl - The top declaration context.
-class MainProgramDecl : public Decl, public DeclContext {
+/// TranslationUnitDecl - The top declaration context.
+class TranslationUnitDecl : public Decl, public DeclContext {
   ASTContext &Ctx;
 
-  explicit MainProgramDecl(ASTContext &ctx)
-    : Decl(MainProgram, 0, llvm::SMLoc()),
-      DeclContext(MainProgram), Ctx(ctx) {}
+  explicit TranslationUnitDecl(ASTContext &ctx)
+    : Decl(TranslationUnit, 0, llvm::SMLoc()),
+      DeclContext(TranslationUnit), Ctx(ctx) {}
 public:
   ASTContext &getASTContext() const { return Ctx; }
 
-  static MainProgramDecl *Create(ASTContext &C);
+  static TranslationUnitDecl *Create(ASTContext &C);
 
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
-  static bool classof(const MainProgramDecl *D) { return true; }
-  static bool classofKind(Kind K) { return K == MainProgram; }
-  static DeclContext *castToDeclContext(const MainProgramDecl *D) {
-    return static_cast<DeclContext*>(const_cast<MainProgramDecl*>(D));
+  static bool classof(const TranslationUnitDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == TranslationUnit; }
+  static DeclContext *castToDeclContext(const TranslationUnitDecl *D) {
+    return static_cast<DeclContext*>(const_cast<TranslationUnitDecl*>(D));
   }
-  static MainProgramDecl *castFromDeclContext(const DeclContext *DC) {
-    return static_cast<MainProgramDecl*>(const_cast<DeclContext*>(DC));
+  static TranslationUnitDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<TranslationUnitDecl*>(const_cast<DeclContext*>(DC));
   }
 };
 
@@ -642,6 +645,27 @@ public:
   static bool classof(const DeclaratorDecl *D) { return true; }
   static bool classofKind(Kind K) {
     return K >= firstDeclarator && K <= lastDeclarator;
+  }
+};
+
+class MainProgramDecl : public DeclaratorDecl, public DeclContext {
+protected:
+  MainProgramDecl(Kind DK, DeclContext *DC, const DeclarationNameInfo &NameInfo,
+               QualType T)
+    : DeclaratorDecl(DK, DC, NameInfo.getLoc(), NameInfo.getName(), T),
+      DeclContext(DK) {
+  }
+public:
+
+  // Implement isa/cast/dyncast/etc.
+  static bool classof(const Decl *D) { return classofKind(D->getKind()); }
+  static bool classof(const MainProgramDecl *D) { return true; }
+  static bool classofKind(Kind K) { return K == MainProgram; }
+  static DeclContext *castToDeclContext(const MainProgramDecl *D) {
+    return static_cast<DeclContext *>(const_cast<MainProgramDecl*>(D));
+  }
+  static MainProgramDecl *castFromDeclContext(const DeclContext *DC) {
+    return static_cast<MainProgramDecl *>(const_cast<DeclContext*>(DC));
   }
 };
 
