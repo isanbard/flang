@@ -57,7 +57,7 @@ class ASTContext {
 
   TranslationUnitDecl *TUDecl;
 
-  /// SourceMgr - The associated SourceMgr object.
+  /// SrcMgr - The associated SourceMgr object.
   llvm::SourceMgr &SrcMgr;
 
   //===--------------------------------------------------------------------===//

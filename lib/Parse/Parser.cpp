@@ -304,8 +304,15 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
-  DeclarationName DN(ProgStmt.takeAs<ProgramStmt>()->getProgramName());
-  DeclarationNameInfo DNI(DN,ProgStmt.takeAs<ProgramStmt>()->getNameLocation());
+  const IdentifierInfo *IDInfo = 0;
+  llvm::SMLoc NameLoc;
+  if (ProgStmt.isUsable()) {
+    IDInfo = ProgStmt.takeAs<ProgramStmt>()->getProgramName();
+    NameLoc = ProgStmt.takeAs<ProgramStmt>()->getNameLocation();
+  }
+
+  DeclarationName DN(IDInfo);
+  DeclarationNameInfo DNI(DN, NameLoc);
   Actions.ActOnMainProgram(DNI);
 
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
