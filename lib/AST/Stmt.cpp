@@ -37,10 +37,6 @@ ProgramStmt *ProgramStmt::Create(ASTContext &C, const IdentifierInfo *ProgName,
 // EndProgram Statement
 //===----------------------------------------------------------------------===//
 
-EndProgramStmt *EndProgramStmt::Create(const IdentifierInfo *ProgName) {
-  return new EndProgramStmt(ProgName);
-}
-
 EndProgramStmt *EndProgramStmt::Create(const IdentifierInfo *ProgName,
                                        Token StmtLabelTok) {
   return new EndProgramStmt(ProgName, StmtLabelTok);

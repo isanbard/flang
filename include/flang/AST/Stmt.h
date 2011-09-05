@@ -47,8 +47,6 @@ private:
   Stmt(const Stmt &);           // Do not implement!
   friend class ASTContext;
 protected:
-  Stmt(StmtTy ID, llvm::SMLoc L)
-    : StmtID(ID), Loc(L), StmtLabelTok(Token()) {}
   Stmt(StmtTy ID, llvm::SMLoc L, Token SLT)
     : StmtID(ID), Loc(L), StmtLabelTok(SLT) {}
 public:
@@ -73,9 +71,6 @@ class ProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
   llvm::SMLoc NameLoc;
 
-  ProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
-              llvm::SMLoc NameL)
-    : Stmt(Program, Loc), ProgName(progName), NameLoc(NameL) {}
   ProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
               llvm::SMLoc NameL, Token SLT)
     : Stmt(Program, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
@@ -103,13 +98,10 @@ public:
 class EndProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
 
-  EndProgramStmt(const IdentifierInfo *progName)
-    : Stmt(EndProgram, llvm::SMLoc()), ProgName(progName) {}
   EndProgramStmt(const IdentifierInfo *progName, Token SLT)
     : Stmt(EndProgram, llvm::SMLoc(), SLT), ProgName(progName) {}
   EndProgramStmt(const EndProgramStmt &); // Do not implement!
 public:
-  static EndProgramStmt *Create(const IdentifierInfo *ProgName);
   static EndProgramStmt *Create(const IdentifierInfo *ProgName,
                                 Token StmtLabelTok);
 
