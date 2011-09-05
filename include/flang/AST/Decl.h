@@ -412,6 +412,8 @@ class NamedDecl : public Decl {
   /// Name - The name of this declaration, which is typically a normal
   /// identifier.
   DeclarationName Name;
+  friend class ASTContext;
+  friend class DeclContext;
 protected:
   NamedDecl(Kind DK, DeclContext *DC, llvm::SMLoc L, DeclarationName N)
     : Decl(DK, DC, L), Name(N) {}
@@ -489,7 +491,7 @@ class RecordDecl : public TypeDecl, public DeclContext {
   /// IsBeingDefined - True if this is currently being defined.
   bool IsBeingDefined : 1;
 
-  friend class ASTContext;
+  friend class DeclContext;
 protected:
   RecordDecl(Kind DK, DeclContext *DC, llvm::SMLoc StartLoc, llvm::SMLoc IdLoc,
              IdentifierInfo *Id, RecordDecl *PrevDecl)
@@ -767,6 +769,100 @@ static inline llvm::raw_ostream &operator<<(llvm::raw_ostream &O,
   return O << V.getIdentifier()->getName();
 }
 
-} // end fortran namespace
+// Specialization selected when ToTy is not a known subclass of DeclContext.
+template <class ToTy,
+          bool IsKnownSubtype = ::llvm::is_base_of< DeclContext, ToTy>::value>
+struct cast_convert_decl_context {
+  static const ToTy *doit(const DeclContext *Val) {
+    return static_cast<const ToTy*>(Decl::castFromDeclContext(Val));
+  }
 
-#endif // FORTRAN_AST_DECL_H__
+  static ToTy *doit(DeclContext *Val) {
+    return static_cast<ToTy*>(Decl::castFromDeclContext(Val));
+  }
+};
+
+// Specialization selected when ToTy is a known subclass of DeclContext.
+template <class ToTy>
+struct cast_convert_decl_context<ToTy, true> {
+  static const ToTy *doit(const DeclContext *Val) {
+    return static_cast<const ToTy*>(Val);
+  }
+
+  static ToTy *doit(DeclContext *Val) {
+    return static_cast<ToTy*>(Val);
+  }
+};
+
+} // end flang namespace
+
+namespace llvm {
+
+/// isa<T>(DeclContext*)
+template <typename To>
+struct isa_impl<To, ::flang::DeclContext> {
+  static bool doit(const ::flang::DeclContext &Val) {
+    return To::classofKind(Val.getDeclKind());
+  }
+};
+
+/// cast<T>(DeclContext*)
+template<class ToTy>
+struct cast_convert_val<ToTy,
+                        const ::flang::DeclContext,const ::flang::DeclContext> {
+  static const ToTy &doit(const ::flang::DeclContext &Val) {
+    return *::flang::cast_convert_decl_context<ToTy>::doit(&Val);
+  }
+};
+template<class ToTy>
+struct cast_convert_val<ToTy, ::flang::DeclContext, ::flang::DeclContext> {
+  static ToTy &doit(::flang::DeclContext &Val) {
+    return *::flang::cast_convert_decl_context<ToTy>::doit(&Val);
+  }
+};
+template<class ToTy>
+struct cast_convert_val<ToTy,
+                     const ::flang::DeclContext*, const ::flang::DeclContext*> {
+  static const ToTy *doit(const ::flang::DeclContext *Val) {
+    return ::flang::cast_convert_decl_context<ToTy>::doit(Val);
+  }
+};
+template<class ToTy>
+struct cast_convert_val<ToTy, ::flang::DeclContext*, ::flang::DeclContext*> {
+  static ToTy *doit(::flang::DeclContext *Val) {
+    return ::flang::cast_convert_decl_context<ToTy>::doit(Val);
+  }
+};
+
+/// Implement cast_convert_val for Decl -> DeclContext conversions.
+template<class FromTy>
+struct cast_convert_val< ::flang::DeclContext, FromTy, FromTy> {
+  static ::flang::DeclContext &doit(const FromTy &Val) {
+    return *FromTy::castToDeclContext(&Val);
+  }
+};
+
+template<class FromTy>
+struct cast_convert_val< ::flang::DeclContext, FromTy*, FromTy*> {
+  static ::flang::DeclContext *doit(const FromTy *Val) {
+    return FromTy::castToDeclContext(Val);
+  }
+};
+
+template<class FromTy>
+struct cast_convert_val< const ::flang::DeclContext, FromTy, FromTy> {
+  static const ::flang::DeclContext &doit(const FromTy &Val) {
+    return *FromTy::castToDeclContext(&Val);
+  }
+};
+
+template<class FromTy>
+struct cast_convert_val< const ::flang::DeclContext, FromTy*, FromTy*> {
+  static const ::flang::DeclContext *doit(const FromTy *Val) {
+    return FromTy::castToDeclContext(Val);
+  }
+};
+
+} // end namespace llvm
+
+#endif // FLANG_AST_DECL_H__
