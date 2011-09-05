@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "flang/Basic/Actions.h"
 #include "flang/Frontend/TextDiagnosticPrinter.h"
 #include "flang/Parse/Parser.h"
+#include "flang/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -78,8 +78,12 @@ static bool ParseFile(const std::string &Filename,
   Opts.ReturnComments = ReturnComments;
   TextDiagnosticPrinter TDP(SrcMgr);
   Diagnostic Diag(&SrcMgr, &TDP, false);
+#if 0
   PrintAction PA(Diag);
-  Parser P(SrcMgr, Opts, Diag, PA);
+#endif
+  ASTContext Context(SrcMgr);
+  Sema SA(Context, Diag);
+  Parser P(SrcMgr, Opts, Diag, SA);
   return P.ParseProgramUnits();
 }
 

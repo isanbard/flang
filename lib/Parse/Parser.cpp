@@ -15,9 +15,9 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
-#include "flang/Basic/Actions.h"
 #include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/TokenKinds.h"
+#include "flang/Sema/Sema.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/APInt.h"
@@ -61,9 +61,10 @@ void PrettyStackTraceParserEntry::print(llvm::raw_ostream &OS) const {
 //===----------------------------------------------------------------------===//
 
 Parser::Parser(llvm::SourceMgr &SM, const LangOptions &Opts, Diagnostic  &D,
-               Action &Acts)
+               Sema &actions)
   : TheLexer(SM, Opts, D), Features(Opts), CrashInfo(*this), SrcMgr(SM),
-    CurBuffer(0), Context(SM), Diag(D), Actions(Acts), Identifiers(Opts) {
+    CurBuffer(0), Context(actions.Context), Diag(D), Actions(actions),
+    Identifiers(Opts) {
   getLexer().setBuffer(SrcMgr.getMemoryBuffer(CurBuffer));
   Tok.startToken();
   NextTok.startToken();
@@ -304,11 +305,14 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
+  // If the PROGRAM statement has an identifier, create a DeclarationNameInfo
+  // object for the main-program action.
   const IdentifierInfo *IDInfo = 0;
   llvm::SMLoc NameLoc;
   if (ProgStmt.isUsable()) {
-    IDInfo = ProgStmt.takeAs<ProgramStmt>()->getProgramName();
-    NameLoc = ProgStmt.takeAs<ProgramStmt>()->getNameLocation();
+    ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
+    IDInfo = PS->getProgramName();
+    NameLoc = PS->getNameLocation();
   }
 
   DeclarationName DN(IDInfo);
@@ -325,7 +329,7 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
-  ParseEND_PROGRAMStmt();
+  StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
 
   Actions.ActOnEndProgramUnit();
   return false;

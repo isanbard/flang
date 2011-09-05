@@ -41,6 +41,7 @@ public:
   virtual ~Action();
   virtual void ActOnTranslationUnit() = 0;
   virtual void ActOnMainProgram(const DeclarationNameInfo &NameInfo) = 0;
+  virtual void ActOneEndMainProgram(const DeclarationNameInfo &EndNameInfo) = 0;
   virtual void ActOnEndProgramUnit() = 0;
 
   virtual StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
@@ -91,6 +92,7 @@ public:
   PrintAction(Diagnostic &D) : Diag(D), Indent(0) {}
   virtual void ActOnTranslationUnit();
   virtual void ActOnMainProgram(const DeclarationNameInfo &NameInfo);
+  virtual void ActOneEndMainProgram(const DeclarationNameInfo &EndNameInfo);
   virtual void ActOnEndProgramUnit();
 
   virtual StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,

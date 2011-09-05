@@ -16,10 +16,11 @@
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Stmt.h"
+#include "flang/Basic/Diagnostic.h"
 using namespace flang;
 
-Sema::Sema(ASTContext &ctxt, llvm::SourceMgr &sm)
-  : Context(ctxt), SrcMgr(sm), CurContext(0) {}
+Sema::Sema(ASTContext &ctxt, Diagnostic &D)
+  : Context(ctxt), Diags(D), CurContext(0) {}
 
 Sema::~Sema() {}
 
@@ -46,13 +47,29 @@ void Sema::ActOnTranslationUnit() {
   PushDeclContext(Context.getTranslationUnitDecl());
 }
 
+void Sema::ActOnEndProgramUnit() {
+  PopDeclContext();
+}
+
 void Sema::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {
   PushDeclContext(MainProgramDecl::Create(Context,
                                           Context.getTranslationUnitDecl(),
                                           NameInfo));
 }
 
-void Sema::ActOnEndProgramUnit() {
+void Sema::ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
+  assert(CurContext && "DeclContext imbalance!");
+  StringRef ProgName = cast<MainProgramDecl>(CurContext)->getName();
+  if (ProgName.empty()) return;
+
+  const IdentifierInfo *ID = EndNameInfo.getName().getAsIdentifierInfo();
+  if (!ID) return;
+
+  if (ProgName != ID->getName())
+    Diags.ReportError(EndNameInfo.getLoc(),
+                      llvm::Twine("expected label '") +
+                      ProgName + "' for END PROGRAM statement");
+
   PopDeclContext();
 }
 

@@ -14,8 +14,8 @@
 #include "flang/Parse/Parser.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
-#include "flang/Basic/Actions.h"
 #include "flang/Sema/Ownership.h"
+#include "flang/Sema/Sema.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/Twine.h"
 using namespace flang;

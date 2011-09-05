@@ -39,6 +39,8 @@ Action::~Action() {
 void PrintAction::ActOnTranslationUnit() {}
 void PrintAction::ActOnEndProgramUnit() {}
 void PrintAction::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {}
+void PrintAction::ActOneEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
+}
 
 StmtResult PrintAction::ActOnPROGRAM(ASTContext &C,
                                      const IdentifierInfo *ProgName,
@@ -59,18 +61,6 @@ StmtResult PrintAction::ActOnENDPROGRAM(ASTContext &C,
                                         llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                                         Token &StmtLabel) {
   Indent = 0;
-
-  // This name, if specified, must match the name specified on the 'PROGRAM'
-  // statement.
-  llvm::StringRef Name = (ProgName ? ProgName->getName() : "");
-  if (Name.size() != 0 && ProgName != ProgramName) {
-    // FIXME: Use a real error reporting mechanism here.
-    Diag.ReportError(Loc, llvm::Twine("expected label '") +
-                     ProgramName->getName() +
-                     "' for END PROGRAM statement");
-    return StmtResult();
-  }
-
   llvm::outs() << "</program";
   PrintStmtLabel(StmtLabel);
   llvm::outs() << ">\n";

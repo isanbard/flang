@@ -31,7 +31,7 @@ include $(FLANG_LEVEL)/../../Makefile.config
 
 LINK_COMPONENTS := $(TARGETS_TO_BUILD) asmparser bitreader bitwriter codegen \
                    ipo selectiondag
-USEDLIBS = flangAST.a flangFrontend.a flangParse.a flangBasic.a
+USEDLIBS = flangAST.a flangFrontend.a flangParse.a flangSema.a flangBasic.a
 
 include $(FLANG_LEVEL)/Makefile
 

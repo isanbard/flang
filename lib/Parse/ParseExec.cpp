@@ -15,9 +15,9 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
-#include "flang/Basic/Actions.h"
 #include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/TokenKinds.h"
+#include "flang/Sema/Sema.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 using namespace flang;

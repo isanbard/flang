@@ -38,6 +38,7 @@ class DeclGroupRef;
 class Expr;
 class Parser;
 class Selector;
+class Sema;
 
 /// PrettyStackTraceParserEntry - If a crash happens while the parser is active,
 /// an entry is printed for it.
@@ -68,19 +69,19 @@ private:
   /// SourceMgr object.
   int CurBuffer;
 
-  ASTContext Context;           // FIXME: Move to AST construction.
+  ASTContext &Context;
 
   /// Diag - Diagnostics for parsing errors.
   Diagnostic &Diag;
 
-#if 0
   /// Actions - These are the callbacks we invoke as we parse various constructs
   /// in the file. 
   Sema &Actions;
-#endif
+#if 0
   /// Actions - These are the callbacks we invoke as we parse various constructs
   /// in the file.
   Action &Actions;
+#endif
 
   /// Tok - The current token we are parsing. All parsing methods assume that
   /// this is valid.
@@ -139,8 +140,12 @@ public:
     return Identifiers.isaBuiltin(BI);
   }
 
+#if 0
   Parser(llvm::SourceMgr &SrcMgr, const LangOptions &Opts,
          Diagnostic &D, Action &Acts);
+#endif
+  Parser(llvm::SourceMgr &SrcMgr, const LangOptions &Opts,
+         Diagnostic &D, Sema &actions);
 
   llvm::SourceMgr &getSourceManager() { return SrcMgr; }
 
