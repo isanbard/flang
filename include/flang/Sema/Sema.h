@@ -44,6 +44,8 @@ public:
   /// Set the current declaration context until it gets popped.
   void PushDeclContext(DeclContext *DC);
   void PopDeclContext();
+
+  void ActOnMainProgram();
 };
 
 } // end flang namespace

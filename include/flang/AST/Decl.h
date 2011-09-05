@@ -695,7 +695,6 @@ class VarDecl : public DeclaratorDecl {
 class VarDecl : public DeclaratorDecl, public llvm::FoldingSetNode {
   /// \brief The initializer for this variable.
   mutable Expr *Init; // FIXME: This should be a different type?
-
   const DeclSpec *DS;
 
   friend class ASTContext;  // ASTContext creates these.

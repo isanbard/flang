@@ -294,6 +294,8 @@ bool Parser::ParseProgramUnit() {
 ///           [internal-subprogram-part]
 ///           end-program-stmt
 bool Parser::ParseMainProgram() {
+  Actions.ActOnMainProgram();
+
   // If the PROGRAM statement didn't have an identifier, pretend like it did for
   // the time being.
   if (Tok.is(tok::kw_PROGRAM)) {

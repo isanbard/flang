@@ -38,6 +38,7 @@ class VarDecl;
 class Action {
 public:
   virtual ~Action();
+  virtual void ActOnMainProgram() = 0;
   virtual StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName,
                                   Token &StmtLabel)=0;
   virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,
@@ -82,6 +83,7 @@ class PrintAction : public Action {
   unsigned Indent;
 public:
   PrintAction(Diagnostic &D) : Diag(D), Indent(0) {}
+  virtual void ActOnMainProgram();
   virtual StmtResult ActOnPROGRAM(const IdentifierInfo *ProgName,
                                   Token &StmtLabel);
   virtual StmtResult ActOnEND_PROGRAM(llvm::SMLoc,

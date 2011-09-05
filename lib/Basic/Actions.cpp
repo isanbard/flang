@@ -36,6 +36,8 @@ static inline void PrintStmtLabel(Token &StmtLabel) {
 Action::~Action() {
 }
 
+void PrintAction::ActOnMainProgram() {}
+
 StmtResult PrintAction::ActOnPROGRAM(const IdentifierInfo *ProgName,
                                      Token &StmtLabel) {
   ProgramName = ProgName;

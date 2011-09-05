@@ -73,6 +73,15 @@ private:
   /// Diag - Diagnostics for parsing errors.
   Diagnostic &Diag;
 
+#if 0
+  /// Actions - These are the callbacks we invoke as we parse various constructs
+  /// in the file. 
+  Sema &Actions;
+#endif
+  /// Actions - These are the callbacks we invoke as we parse various constructs
+  /// in the file.
+  Action &Actions;
+
   /// Tok - The current token we are parsing. All parsing methods assume that
   /// this is valid.
   Token Tok;
@@ -87,10 +96,6 @@ private:
   // token is used for diagnostics where we expected to see a token following
   // another token.
   llvm::SMLoc PrevTokLocation;
-
-  /// Actions - These are the callbacks we invoke as we parse various constructs
-  /// in the file.
-  Action &Actions;
 
   /// Identifiers - This is mapping/lookup information for all identifiers in
   /// the program, including program keywords.

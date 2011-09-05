@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Sema/Sema.h"
+#include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
 using namespace flang;
 
@@ -39,4 +40,8 @@ void Sema::PopDeclContext() {
 
   CurContext = getContainingDC(CurContext);
   assert(CurContext && "Popped translation unit!");
+}
+
+void Sema::ActOnMainProgram() {
+  PushDeclContext(Context.getTranslationUnitDecl());
 }
