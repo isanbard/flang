@@ -323,6 +323,6 @@ public:
   static bool classof(const DefinedOperatorBinaryExpr *) { return true; }
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

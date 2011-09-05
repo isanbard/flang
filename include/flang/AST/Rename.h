@@ -33,6 +33,6 @@ public:
   }
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif // FORTRAN_AST_RENAME_H__

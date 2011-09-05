@@ -255,6 +255,6 @@ private:
   bool EatIfPresent(tok::TokenKind);
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

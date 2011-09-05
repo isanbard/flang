@@ -130,7 +130,7 @@ public:
   }
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 namespace llvm {
   // DeclGroupRef is "like a pointer", implement PointerLikeTypeTraits.

@@ -454,7 +454,7 @@ public:
   }
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 namespace llvm {
 
@@ -888,6 +888,6 @@ inline bool Type::isConstantArrayType() const {
   return isa<ConstantArrayType>(CanonicalType);
 }
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

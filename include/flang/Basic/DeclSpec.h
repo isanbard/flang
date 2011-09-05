@@ -146,6 +146,6 @@ public:
   static bool classof(DerivedDeclSpec*) { return true; }
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

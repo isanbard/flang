@@ -25,7 +25,7 @@
 
 namespace llvm {
   template <typename T> class ArrayRef;
-} // end llvm namespac
+} // end llvm namespace
 
 namespace flang {
 
@@ -183,7 +183,7 @@ private:
   friend class DeclContext;
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 // operator new and delete aren't allowed inside namespaces. The throw
 // specifications are mandated by the standard.

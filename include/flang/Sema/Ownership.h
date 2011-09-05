@@ -93,6 +93,6 @@ typedef ActionResult<VarDecl*> DeclResult;
 typedef ActionResult<Expr*>    ExprResult;
 typedef ActionResult<Stmt*>    StmtResult;
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

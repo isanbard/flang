@@ -118,6 +118,6 @@ public:
   virtual ExprResult ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs);
 };
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif

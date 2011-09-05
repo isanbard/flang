@@ -54,7 +54,7 @@ class FieldDecl;
 class VarDecl;
 class FileScopeAsmDecl;
 
-} // end fortran namespace
+} // end flang namespace
 
 namespace llvm {
 

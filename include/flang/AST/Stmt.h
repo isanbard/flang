@@ -185,6 +185,6 @@ public:
 };
 
 
-} // end fortran namespace
+} // end flang namespace
 
 #endif
