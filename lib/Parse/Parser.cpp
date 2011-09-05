@@ -304,8 +304,8 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
-  DeclarationName DN(cast<ProgramStmt>(ProgStmt.get())->getProgramName());
-  DeclarationNameInfo DNI(DN, cast<ProgramStmt>(ProgStmt.get())->getNameLocation());
+  DeclarationName DN(ProgStmt.takeAs<ProgramStmt>()->getProgramName());
+  DeclarationNameInfo DNI(DN,ProgStmt.takeAs<ProgramStmt>()->getNameLocation());
   Actions.ActOnMainProgram(DNI);
 
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
