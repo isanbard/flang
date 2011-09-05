@@ -46,6 +46,8 @@ public:
   void PopDeclContext();
 
   void ActOnMainProgram();
+
+  void ActOnEndProgramUnit();
 };
 
 } // end flang namespace

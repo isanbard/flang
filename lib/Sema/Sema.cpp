@@ -37,11 +37,14 @@ void Sema::PushDeclContext(DeclContext *DC) {
 
 void Sema::PopDeclContext() {
   assert(CurContext && "DeclContext imbalance!");
-
   CurContext = getContainingDC(CurContext);
   assert(CurContext && "Popped translation unit!");
 }
 
 void Sema::ActOnMainProgram() {
   PushDeclContext(Context.getMainProgramDecl());
+}
+
+void Sema::ActOnEndProgramUnit() {
+  PopDeclContext();
 }
