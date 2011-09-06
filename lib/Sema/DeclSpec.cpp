@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "flang/Basic/DeclSpec.h"
+#include "flang/Sema/DeclSpec.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/Type.h"
 #include "llvm/Support/raw_ostream.h"

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_DECL_SPEC_H__
-#define FORTRAN_DECL_SPEC_H__
+#ifndef FLANG_SEMA_DECLSPEC_H__
+#define FLANG_SEMA_DECLSPEC_H__
 
 #include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"

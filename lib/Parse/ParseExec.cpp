@@ -15,8 +15,8 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
-#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/TokenKinds.h"
+#include "flang/Sema/DeclSpec.h"
 #include "flang/Sema/Sema.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
@@ -128,7 +128,7 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
 
   const IdentifierInfo *IDInfo = 0;
   llvm::SMLoc NameLoc;
-  if (Tok.isNot(tok::eof)) { // FIXME: EOF is not the only situation possible.
+  if (Tok.is(tok::identifier) && !Tok.isAtStartOfStatement()) {
     IDInfo = Tok.getIdentifierInfo();
     NameLoc = Tok.getLocation();
     Lex(); // Eat the ending token.

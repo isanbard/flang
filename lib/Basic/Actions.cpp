@@ -12,12 +12,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Basic/Actions.h"
-#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/Diagnostic.h"
 #include "flang/Basic/Token.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
+#include "flang/Sema/DeclSpec.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Twine.h"

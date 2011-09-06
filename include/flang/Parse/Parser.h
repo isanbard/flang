@@ -15,12 +15,12 @@
 #define FORTRAN_PARSER_PARSER_H__
 
 #include "flang/AST/ASTContext.h" // FIXME: Move to AST construction.
-#include "flang/Basic/DeclSpec.h"
 #include "flang/Basic/Diagnostic.h"
 #include "flang/Basic/IdentifierTable.h"
 #include "flang/Basic/LangOptions.h"
 #include "flang/Basic/TokenKinds.h"
 #include "flang/Parse/Lexer.h"
+#include "flang/Sema/DeclSpec.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/ADT/SmallSet.h"
