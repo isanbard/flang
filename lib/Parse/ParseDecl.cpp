@@ -17,17 +17,27 @@
 #include "flang/Sema/Sema.h"
 using namespace flang;
 
-/// AssignAttrSpec - Helper function that assigns the attribute specification to
-/// the list, but reports an error if that attribute was all ready assigned.
-bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec Val) {
-  if (DS->hasAttribute(Val))
+bool Parser::AssignTypeQual(DeclSpec *DS, DeclSpec::TQ Val) {
+  if (DS->hasTypeQual(Val))
     return Diag.ReportError(Tok.getLocation(),
-                            "attribute specification defined more than once");
-  DS->setAttribute(Val);
+                            "type qualifier defined more than once");
+  DS->setTypeQual(Val);
   Lex();
   return false;
 }
 
+/// AssignAttrSpec - Helper function that assigns the attribute specification to
+/// the list, but reports an error if that attribute was all ready assigned.
+bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AS Val) {
+  if (DS->hasAttributeSpec(Val))
+    return Diag.ReportError(Tok.getLocation(),
+                            "attribute specification defined more than once");
+  DS->setAttributeSpec(Val);
+  Lex();
+  return false;
+}
+
+#if 0
 /// AssignAccessSpec - Helper function that assigns the access specification to
 /// the DeclSpec, but reports an error if that access spec was all ready
 /// assigned.
@@ -39,15 +49,16 @@ bool Parser::AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val) {
   Lex();
   return false;
 }
+#endif
 
 /// AssignIntentSpec - Helper function that assigns the intent specification to
 /// the DeclSpec, but reports an error if that intent spec was all ready
 /// assigned.
-bool Parser::AssignIntentSpec(DeclSpec *DS, DeclSpec::IntentSpec Val) {
-  if (DS->hasIntent(Val))
+bool Parser::AssignIntentSpec(DeclSpec *DS, DeclSpec::IS Val) {
+  if (DS->hasIntentSpec(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "intent specification defined more than once");
-  DS->setIntent(Val);
+  DS->setIntentSpec(Val);
   Lex();
   return false;
 }
@@ -93,15 +104,15 @@ bool Parser::ParseTypeDeclarationStmt() {
                        "unknown attribute specification");
       goto error;
     case tok::kw_ALLOCATABLE:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Allocatable))
+      if (AssignTypeQual(DS, DeclSpec::TQ_allocatable))
         goto error;
       break;
     case tok::kw_ASYNCHRONOUS:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Asynchronous))
+      if (AssignAttrSpec(DS, DeclSpec::AS_asynchronous))
         goto error;
       break;
     case tok::kw_CODIMENSION:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Codimension))
+      if (AssignAttrSpec(DS, DeclSpec::AS_codimension))
         goto error;
       if (!EatIfPresent(tok::l_square)) {
         Diag.ReportError(Tok.getLocation(),
@@ -119,23 +130,21 @@ bool Parser::ParseTypeDeclarationStmt() {
 
       break;
     case tok::kw_CONTIGUOUS:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Contiguous))
+      if (AssignAttrSpec(DS, DeclSpec::AS_contiguous))
         goto error;
       break;
     case tok::kw_DIMENSION:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Dimension))
+      if (AssignAttrSpec(DS, DeclSpec::AS_dimension))
         goto error;
       if (ParseArraySpec(Dimensions))
         goto error;
       break;
     case tok::kw_EXTERNAL:
-      if (AssignAttrSpec(DS, DeclSpec::AS_External))
+      if (AssignAttrSpec(DS, DeclSpec::AS_external))
         goto error;
       break;
     case tok::kw_INTENT:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Intent))
-        goto error;
-
+      Lex();
       if (!EatIfPresent(tok::l_paren)) {
         Diag.ReportError(Tok.getLocation(),
                          "expected '(' after 'INTENT' keyword");
@@ -148,15 +157,15 @@ bool Parser::ParseTypeDeclarationStmt() {
                          "invalid INTENT specifier");
         goto error;
       case tok::kw_IN:
-        if (AssignIntentSpec(DS, DeclSpec::IS_In))
+        if (AssignIntentSpec(DS, DeclSpec::IS_in))
           goto error;
         break;
       case tok::kw_OUT:
-        if (AssignIntentSpec(DS, DeclSpec::IS_Out))
+        if (AssignIntentSpec(DS, DeclSpec::IS_out))
           goto error;
         break;
       case tok::kw_INOUT:
-        if (AssignIntentSpec(DS, DeclSpec::IS_InOut))
+        if (AssignIntentSpec(DS, DeclSpec::IS_inout))
           goto error;
         break;
       }
@@ -170,42 +179,43 @@ bool Parser::ParseTypeDeclarationStmt() {
 
       break;
     case tok::kw_INTRINSIC:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Intrinsic))
+      if (AssignAttrSpec(DS, DeclSpec::AS_intrinsic))
         goto error;
       break;
     case tok::kw_OPTIONAL:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Optional))
+      if (AssignAttrSpec(DS, DeclSpec::AS_optional))
         goto error;
       break;
     case tok::kw_PARAMETER:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Parameter))
+      if (AssignTypeQual(DS, DeclSpec::TQ_parameter))
         goto error;
       break;
     case tok::kw_POINTER:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Pointer))
+      if (AssignAttrSpec(DS, DeclSpec::AS_pointer))
         goto error;
       break;
     case tok::kw_PROTECTED:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Protected))
+      if (AssignAttrSpec(DS, DeclSpec::AS_protected))
         goto error;
       break;
     case tok::kw_SAVE:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Save))
+      if (AssignAttrSpec(DS, DeclSpec::AS_save))
         goto error;
       break;
     case tok::kw_TARGET:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Target))
+      if (AssignAttrSpec(DS, DeclSpec::AS_target))
         goto error;
       break;
     case tok::kw_VALUE:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Value))
+      if (AssignAttrSpec(DS, DeclSpec::AS_value))
         goto error;
       break;
     case tok::kw_VOLATILE:
-      if (AssignAttrSpec(DS, DeclSpec::AS_Volatile))
+      if (AssignTypeQual(DS, DeclSpec::TQ_volatile))
         goto error;
       break;
 
+#if 0
     // Access Control Specifiers
     case tok::kw_PUBLIC:
       if (AssignAccessSpec(DS, DeclSpec::AC_Public))
@@ -215,6 +225,7 @@ bool Parser::ParseTypeDeclarationStmt() {
       if (AssignAccessSpec(DS, DeclSpec::AC_Private))
         goto error;
       break;
+#endif
     }
   }
 

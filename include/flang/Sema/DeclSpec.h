@@ -15,12 +15,14 @@
 #define FLANG_SEMA_DECLSPEC_H__
 
 #include "flang/AST/Type.h"
+#include "flang/Basic/Specifiers.h"
 #include "flang/Sema/Ownership.h"
+#include "llvm/Support/SMLoc.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
-template <typename T> class ArrayRef;
-class raw_ostream;
+  template <typename T> class ArrayRef;
+  class raw_ostream;
 } // end llvm namespace
 
 namespace flang {
@@ -32,74 +34,92 @@ class Expr;
 /// CLASS -- plus any kind selectors for that type.
 class DeclSpec {
 public:
+  // Import intrinsic type specifiers.
+  typedef IntrinsicTypeSpec ITS;
+  static const ITS ITS_unspecified = flang::ITS_unspecified;
+  static const ITS ITS_integer = flang::ITS_integer;
+  static const ITS ITS_real = flang::ITS_real;
+  static const ITS ITS_doubleprecision = flang::ITS_doubleprecision;
+  static const ITS ITS_complex = flang::ITS_complex;
+  static const ITS ITS_character = flang::ITS_character;
+  static const ITS ITS_logical = flang::ITS_logical;
+
+  // Import attribute specifiers.
+  typedef AttributeSpecifier AS;
+  static const AS AS_unspecified = flang::AS_unspecified;
+  static const AS AS_asynchronous = flang::AS_asynchronous;
+  static const AS AS_codimension = flang::AS_codimension;
+  static const AS AS_contiguous = flang::AS_contiguous;
+  static const AS AS_dimension = flang::AS_dimension;
+  static const AS AS_external = flang::AS_external;
+  static const AS AS_intrinsic = flang::AS_intrinsic;
+  static const AS AS_optional = flang::AS_optional;
+  static const AS AS_pointer = flang::AS_pointer;
+  static const AS AS_protected = flang::AS_protected;
+  static const AS AS_save = flang::AS_save;
+  static const AS AS_target = flang::AS_target;
+  static const AS AS_value = flang::AS_value;
+
+  /// Import intent specifiers.
+  typedef IntentSpecifier IS;
+  static const IS IS_unspecified = flang::IS_unspecified;
+  static const IS IS_in = flang::IS_in;
+  static const IS IS_out = flang::IS_out;
+  static const IS IS_inout = flang::IS_inout;
+
   enum TQ { // NOTE: These flags must be kept in sync with Qualifiers::TQ.
-    Allocatable = 1 << 0,
-    Parameter   = 1 << 1,
-    Volatile    = 1 << 2,
-    APVMask     = (Allocatable | Parameter | Volatile)
+    TQ_unspecified = 0,
+    TQ_allocatable = 1 << 0,
+    TQ_parameter   = 1 << 1,
+    TQ_volatile    = 1 << 2
   };
 
   enum TypeSpec {
     None,
-    IntrinsicTypeSpec,
+    IntrinsicTypeSpec_,
     DerivedTypeSpec
   };
 
-  enum AttrSpec {
-    AS_None            = 0,
-    AS_Allocatable     = 1 << 0,
-    AS_Asynchronous    = 1 << 1,
-    AS_Codimension     = 1 << 2,
-    AS_Contiguous      = 1 << 3,
-    AS_Dimension       = 1 << 4,
-    AS_External        = 1 << 5,
-    AS_Intent          = 1 << 6,
-    AS_Intrinsic       = 1 << 7,
-    AS_Optional        = 1 << 8,
-    AS_Parameter       = 1 << 9,
-    AS_Pointer         = 1 << 10,
-    AS_Protected       = 1 << 11,
-    AS_Save            = 1 << 12,
-    AS_Target          = 1 << 13,
-    AS_Value           = 1 << 14,
-    AS_Volatile        = 1 << 15,
-    AS_AccessSpec      = 1 << 30,
-    AS_LangBindingSpec = 1 << 31
-  };
-
-  enum AccessSpec {
-    AC_None    = 0,
-    AC_Public  = 1 << 0,
-    AC_Private = 1 << 1
-  };
-
-  enum IntentSpec {
-    IS_None   = 0,
-    IS_In     = 1 << 0,
-    IS_Out    = 1 << 1,
-    IS_InOut  = 1 << 2
-  };
-
 private:
-  TypeSpec TS;                 //< Type specifier: REAL, INTEGER, etc.
-  uint32_t AS;                 //< Attribute specifier: PARAMETER, POINTER, etc.
-  uint16_t AC;                 //< Access control specifier: PUBLIC, PRIVATE
-  uint16_t IS;                 //< Intent specifier: IN, OUT, INOUT
+  /*ITS*/unsigned IntrinsicTypeSpec : 3;
+  /*AS*/ unsigned AttributeSpecs    : 12;
+  /*TQ*/ unsigned TypeQualifiers    : 3;  // Bitwise OR of TQ.
+  /*IS*/ unsigned IntentSpec        : 3;
+
+  llvm::SMLoc TQ_allocatableLoc, TQ_parameterLoc, TQ_volatileLoc;
 public:
-  explicit DeclSpec(TypeSpec ts) : TS(ts) {}
+  explicit DeclSpec(TypeSpec ts) {}
   virtual ~DeclSpec();
 
-  TypeSpec getClassID() const { return TS; }
+  /// getSpecifierName - Turn a type-specifier-type into a string like "REAL"
+  /// or "ALLOCATABLE".
+  static const char *getSpecifierName(DeclSpec::TQ Q);
+  static const char *getSpecifierName(DeclSpec::ITS I);
+  static const char *getSpecifierName(DeclSpec::AS A);
+  static const char *getSpecifierName(DeclSpec::IS I);
 
-  // Accessors functions.
-  bool hasAttribute(AttrSpec Val) const {  return (AS & Val) != 0; }
-  void setAttribute(AttrSpec Val) { AS |= Val; }
+  bool hasTypeQual(DeclSpec::TQ Q) const {
+    return TypeQualifiers & Q;
+  }
+  void setTypeQual(DeclSpec::TQ Q) {
+    TypeQualifiers |= Q;
+  }
 
-  bool hasAccessControl(AccessSpec Val) const {  return (AC & Val) != 0; }
-  void setAccessControl(AccessSpec Val) { AC |= Val; }
+  bool hasAttributeSpec(DeclSpec::AS A) const {
+    return AttributeSpecs & A;
+  }
+  void setAttributeSpec(DeclSpec::AS A) {
+    AttributeSpecs |= A;
+  }
 
-  bool hasIntent(IntentSpec Val) const {  return (IS & Val) != 0; }
-  void setIntent(IntentSpec Val) { IS |= Val; }
+  bool hasIntentSpec(DeclSpec::IS I) const {
+    return IntentSpec & I;
+  }
+  void setIntentSpec(DeclSpec::IS I) {
+    IntentSpec |= I;
+  }
+
+  TypeSpec getClassID() const { return None; } // FIXME: Remove
 
   virtual void print(llvm::raw_ostream &) {}
 
@@ -112,7 +132,7 @@ class IntrinsicDeclSpec : public DeclSpec {
   QualType Ty;
 public:
   IntrinsicDeclSpec(QualType T)
-    : DeclSpec(IntrinsicTypeSpec), Ty(T) {}
+    : DeclSpec(IntrinsicTypeSpec_), Ty(T) {}
   virtual ~IntrinsicDeclSpec();
 
   QualType getType() const { return Ty; }
@@ -121,7 +141,7 @@ public:
   virtual void print(llvm::raw_ostream &);
 
   static bool classof(DeclSpec *DTS) {
-    return DTS->getClassID() == IntrinsicTypeSpec;
+    return DTS->getClassID() == IntrinsicTypeSpec_;
   }
   static bool classof(IntrinsicDeclSpec*) { return true; }
 };

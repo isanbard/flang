@@ -1,4 +1,4 @@
 FLANG_LEVEL := ../..
-DIRS := AST
+DIRS := Basic AST
 
 include $(FLANG_LEVEL)/Makefile

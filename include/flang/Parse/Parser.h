@@ -252,9 +252,10 @@ private:
   bool ParseDerivedTypeSpec(DeclSpec *&DS);
   bool ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims);
 
-  bool AssignAttrSpec(DeclSpec *DS, DeclSpec::AttrSpec Val);
-  bool AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val);
-  bool AssignIntentSpec(DeclSpec *DS, DeclSpec::IntentSpec Val);
+  bool AssignTypeQual(DeclSpec *DS, DeclSpec::TQ Val);
+  bool AssignAttrSpec(DeclSpec *DS, DeclSpec::AS Val);
+  //  bool AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val);
+  bool AssignIntentSpec(DeclSpec *DS, DeclSpec::IS Val);
 
   void LexToEndOfStatement();
   bool EatIfPresent(tok::TokenKind);
