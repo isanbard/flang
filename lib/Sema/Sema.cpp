@@ -73,6 +73,11 @@ void Sema::ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
   PopDeclContext();
 }
 
+Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
+                            const IdentifierInfo *IDInfo) {
+  return 0;
+}
+
 StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                               llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                               Token StmtLabel) {

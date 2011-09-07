@@ -64,6 +64,9 @@ public:
   void ActOnMainProgram(const DeclarationNameInfo &NameInfo);
   void ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo);
 
+  Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
+                        const IdentifierInfo *IDInfo);
+
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                           Token StmtLabelTok);
@@ -97,8 +100,6 @@ public:
                                      Expr *Len,
                                      Expr *Kind) { return QualType(); }
   DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) { return 0; }
-  Decl *ActOnVarDecl(ASTContext *Ctx, DeclSpec *DTS,
-                     const VarDecl *VD) { return 0; }
 
   bool ActOnArraySpec() { return false; }
 

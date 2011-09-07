@@ -175,7 +175,7 @@ private:
   bool ParseForAllConstruct();
   bool ParseExecutableConstruct();
 
-  bool ParseTypeDeclarationStmt();
+  bool ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls);
   bool ParseProcedureDeclStmt();
   bool ParseSpecificationStmt();
   bool ParseActionStmt();
@@ -246,16 +246,18 @@ private:
   void ParseStatementLabel();
 
   // Declaration construct functions
-  bool ParseDeclarationTypeSpec(DeclSpec *&DTS);
-  bool ParseKindSelector(ExprResult &Kind);
-  bool ParseLengthSelector(ExprResult &Len);
-  bool ParseDerivedTypeSpec(DeclSpec *&DS);
+  bool ParseDeclarationTypeSpec(DeclSpec &DS);
+  bool ParseTypeOrClassDeclTypeSpec(DeclSpec &DS);
+  ExprResult ParseSelector(bool IsKindSel);
+  bool ParseDerivedTypeSpec(DeclSpec &DS);
   bool ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims);
+  bool ParseTypeDeclarationList(DeclSpec &DS,
+                                SmallVectorImpl<DeclResult> &Decls);
 
-  bool AssignTypeQual(DeclSpec *DS, DeclSpec::TQ Val);
-  bool AssignAttrSpec(DeclSpec *DS, DeclSpec::AS Val);
-  //  bool AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val);
-  bool AssignIntentSpec(DeclSpec *DS, DeclSpec::IS Val);
+  bool AssignTypeQual(DeclSpec &DS, DeclSpec::TQ Val);
+  bool AssignAttrSpec(DeclSpec &DS, DeclSpec::AS Val);
+  bool AssignAccessSpec(DeclSpec &DS, DeclSpec::AC Val);
+  bool AssignIntentSpec(DeclSpec &DS, DeclSpec::IS Val);
 
   void LexToEndOfStatement();
   bool EatIfPresent(tok::TokenKind);

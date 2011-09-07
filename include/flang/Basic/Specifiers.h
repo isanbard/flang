@@ -30,6 +30,7 @@ namespace flang {
   /// \brief [R502] Specifies the attribute specifiers for types.
   enum AttributeSpecifier {
     AS_unspecified     = 0,
+    AS_allocatable     = 1 << 0,
     AS_asynchronous    = 1 << 1,
     AS_codimension     = 1 << 2,
     AS_contiguous      = 1 << 3,
@@ -37,11 +38,13 @@ namespace flang {
     AS_external        = 1 << 5,
     AS_intrinsic       = 1 << 6,
     AS_optional        = 1 << 7,
-    AS_pointer         = 1 << 8,
-    AS_protected       = 1 << 9,
-    AS_save            = 1 << 10,
-    AS_target          = 1 << 11,
-    AS_value           = 1 << 12
+    AS_parameter       = 1 << 8,
+    AS_pointer         = 1 << 9,
+    AS_protected       = 1 << 10,
+    AS_save            = 1 << 11,
+    AS_target          = 1 << 12,
+    AS_value           = 1 << 13,
+    AS_volatile        = 1 << 14
   };
 
   /// \brief [R523] Specifies the intent specifier.

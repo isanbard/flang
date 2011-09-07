@@ -68,6 +68,7 @@ const char *DeclSpec::getSpecifierName(DeclSpec::ITS I) {
 const char *DeclSpec::getSpecifierName(DeclSpec::AS A) {
   switch (A) {
   case AS_unspecified:  return "unspecified";
+  case AS_allocatable:  return "ALLOCATABLE";
   case AS_asynchronous: return "ASYNCHRONOUS";
   case AS_codimension:  return "CODIMENSION";
   case AS_contiguous:   return "CONTIGUOUS";
@@ -75,11 +76,13 @@ const char *DeclSpec::getSpecifierName(DeclSpec::AS A) {
   case AS_external:     return "EXTERNAL";
   case AS_intrinsic:    return "INTRINSIC";
   case AS_optional:     return "OPTIONAL";
+  case AS_parameter:    return "PARAMETER";
   case AS_pointer:      return "POINTER";
   case AS_protected:    return "PROTECTED";
   case AS_save:         return "SAVE";
   case AS_target:       return "TARGET";
   case AS_value:        return "VALUE";
+  case AS_volatile:     return "VOLATILE";
   }
   llvm_unreachable("Unknown typespec!");
 }
@@ -120,7 +123,7 @@ void IntrinsicDeclSpec::print(llvm::raw_ostream &O) {
 
 DerivedDeclSpec::DerivedDeclSpec(ExprResult e,
                                  llvm::ArrayRef<ExprResult> Arr)
-  : DeclSpec(DerivedTypeSpec), TypeExpr(e) {
+  : DeclSpec(), TypeExpr(e) {
   for (unsigned I = 0, N = Arr.size(); I != N; ++I)
     TypeParamSpec.push_back(Arr[I]);
 }

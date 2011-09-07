@@ -514,6 +514,8 @@ bool Parser::ParseDeclarationConstructList() {
 bool Parser::ParseDeclarationConstruct() {
   ParseStatementLabel();
 
+  SmallVector<DeclResult, 4> Decls;
+
   switch (Tok.getKind()) {
   default:
     return true;
@@ -525,7 +527,7 @@ bool Parser::ParseDeclarationConstruct() {
   case tok::kw_DOUBLEPRECISION:
   case tok::kw_TYPE:
   case tok::kw_CLASS: {
-    if (ParseTypeDeclarationStmt()) {
+    if (ParseTypeDeclarationStmt(Decls)) {
       LexToEndOfStatement();
       // FIXME:
     }

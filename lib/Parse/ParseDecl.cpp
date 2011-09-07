@@ -17,49 +17,78 @@
 #include "flang/Sema/Sema.h"
 using namespace flang;
 
-bool Parser::AssignTypeQual(DeclSpec *DS, DeclSpec::TQ Val) {
-  if (DS->hasTypeQual(Val))
+bool Parser::AssignTypeQual(DeclSpec &DS, DeclSpec::TQ Val) {
+  if (DS.hasTypeQual(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "type qualifier defined more than once");
-  DS->setTypeQual(Val);
+  DS.setTypeQual(Val);
   Lex();
   return false;
 }
 
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
 /// the list, but reports an error if that attribute was all ready assigned.
-bool Parser::AssignAttrSpec(DeclSpec *DS, DeclSpec::AS Val) {
-  if (DS->hasAttributeSpec(Val))
+bool Parser::AssignAttrSpec(DeclSpec &DS, DeclSpec::AS Val) {
+  if (DS.hasAttributeSpec(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "attribute specification defined more than once");
-  DS->setAttributeSpec(Val);
+  DS.setAttributeSpec(Val);
   Lex();
   return false;
 }
 
-#if 0
 /// AssignAccessSpec - Helper function that assigns the access specification to
 /// the DeclSpec, but reports an error if that access spec was all ready
 /// assigned.
-bool Parser::AssignAccessSpec(DeclSpec *DS, DeclSpec::AccessSpec Val) {
-  if (DS->hasAccessControl(Val))
+bool Parser::AssignAccessSpec(DeclSpec &DS, DeclSpec::AC Val) {
+  if (DS.hasAccessSpec(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "access specification defined more than once");
-  DS->setAccessControl(Val);
+  DS.setAccessSpec(Val);
   Lex();
   return false;
 }
-#endif
 
 /// AssignIntentSpec - Helper function that assigns the intent specification to
 /// the DeclSpec, but reports an error if that intent spec was all ready
 /// assigned.
-bool Parser::AssignIntentSpec(DeclSpec *DS, DeclSpec::IS Val) {
-  if (DS->hasIntentSpec(Val))
+bool Parser::AssignIntentSpec(DeclSpec &DS, DeclSpec::IS Val) {
+  if (DS.hasIntentSpec(Val))
     return Diag.ReportError(Tok.getLocation(),
                             "intent specification defined more than once");
-  DS->setIntentSpec(Val);
+  DS.setIntentSpec(Val);
   Lex();
+  return false;
+}
+
+bool Parser::ParseTypeDeclarationList(DeclSpec &DS,
+                                      SmallVectorImpl<DeclResult> &Decls) {
+  while (!Tok.isAtStartOfStatement()) {
+    llvm::SMLoc IDLoc = Tok.getLocation();
+    const IdentifierInfo *ID = Tok.getIdentifierInfo();
+    if (!ID)
+      return Diag.ReportError(IDLoc,
+                              "expected an identifier in TYPE list");
+    Lex();
+
+    // FIXME: If there's a '(' here, it might be parsing an array decl.
+
+    Decls.push_back(Actions.ActOnEntityDecl(Context, DS, IDLoc, ID));
+
+    llvm::SMLoc CommaLoc = Tok.getLocation();
+    if (!EatIfPresent(tok::comma)) {
+      if (!Tok.isAtStartOfStatement())
+        return Diag.ReportError(Tok.getLocation(),
+                                "expected a ',' in TYPE list");
+
+      break;
+    }
+
+    if (Tok.isAtStartOfStatement())
+      return Diag.ReportError(CommaLoc,
+                              "expected an identifier after ',' in TYPE list");
+  }
+
   return false;
 }
 
@@ -68,11 +97,11 @@ bool Parser::AssignIntentSpec(DeclSpec *DS, DeclSpec::IS Val) {
 ///   [5.2.1] R501:
 ///     type-declaration-stmt :=
 ///         declaration-type-spec [ [ , attr-spec ] ... :: ] entity-decl-list
-bool Parser::ParseTypeDeclarationStmt() {
+bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
   if (!Tok.isAtStartOfStatement())
     return true;
   
-  DeclSpec *DS = 0;
+  DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
     return true;
 
@@ -89,7 +118,7 @@ bool Parser::ParseTypeDeclarationStmt() {
     //    or EXTERNAL
     //    or INTENT ( intent-spec )
     //    or INTRINSIC
-    //    or language-binding-spec
+    //    or language-binding-spec // TODO!
     //    or OPTIONAL
     //    or PARAMETER
     //    or POINTER
@@ -104,7 +133,7 @@ bool Parser::ParseTypeDeclarationStmt() {
                        "unknown attribute specification");
       goto error;
     case tok::kw_ALLOCATABLE:
-      if (AssignTypeQual(DS, DeclSpec::TQ_allocatable))
+      if (AssignAttrSpec(DS, DeclSpec::AS_allocatable))
         goto error;
       break;
     case tok::kw_ASYNCHRONOUS:
@@ -187,7 +216,7 @@ bool Parser::ParseTypeDeclarationStmt() {
         goto error;
       break;
     case tok::kw_PARAMETER:
-      if (AssignTypeQual(DS, DeclSpec::TQ_parameter))
+      if (AssignAttrSpec(DS, DeclSpec::AS_parameter))
         goto error;
       break;
     case tok::kw_POINTER:
@@ -211,124 +240,77 @@ bool Parser::ParseTypeDeclarationStmt() {
         goto error;
       break;
     case tok::kw_VOLATILE:
-      if (AssignTypeQual(DS, DeclSpec::TQ_volatile))
+      if (AssignAttrSpec(DS, DeclSpec::AS_volatile))
         goto error;
       break;
 
-#if 0
     // Access Control Specifiers
     case tok::kw_PUBLIC:
-      if (AssignAccessSpec(DS, DeclSpec::AC_Public))
+      if (AssignAccessSpec(DS, DeclSpec::AC_public))
         goto error;
       break;
     case tok::kw_PRIVATE:
-      if (AssignAccessSpec(DS, DeclSpec::AC_Private))
+      if (AssignAccessSpec(DS, DeclSpec::AC_private))
         goto error;
       break;
-#endif
     }
   }
 
   EatIfPresent(tok::coloncolon);
 
-  while (!Tok.isAtStartOfStatement()) {
-    llvm::SMLoc IDLoc = Tok.getLocation();
-    const IdentifierInfo *ID = Tok.getIdentifierInfo();
-    if (!ID) {
-      Diag.ReportError(IDLoc,
-                       "expected an identifier in TYPE list");
-      goto error;
-    }
-
-    if (Context.getVarDecl(ID)) {
-      // This variable has been defined before.
-      Diag.ReportError(IDLoc,
-                       "identifier already was declared");
-      // FIXME: Make this error better!
-    } else {
-      Actions.ActOnVarDecl(&Context, DS,
-                           Context.getOrCreateVarDecl(IDLoc, DS, ID));
-    }
-
-    Lex();
-    llvm::SMLoc CommaLoc = Tok.getLocation();
-    if (!EatIfPresent(tok::comma)) {
-      if (!Tok.isAtStartOfStatement()) {
-        Diag.ReportError(Tok.getLocation(),
-                         "expected a ',' in TYPE list");
-        goto error;
-      }
-
-      break;
-    }
-
-    if (Tok.isAtStartOfStatement()) {
-      Diag.ReportError(CommaLoc,
-                       "expected an identifier after ',' in TYPE list");
-      goto error;
-    }
+  if (Tok.isAtStartOfStatement()) {
+    // A type without any identifiers.
+    Diag.ReportError(Tok.getLocation(),
+                     "expected an identifier in TYPE list");
+    goto error;
   }
+
+  if (ParseTypeDeclarationList(DS, Decls))
+    goto error;
 
   return false;
  error:
   for (llvm::SmallVectorImpl<ExprResult>::iterator
          I = Dimensions.begin(), E = Dimensions.end(); I != E; ++I)
     delete I->take();
-  delete DS;
   return true;
 }
 
-/// Parse the optional KIND selector.
+/// Parse the optional KIND or LEN selector.
 /// 
-///   [4.4.1] R405:
+///   [R405]:
 ///     kind-selector :=
 ///         ( [ KIND = ] scalar-int-initialization-expr )
-bool Parser::ParseKindSelector(ExprResult &Kind) {
-  if (EatIfPresent(tok::kw_KIND)) {
+///   [R425]:
+///     length-selector :=
+///         ( [ LEN = ] type-param-value )
+ExprResult Parser::ParseSelector(bool IsKindSel) {
+  if (EatIfPresent(IsKindSel ? tok::kw_KIND : tok::kw_LEN)) {
     if (!EatIfPresent(tok::equal)) {
       if (Tok.isNot(tok::l_paren))
-        return Diag.ReportError(Tok.getLocation(), "invalid kind selector");
+        return Diag.ReportError(Tok.getLocation(),
+                                IsKindSel ? 
+                                "invalid kind selector" :
+                                "invalid length selector");
 
       // TODO: We have a "REAL (KIND(10D0)) :: x" situation.
       return false;
     }
   }
 
-  ExprResult KindExpr = ParseExpression();
-  if (KindExpr.isInvalid())
-    return true;
-
-  Kind = KindExpr;
-  return false;
-}
-
-/// Parse the optional LEN selector.
-/// 
-///   [4.4.4.1] R425:
-///     length-selector :=
-///         ( [ LEN = ] type-param-value )
-bool Parser::ParseLengthSelector(ExprResult &Len) {
-  if (EatIfPresent(tok::kw_LEN) && !EatIfPresent(tok::equal))
-    return Diag.ReportError(Tok.getLocation(), "invalid length selector");
-
-  ExprResult KindExpr = ParseExpression();
-  if (KindExpr.isInvalid())
-    return true;
-
-  Len = KindExpr;
-  return false;
+  return ParseExpression();
 }
 
 /// ParseDerivedTypeSpec - Parse the type declaration specifier.
 ///
-///   [4.5.8] R455:
+///   [R455]:
 ///     derived-type-spec :=
 ///         type-name [ ( type-param-spec-list ) ]
 ///
-///   [4.5.8] R456:
+///   [R456]:
 ///     type-param-spec :=
 ///         [ keyword = ] type-param-value
-bool Parser::ParseDerivedTypeSpec(DeclSpec *&DS) {
+bool Parser::ParseDerivedTypeSpec(DeclSpec &DS) {
   llvm::SMLoc Loc = Tok.getLocation();
   const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
   if (!VD)
@@ -352,7 +334,7 @@ bool Parser::ParseDerivedTypeSpec(DeclSpec *&DS) {
     }
   }
 
-  DS = new DerivedDeclSpec(new VarExpr(Loc, VD), ExprVec);
+  //  DS = new DerivedDeclSpec(new VarExpr(Loc, VD), ExprVec);
   return false;
 
  error:
@@ -361,155 +343,15 @@ bool Parser::ParseDerivedTypeSpec(DeclSpec *&DS) {
   return true;
 }
 
-/// ParseDeclarationTypeSpec - Parse a declaration type spec construct.
+/// ParseTypeOrClassDeclTypeSpec - Parse a TYPE(...) or CLASS(...) declaration
+/// type spec.
 /// 
-///   [5.1] R502:
+///   [R502]:
 ///     declaration-type-spec :=
-///         intrinsic-type-spec
-///      or TYPE ( derived-type-spec )
+///         TYPE ( derived-type-spec )
 ///      or CLASS ( derived-type-spec )
 ///      or CLASS ( * )
-bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
-  // [4.4] R403:
-  //   intrinsic-type-spec :=
-  //       INTEGER [ kind-selector ]
-  //    or REAL [ kind-selector ]
-  //    or DOUBLE PRECISION
-  //    or COMPLEX [ kind-selector ]
-  //    or CHARACTER [ char-selector ]
-  //    or LOGICAL [ kind-selector ]
-  BuiltinType::TypeSpec TS;
-  switch (Tok.getKind()) {
-  default:                TS = BuiltinType::Invalid;   break;
-  case tok::kw_INTEGER:   TS = BuiltinType::Integer;   break;
-  case tok::kw_REAL:      TS = BuiltinType::Real;      break;
-  case tok::kw_COMPLEX:   TS = BuiltinType::Complex;   break;
-  case tok::kw_CHARACTER: TS = BuiltinType::Character; break;
-  case tok::kw_LOGICAL:   TS = BuiltinType::Logical;   break;
-  case tok::kw_DOUBLEPRECISION:
-    TS = BuiltinType::DoublePrecision;
-    break;
-  }
-
-  switch (TS) {
-  case BuiltinType::Invalid:
-    // We're parsing a TYPE or CLASS.
-    break;
-  default: {
-    Lex();
-
-    ExprResult Kind;
-    if (EatIfPresent(tok::l_paren)) {
-      if (ParseKindSelector(Kind))
-        return true;
-
-      if (!EatIfPresent(tok::r_paren))
-        return Diag.ReportError(Tok.getLocation(),
-                                "expected ')' after kind selector");
-    }
-
-    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS,
-                                                        Kind.get()));
-    return false;
-  }
-  case BuiltinType::DoublePrecision: {
-    Lex();
-    if (Tok.is(tok::l_paren))
-      return Diag.ReportError(Tok.getLocation(),
-                             "'DOUBLE PRECISION' doesn't take a kind selector");
-    ExprResult Kind;
-    DS = new IntrinsicDeclSpec(Actions.ActOnBuiltinType(&Context, TS,
-                                                        Kind.get()));
-    return false;
-  }
-  case BuiltinType::Character: {
-    // [4.4.4.1] R424:
-    //   char-selector :=
-    //       length-selector
-    //    or ( LEN = type-param-value , KIND = scalar-int-initialization-expr )
-    //    or ( type-param-value , #
-    //    #    [ KIND = ] scalar-int-initialization-expr )
-    //    or ( KIND = scalar-int-initialization-expr [, LEN = type-param-value])
-    //
-    // [4.4.4.1] R425:
-    //   length-selector :=
-    //       ( [ LEN = ] type-param-value )
-    //    or * char-length [,]
-    //
-    // [4.4.4.1] R426:
-    //   char-length :=
-    //       ( type-param-value )
-    //    or scalar-int-literal-constant
-    //
-    // [4.2] R402:
-    //   type-param-value :=
-    //       scalar-int-expr
-    //    or *
-    //    or :
-    Lex();
-
-    ExprResult Len;
-    ExprResult Kind;
-
-    if (Tok.is(tok::star)) {
-      Lex();
-      ExprResult KindExpr = ParseExpression();
-      Len = KindExpr;
-    } else {
-      if (Tok.is(tok::l_paren)) {
-        Lex(); // Eat '('.
-
-        if (Tok.is(tok::kw_LEN)) {
-          if (ParseLengthSelector(Len))
-            return true;
-        } else if (Tok.is(tok::kw_KIND)) {
-          if (ParseKindSelector(Kind))
-            return true;
-        } else {
-          ExprResult KindExpr = ParseExpression();
-          Len = KindExpr;
-        }
-
-        if (Tok.is(tok::comma)) {
-          Lex(); // Eat ','.
-
-          if (Tok.is(tok::kw_LEN)) {
-            if (Len.isInvalid())
-              return Diag.ReportError(Tok.getLocation(),
-                                      "multiple LEN selectors for this type");
-            if (ParseLengthSelector(Len))
-              return true;
-          } else if (Tok.is(tok::kw_KIND)) {
-            if (Kind.isInvalid())
-              return Diag.ReportError(Tok.getLocation(),
-                                      "multiple KIND selectors for this type");
-            if (ParseKindSelector(Kind))
-              return true;
-          } else {
-            if (Kind.isInvalid())
-              return Diag.ReportError(Tok.getLocation(),
-                                      "multiple KIND selectors for this type");
-
-            ExprResult KindExpr = ParseExpression();
-            Kind = KindExpr;
-          }
-        }
-
-        if (Tok.isNot(tok::r_paren))
-          return Diag.ReportError(Tok.getLocation(),
-                                  "expected ')' after selector");
-        Lex();  // Eat ')'.
-      }
-    }
-
-    DS = new IntrinsicDeclSpec(Actions.
-                               ActOnCharacterBuiltinType(&Context,
-                                                         Len.get(),
-                                                         Kind.get()));
-    return false;
-  }
-  }
-
+bool Parser::ParseTypeOrClassDeclTypeSpec(DeclSpec &DS) {
   if (EatIfPresent(tok::kw_TYPE)) {
     if (!EatIfPresent(tok::l_paren))
       return Diag.ReportError(Tok.getLocation(),
@@ -527,5 +369,163 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec *&DS) {
 
   // TODO: Handle CLASS.
 
+  return false;
+}
+
+/// ParseDeclarationTypeSpec - Parse a declaration type spec construct.
+/// 
+///   [R502]:
+///     declaration-type-spec :=
+///         intrinsic-type-spec
+///      or TYPE ( derived-type-spec )
+///      or CLASS ( derived-type-spec )
+///      or CLASS ( * )
+bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
+  // [R403]:
+  //   intrinsic-type-spec :=
+  //       INTEGER [ kind-selector ]
+  //    or REAL [ kind-selector ]
+  //    or DOUBLE PRECISION
+  //    or COMPLEX [ kind-selector ]
+  //    or CHARACTER [ char-selector ]
+  //    or LOGICAL [ kind-selector ]
+  switch (Tok.getKind()) {
+  default:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_unspecified);
+    break;
+  case tok::kw_INTEGER:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_integer);
+    break;
+  case tok::kw_REAL:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_real);
+    break;
+  case tok::kw_COMPLEX:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_complex);
+    break;
+  case tok::kw_CHARACTER:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_character);
+    break;
+  case tok::kw_LOGICAL:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_logical);
+    break;
+  case tok::kw_DOUBLEPRECISION:
+    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_doubleprecision);
+    break;
+  }
+
+  if (DS.getIntrinsicTypeSpec() == DeclSpec::ITS_unspecified)
+    if (ParseTypeOrClassDeclTypeSpec(DS))
+      return true;
+
+  ExprResult Kind;
+  ExprResult Len;
+
+  switch (DS.getIntrinsicTypeSpec()) {
+  default:
+    Lex();
+
+    if (EatIfPresent(tok::l_paren)) {
+      Kind = ParseSelector(true);
+      if (Kind.isInvalid())
+        return true;
+
+      if (!EatIfPresent(tok::r_paren))
+        return Diag.ReportError(Tok.getLocation(),
+                                "expected ')' after kind selector");
+    }
+
+    break;
+  case DeclSpec::ITS_doubleprecision:
+    Lex();
+    if (Tok.is(tok::l_paren))
+      return Diag.ReportError(Tok.getLocation(),
+                             "'DOUBLE PRECISION' doesn't take a kind selector");
+    break;
+  case DeclSpec::ITS_character:
+    // [R424]:
+    //   char-selector :=
+    //       length-selector
+    //    or ( LEN = type-param-value , KIND = scalar-int-initialization-expr )
+    //    or ( type-param-value , #
+    //    #    [ KIND = ] scalar-int-initialization-expr )
+    //    or ( KIND = scalar-int-initialization-expr [, LEN = type-param-value])
+    //
+    // [R425]:
+    //   length-selector :=
+    //       ( [ LEN = ] type-param-value )
+    //    or * char-length [,]
+    //
+    // [R426]:
+    //   char-length :=
+    //       ( type-param-value )
+    //    or scalar-int-literal-constant
+    //
+    // [R402]:
+    //   type-param-value :=
+    //       scalar-int-expr
+    //    or *
+    //    or :
+    Lex();
+
+    if (Tok.is(tok::star)) {
+      Lex();
+      ExprResult KindExpr = ParseExpression();
+      Len = KindExpr;
+    } else {
+      if (Tok.is(tok::l_paren)) {
+        Lex(); // Eat '('.
+
+        if (Tok.is(tok::kw_LEN)) {
+          Len = ParseSelector(false);
+          if (Len.isInvalid())
+            return true;
+        } else if (Tok.is(tok::kw_KIND)) {
+          Kind = ParseSelector(true);
+          if (Kind.isInvalid())
+            return true;
+        } else {
+          ExprResult KindExpr = ParseExpression();
+          Len = KindExpr;
+        }
+
+        if (Tok.is(tok::comma)) {
+          Lex(); // Eat ','.
+
+          if (Tok.is(tok::kw_LEN)) {
+            if (Len.isInvalid())
+              return Diag.ReportError(Tok.getLocation(),
+                                      "multiple LEN selectors for this type");
+            Len = ParseSelector(false);
+            if (Len.isInvalid())
+              return true;
+          } else if (Tok.is(tok::kw_KIND)) {
+            if (Kind.isInvalid())
+              return Diag.ReportError(Tok.getLocation(),
+                                      "multiple KIND selectors for this type");
+            Kind = ParseSelector(true);
+            if (Kind.isInvalid())
+              return true;
+          } else {
+            if (Kind.isInvalid())
+              return Diag.ReportError(Tok.getLocation(),
+                                      "multiple KIND selectors for this type");
+
+            ExprResult KindExpr = ParseExpression();
+            Kind = KindExpr;
+          }
+        }
+
+        if (!EatIfPresent(tok::r_paren))
+          return Diag.ReportError(Tok.getLocation(),
+                                  "expected ')' after selector");
+      }
+    }
+
+    break;
+  }
+
+  // Set the selectors for declspec.
+  DS.setKindSelector(Kind.get());
+  DS.setLengthSelector(Len.get());
   return true;
 }
