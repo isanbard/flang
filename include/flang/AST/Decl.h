@@ -786,11 +786,7 @@ public:
 
 /// VarDecl - An instance of this class is created to represent a variable
 /// declaration or definition.
-#if 0
-// FIXME:
 class VarDecl : public DeclaratorDecl {
-#endif
-class VarDecl : public DeclaratorDecl, public llvm::FoldingSetNode {
   /// \brief The initializer for this variable.
   mutable Expr *Init; // FIXME: This should be a different type?
   const DeclSpec *DS;
