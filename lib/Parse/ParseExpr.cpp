@@ -452,9 +452,13 @@ ExprResult Parser::ParseDesignator() {
   // R504:
   //   object-name :=
   //       name
+
+  // FIXME: !!
+#if 0
   const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
   if (!VD) return ExprResult();
   E = new VarExpr(Tok.getLocation(), VD);
+#endif
   Lex();
 
   return E;

@@ -806,17 +806,6 @@ public:
   static VarDecl *Create(ASTContext &C, DeclContext *DC,
                          llvm::SMLoc IdLoc, IdentifierInfo *Id, QualType T);
 
-  VarDecl(const IdentifierInfo *Info)
-    // FIXME:
-    : DeclaratorDecl(Var, 0, llvm::SMLoc(), Info, QualType()),
-      DS(0)
-  {}
-  VarDecl(llvm::SMLoc L, const DeclSpec *dts, const IdentifierInfo *Info)
-    // FIXME:
-    : DeclaratorDecl(Var, 0, L, Info, QualType()),
-      DS(dts)
-  {}
-
   const DeclSpec *getDeclSpec() const { return DS; }
   void setDeclSpec(const DeclSpec *Val) { DS = Val; }
 

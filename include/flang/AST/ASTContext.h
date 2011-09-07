@@ -46,9 +46,6 @@ class ASTContext {
   mutable llvm::FoldingSet<ConstantArrayType> ConstantArrayTypes;
   mutable llvm::FoldingSet<RecordType>        RecordTypes;
 
-  /// VariableDecls - The various variables in a program.
-  mutable llvm::FoldingSet<VarDecl>           VariableDecls;
-
   /// \brief The allocator used to create AST objects.
   ///
   /// AST objects are never destructed; rather, all memory associated with the
@@ -120,10 +117,6 @@ public:
   /// getRecordType - Return the uniqued reference to the type for a structure
   /// of the specified type.
   QualType getRecordType(const RecordDecl *Decl) const;
-
-  const VarDecl *getVarDecl(const IdentifierInfo *Info);
-  const VarDecl *getOrCreateVarDecl(llvm::SMLoc Loc, const DeclSpec *DTS,
-                                    const IdentifierInfo *Info);
 
   /// getTypeDeclType - Return the unique reference to the type for
   /// the specified type declaration.

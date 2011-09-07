@@ -693,6 +693,9 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     }
   }
 
+  return false;
+  // FIXME: !!!
+#if 0
   llvm::SmallVector<const VarDecl*, 8> LocalNames;
   llvm::SmallVector<const VarDecl*, 8> UseNames;
 
@@ -752,6 +755,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
          "Unbalanced number of renames with USE ONLY names!");
   return Actions.ActOnUSE(MN, Name, OnlyUse, LocalNames, UseNames,
                           StmtLabelTok);
+#endif
 }
 
 /// ParseIMPORTStmt - Parse the IMPORT statement.

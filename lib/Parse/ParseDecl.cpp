@@ -312,9 +312,7 @@ ExprResult Parser::ParseSelector(bool IsKindSel) {
 ///         [ keyword = ] type-param-value
 bool Parser::ParseDerivedTypeSpec(DeclSpec &DS) {
   llvm::SMLoc Loc = Tok.getLocation();
-  const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
-  if (!VD)
-    return Diag.ReportError(Loc, "unknown type specifier");
+  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   Lex();
 
   llvm::SmallVector<ExprResult, 4> ExprVec;

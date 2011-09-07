@@ -175,33 +175,6 @@ QualType ASTContext::getConstantArrayType(QualType EltTy,
   return QualType(New, 0);
 }
 
-const VarDecl *ASTContext::getOrCreateVarDecl(llvm::SMLoc Loc,
-                                              const DeclSpec *DS,
-                                              const IdentifierInfo *Info) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  VarDecl::Profile(ID, Info);
-
-  void *InsertPos = 0;
-  if (VarDecl *VD = VariableDecls.FindNodeOrInsertPos(ID, InsertPos))
-    return VD;
-
-  VarDecl *New = new (*this) VarDecl(Loc, DS, Info);
-  VariableDecls.InsertNode(New, InsertPos);
-  return New;
-}
-
-const VarDecl *ASTContext::getVarDecl(const IdentifierInfo *Info) {
-  // Unique pointers, to guarantee there is only one pointer of a particular
-  // structure.
-  llvm::FoldingSetNodeID ID;
-  VarDecl::Profile(ID, Info);
-
-  void *InsertPos = 0;
-  return VariableDecls.FindNodeOrInsertPos(ID, InsertPos);
-}
-
 /// getTypeDeclTypeSlow - Return the unique reference to the type for the
 /// specified type declaration.
 QualType ASTContext::getTypeDeclTypeSlow(const TypeDecl *Decl) const {
