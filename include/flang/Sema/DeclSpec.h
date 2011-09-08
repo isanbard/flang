@@ -84,12 +84,6 @@ public:
     TQ_volatile    = 1 << 2
   };
 
-  enum TypeSpec {
-    None,
-    IntrinsicTypeSpec_,
-    DerivedTypeSpec
-  };
-
 private:
   /*TST*/unsigned TypeSpecType   : 3;
   /*AS*/ unsigned AttributeSpecs : 15;
@@ -170,8 +164,6 @@ public:
     return hasKindSelector() || hasLengthSelector() ||
       AttributeSpecs != 0 || IntentSpec != 0 || AccessSpec != 0;
   }
-
-  TypeSpec getClassID() const { return None; } // FIXME: Remove
 
   virtual void print(llvm::raw_ostream &) {}
 
