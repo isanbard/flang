@@ -115,7 +115,7 @@ QualType Sema::ActOnTypeName(ASTContext &C, DeclSpec &DS) {
 
 Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
                             const IdentifierInfo *IDInfo) {
-  QualType T;
+  QualType T = ActOnTypeName(C, DS);
   return VarDecl::Create(C, CurContext, IDLoc, IDInfo, T);
 }
 
