@@ -178,46 +178,6 @@ public:
   static bool classof(DeclSpec*) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
-/// IntrinsicDeclSpec - A declaration type specifier for an intrinsic type.
-class IntrinsicDeclSpec : public DeclSpec {
-  QualType Ty;
-public:
-  IntrinsicDeclSpec(QualType T)
-    : DeclSpec(), Ty(T) {}
-  virtual ~IntrinsicDeclSpec();
-
-  QualType getType() const { return Ty; }
-  void setType(QualType ty) { Ty = ty; }
-
-  virtual void print(llvm::raw_ostream &);
-
-  static bool classof(DeclSpec *DTS) {
-    return DTS->getClassID() == IntrinsicTypeSpec_;
-  }
-  static bool classof(IntrinsicDeclSpec*) { return true; }
-};
-
-//===----------------------------------------------------------------------===//
-/// DerivedDeclSpec - A declaration type specifier for a derived type.
-class DerivedDeclSpec : public DeclSpec {
-  ExprResult TypeExpr;
-  llvm::SmallVector<ExprResult, 4> TypeParamSpec;
-public:
-  DerivedDeclSpec(ExprResult E, llvm::ArrayRef<ExprResult> Arr);
-  virtual ~DerivedDeclSpec();
-
-  const ExprResult getTypeExpr() const { return TypeExpr; }
-  void setTypeExpr(ExprResult E) { TypeExpr = E; }
-
-  virtual void print(llvm::raw_ostream &);
-
-  static bool classof(DeclSpec *DTS) {
-    return DTS->getClassID() == DerivedTypeSpec;
-  }
-  static bool classof(DerivedDeclSpec*) { return true; }
-};
-
 } // end flang namespace
 
 #endif
