@@ -61,10 +61,11 @@ class ASTContext {
   //                           Type Constructors
   //===--------------------------------------------------------------------===//
 
-private:
+public:
   /// getExtQualType - Return a type with extended qualifiers.
   QualType getExtQualType(const Type *Base, Qualifiers Quals,
-                          Expr *KindSel) const;
+                          Expr *KindSel, Expr *LenSel) const;
+private:
   QualType getTypeDeclTypeSlow(const TypeDecl *Decl) const;
 
   void InitBuiltinTypes();
@@ -96,14 +97,6 @@ public:
 
   /// getBuiltinQualType - Return the QualType for the specified builtin type.
   QualType getBuiltinQualType(BuiltinType::TypeSpec TS) const;
-
-  /// getBuiltinType - Return the uniqued reference to the type for an intrinsic
-  /// type.
-  QualType getBuiltinType(BuiltinType::TypeSpec TS, Expr *Kind);
-
-  /// getCharacterBuiltinType - Return the uniqued reference to the type for a
-  /// character type.
-  QualType getCharacterBuiltinType(Expr *Len, Expr *Kind);
 
   /// getPointerType - Return the uniqued reference to the type for a pointer to
   /// the specified type.
@@ -142,14 +135,14 @@ public:
       return T.withFastQualifiers(Qs.getFastQualifiers());
     QualifierCollector Qc(Qs);
     const Type *Ptr = Qc.strip(T);
-    return getExtQualType(Ptr, Qc, 0);
+    return getExtQualType(Ptr, Qc, 0, 0);
   }
 
   /// getQualifiedType - Returns a type with additional qualifiers.
   QualType getQualifiedType(const Type *T, Qualifiers Qs) const {
     if (!Qs.hasNonFastQualifiers())
       return QualType(T, Qs.getFastQualifiers());
-    return getExtQualType(T, Qs, 0);
+    return getExtQualType(T, Qs, 0, 0);
   }
 
   //===--------------------------------------------------------------------===//

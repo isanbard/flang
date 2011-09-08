@@ -14,6 +14,7 @@
 #ifndef FORTRAN_TYPE_H__
 #define FORTRAN_TYPE_H__
 
+#include "flang/Basic/Specifiers.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/APSInt.h"
@@ -74,6 +75,38 @@ class QualifierCollector;
 /// Qualifiers - The collection of all-type qualifiers we support.
 class Qualifiers {
 public:
+  // Import attribute specifiers.
+  typedef AttributeSpecifier AS;
+  static const AS AS_unspecified = flang::AS_unspecified;
+  static const AS AS_allocatable = flang::AS_allocatable;
+  static const AS AS_asynchronous = flang::AS_asynchronous;
+  static const AS AS_codimension = flang::AS_codimension;
+  static const AS AS_contiguous = flang::AS_contiguous;
+  static const AS AS_dimension = flang::AS_dimension;
+  static const AS AS_external = flang::AS_external;
+  static const AS AS_intrinsic = flang::AS_intrinsic;
+  static const AS AS_optional = flang::AS_optional;
+  static const AS AS_parameter = flang::AS_parameter;
+  static const AS AS_pointer = flang::AS_pointer;
+  static const AS AS_protected = flang::AS_protected;
+  static const AS AS_save = flang::AS_save;
+  static const AS AS_target = flang::AS_target;
+  static const AS AS_value = flang::AS_value;
+  static const AS AS_volatile = flang::AS_volatile;
+
+  /// Import intent specifiers.
+  typedef IntentSpecifier IS;
+  static const IS IS_unspecified = flang::IS_unspecified;
+  static const IS IS_in = flang::IS_in;
+  static const IS IS_out = flang::IS_out;
+  static const IS IS_inout = flang::IS_inout;
+
+  /// Import access specifiers.
+  typedef AccessSpecifier AC;
+  static const AC AC_unspecified = flang::AC_unspecified;
+  static const AC AC_public = flang::AC_public;
+  static const AC AC_private = flang::AC_private;
+
   enum TQ { // NOTE: These flags must be kept in sync with DeclSpec::TQ.
     Allocatable = 1 << 0,
     Parameter   = 1 << 1,
@@ -100,9 +133,8 @@ public:
   };
 
   enum {
-    /// The maximum supported address space number. Twenty bits...hope that's
-    /// enough.
-    MaxAddressSpace = 0xFFFFFU,
+    /// The maximum supported address space number.
+    MaxAddressSpace = 0xFFFU,
 
     /// The width of the "fast" qualifier mask.
     FastWidth = 3,
@@ -111,15 +143,17 @@ public:
     FastMask = (1 << FastWidth) - 1
   };
 private:
-  // bits: |0 1 2|3  .. 9|10..11|12   ...  31|
-  //       |A P V|ExtAttr|Intent|AddressSpace|
+  // bits: |0  ...  14|15..17|18..19|20   ..   31|
+  //       |Attributes|Intent|Access|AddressSpace|
   uint32_t Mask;
 
-  static const uint32_t ExtAttrShift = 3;
-  static const uint32_t ExtAttrMask = 0x3F << ExtAttrShift;
-  static const uint32_t IntentAttrShift = 10;
-  static const uint32_t IntentAttrMask = 0x3 << IntentAttrShift;
-  static const uint32_t AddressSpaceShift = 12;
+  static const uint32_t ExtAttrShift = 0;
+  static const uint32_t ExtAttrMask = 0x7FFF << ExtAttrShift;
+  static const uint32_t IntentAttrShift = 15;
+  static const uint32_t IntentAttrMask = 0x7 << IntentAttrShift;
+  static const uint32_t AccessAttrShift = 18;
+  static const uint32_t AccessAttrMask = 0x3 << AccessAttrShift;
+  static const uint32_t AddressSpaceShift = 20;
   static const uint32_t AddressSpaceMask =
     ~(APVMask | ExtAttrMask | IntentAttrMask);
 public:
@@ -205,16 +239,30 @@ public:
 
   /// Intent attributes.
   bool hasIntentAttr() const { return Mask & IntentAttrMask; }
-  IntentAttr getIntentAttr() const {
-    return IntentAttr((Mask & IntentAttrMask) >> IntentAttrShift);
+  IS getIntentAttr() const {
+    return IS((Mask & IntentAttrMask) >> IntentAttrShift);
   }
-  void setIntentAttr(IntentAttr type) {
+  void setIntentAttr(IS type) {
     Mask = (Mask & ~IntentAttrMask) | (type << IntentAttrShift);
   }
-  void removeIntentAttr() { setIntentAttr(IA_None); }
-  void addIntentAttr(IntentAttr type) {
+  void removeIntentAttr() { setIntentAttr(IS_unspecified); }
+  void addIntentAttr(IS type) {
     assert(type);
     setIntentAttr(type);
+  }
+
+  /// Access attributes.
+  bool hasAccessAttr() const { return Mask & AccessAttrMask; }
+  AC getAccessAttr() const {
+    return AC((Mask & AccessAttrMask) >> AccessAttrShift);
+  }
+  void setAccessAttr(AC type) {
+    Mask = (Mask & ~AccessAttrMask) | (type << AccessAttrShift);
+  }
+  void removeAccessAttr() { setAccessAttr(AC_unspecified); }
+  void addAccessAttr(AC type) {
+    assert(type);
+    setAccessAttr(type);
   }
 
   /// Address space.
@@ -522,14 +570,17 @@ class ExtQuals : public ExtQualsTypeCommonBase, public llvm::FoldingSetNode {
   /// KindSelector - The kind-selector for a type.
   Expr *KindSelector;
 
+  /// LenSelector - The kind-selector for a type.
+  Expr *LenSelector;
+
   ExtQuals *this_() { return this; }
 
 public:
   ExtQuals(const Type *BaseTy, QualType Canon, Qualifiers Quals,
-           Expr *KS)
+           Expr *KS = 0, Expr *LS = 0)
     : ExtQualsTypeCommonBase(BaseTy,
                              Canon.isNull() ? QualType(this_(), 0) : Canon),
-      Quals(Quals), KindSelector(KS)
+      Quals(Quals), KindSelector(KS), LenSelector(LS)
   {}
 
   Qualifiers getQualifiers() const { return Quals; }
@@ -548,14 +599,18 @@ public:
   bool hasKindSelector() const { return KindSelector != 0; }
   Expr *getKindSelector() const { return KindSelector; }
 
+  bool hasLengthSelector() const { return LenSelector != 0; }
+  Expr *getLengthSelector() const { return LenSelector; }
+
   void Profile(llvm::FoldingSetNodeID &ID) const {
-    Profile(ID, getBaseType(), Quals, KindSelector);
+    Profile(ID, getBaseType(), Quals, KindSelector, LenSelector);
   }
   static void Profile(llvm::FoldingSetNodeID &ID,
-                      const Type *BaseType,
-                      Qualifiers Quals, Expr *KS) {
+                      const Type *BaseType, Qualifiers Quals,
+                      Expr *KS, Expr *LS) {
     ID.AddPointer(BaseType);
     ID.AddPointer(KS);
+    ID.AddPointer(LS);
     Quals.Profile(ID);
   }
 };

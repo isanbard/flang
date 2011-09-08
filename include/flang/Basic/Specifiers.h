@@ -17,14 +17,15 @@
 
 namespace flang {
   /// \brief [R404] Specifies the intrinsic type specifier.
-  enum IntrinsicTypeSpec {
-    ITS_unspecified,
-    ITS_integer,
-    ITS_real,
-    ITS_doubleprecision,
-    ITS_complex,
-    ITS_character,
-    ITS_logical
+  enum TypeSpecifierType {
+    TST_unspecified,
+    TST_integer,
+    TST_real,
+    TST_doubleprecision,
+    TST_complex,
+    TST_character,
+    TST_logical,
+    TST_struct
   };
 
   /// \brief [R502] Specifies the attribute specifiers for types.

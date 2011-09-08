@@ -268,8 +268,8 @@ FieldDecl *FieldDecl::Create(const ASTContext &C, DeclContext *DC,
 //===----------------------------------------------------------------------===//
 
 VarDecl *VarDecl::Create(ASTContext &C, DeclContext *DC,
-                         /*llvm::SMLoc StartL,*/ llvm::SMLoc IdLoc,
-                         IdentifierInfo *Id, QualType T) {
+                         llvm::SMLoc IdLoc, const IdentifierInfo *Id,
+                         QualType T) {
   return new (C) VarDecl(Var, DC, IdLoc, Id, T);
 }
 

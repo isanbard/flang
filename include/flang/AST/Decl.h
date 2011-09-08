@@ -794,13 +794,14 @@ class VarDecl : public DeclaratorDecl {
   friend class ASTContext;  // ASTContext creates these.
 
 protected:
-  VarDecl(Kind DK, DeclContext *DC, llvm::SMLoc IdLoc, IdentifierInfo *Id,
+  VarDecl(Kind DK, DeclContext *DC, llvm::SMLoc IdLoc, const IdentifierInfo *ID,
           QualType T)
-    : DeclaratorDecl(DK, DC, IdLoc, Id, T), Init() {}
+    : DeclaratorDecl(DK, DC, IdLoc, ID, T), Init(0) {}
 
 public:
   static VarDecl *Create(ASTContext &C, DeclContext *DC,
-                         llvm::SMLoc IdLoc, IdentifierInfo *Id, QualType T);
+                         llvm::SMLoc IDLoc, const IdentifierInfo *ID,
+                         QualType T);
 
   const DeclSpec *getDeclSpec() const { return DS; }
   void setDeclSpec(const DeclSpec *Val) { DS = Val; }

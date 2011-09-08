@@ -389,36 +389,36 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
   //    or LOGICAL [ kind-selector ]
   switch (Tok.getKind()) {
   default:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_unspecified);
+    DS.SetTypeSpecType(DeclSpec::TST_unspecified);
     break;
   case tok::kw_INTEGER:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_integer);
+    DS.SetTypeSpecType(DeclSpec::TST_integer);
     break;
   case tok::kw_REAL:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_real);
+    DS.SetTypeSpecType(DeclSpec::TST_real);
     break;
   case tok::kw_COMPLEX:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_complex);
+    DS.SetTypeSpecType(DeclSpec::TST_complex);
     break;
   case tok::kw_CHARACTER:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_character);
+    DS.SetTypeSpecType(DeclSpec::TST_character);
     break;
   case tok::kw_LOGICAL:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_logical);
+    DS.SetTypeSpecType(DeclSpec::TST_logical);
     break;
   case tok::kw_DOUBLEPRECISION:
-    DS.SetIntrinsicTypeSpec(DeclSpec::ITS_doubleprecision);
+    DS.SetTypeSpecType(DeclSpec::TST_doubleprecision);
     break;
   }
 
-  if (DS.getIntrinsicTypeSpec() == DeclSpec::ITS_unspecified)
+  if (DS.getTypeSpecType() == DeclSpec::TST_unspecified)
     if (ParseTypeOrClassDeclTypeSpec(DS))
       return true;
 
   ExprResult Kind;
   ExprResult Len;
 
-  switch (DS.getIntrinsicTypeSpec()) {
+  switch (DS.getTypeSpecType()) {
   default:
     Lex();
 
@@ -433,13 +433,13 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
     }
 
     break;
-  case DeclSpec::ITS_doubleprecision:
+  case DeclSpec::TST_doubleprecision:
     Lex();
     if (Tok.is(tok::l_paren))
       return Diag.ReportError(Tok.getLocation(),
                              "'DOUBLE PRECISION' doesn't take a kind selector");
     break;
-  case DeclSpec::ITS_character:
+  case DeclSpec::TST_character:
     // [R424]:
     //   char-selector :=
     //       length-selector

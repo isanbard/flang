@@ -62,13 +62,13 @@ QualType ASTContext::getBuiltinQualType(BuiltinType::TypeSpec TS) const {
 //===----------------------------------------------------------------------===//
 
 QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
-                                    Expr *KindSel) const {
+                                    Expr *KindSel, Expr *LenSel) const {
   unsigned FastQuals = Quals.getFastQualifiers();
   Quals.removeFastQualifiers();
 
   // Check if we've already instantiated this type.
   llvm::FoldingSetNodeID ID;
-  ExtQuals::Profile(ID, BaseType, Quals, KindSel);
+  ExtQuals::Profile(ID, BaseType, Quals, KindSel, LenSel);
   void *InsertPos = 0;
   if (ExtQuals *EQ = ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos)) {
     assert(EQ->getQualifiers() == Quals);
@@ -80,7 +80,8 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
   if (!BaseType->isCanonicalUnqualified()) {
     SplitQualType CanonSplit = BaseType->getCanonicalTypeInternal().split();
     CanonSplit.second.addConsistentQualifiers(Quals);
-    Canon = getExtQualType(CanonSplit.first, CanonSplit.second, KindSel);
+    Canon = getExtQualType(CanonSplit.first, CanonSplit.second, KindSel,
+                           LenSel);
 
     // Re-find the insert position.
     (void) ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos);
@@ -90,33 +91,6 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
                                                      KindSel);
   ExtQualNodes.InsertNode(EQ, InsertPos);
   return QualType(EQ, FastQuals);
-}
-
-/// getBuiltinType - Return the uniqued reference to the type for an intrinsic
-/// type.
-QualType ASTContext::getBuiltinType(BuiltinType::TypeSpec TS, Expr *Kind) {
-  QualType Ty = getBuiltinQualType(TS);
-  if (!Kind)
-    return Ty;
-
-  // FIXME: This is gross.
-  return getExtQualType(Ty.getTypePtr(), Qualifiers(), Kind);
-}
-
-/// getCharacterBuiltinType - Return the uniqued reference to the type for a
-/// character type.
-QualType ASTContext::getCharacterBuiltinType(Expr *Len, Expr *Kind) {
-  QualType Ty = getBuiltinQualType(BuiltinType::Character);
-  if (!Len && !Kind)
-    return Ty;
-
-  if (Kind)
-    // FIXME: This is gross.
-    Ty = getExtQualType(Ty.getTypePtr(), Qualifiers(), Kind);
-
-  // TODO: Construct an array here.
-
-  return QualType();
 }
 
 /// getPointerType - Return the uniqued reference to the type for a pointer to

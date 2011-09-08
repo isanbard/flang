@@ -35,14 +35,15 @@ class Expr;
 class DeclSpec {
 public:
   // Import intrinsic type specifiers.
-  typedef IntrinsicTypeSpec ITS;
-  static const ITS ITS_unspecified = flang::ITS_unspecified;
-  static const ITS ITS_integer = flang::ITS_integer;
-  static const ITS ITS_real = flang::ITS_real;
-  static const ITS ITS_doubleprecision = flang::ITS_doubleprecision;
-  static const ITS ITS_complex = flang::ITS_complex;
-  static const ITS ITS_character = flang::ITS_character;
-  static const ITS ITS_logical = flang::ITS_logical;
+  typedef TypeSpecifierType TST;
+  static const TST TST_unspecified = flang::TST_unspecified;
+  static const TST TST_integer = flang::TST_integer;
+  static const TST TST_real = flang::TST_real;
+  static const TST TST_doubleprecision = flang::TST_doubleprecision;
+  static const TST TST_complex = flang::TST_complex;
+  static const TST TST_character = flang::TST_character;
+  static const TST TST_logical = flang::TST_logical;
+  static const TST TST_struct = flang::TST_struct;
 
   // Import attribute specifiers.
   typedef AttributeSpecifier AS;
@@ -90,18 +91,18 @@ public:
   };
 
 private:
-  /*ITS*/unsigned IntrinsicTypeSpec : 3;
-  /*AS*/ unsigned AttributeSpecs    : 15;
-  /*TQ*/ unsigned TypeQualifiers    : 3;  // Bitwise OR of TQ.
-  /*IS*/ unsigned IntentSpec        : 3;
-  /*AC*/ unsigned AccessSpec        : 3;
+  /*TST*/unsigned TypeSpecType   : 3;
+  /*AS*/ unsigned AttributeSpecs : 15;
+  /*TQ*/ unsigned TypeQualifiers : 3;  // Bitwise OR of TQ.
+  /*IS*/ unsigned IntentSpec     : 3;
+  /*AC*/ unsigned AccessSpec     : 3;
 
   Expr *Kind;                   // Kind Selector
   Expr *Len;                    // Length Selector
 
 public:
   explicit DeclSpec()
-    : IntrinsicTypeSpec(ITS_unspecified),
+    : TypeSpecType(TST_unspecified),
       AttributeSpecs(AS_unspecified),
       TypeQualifiers(TQ_unspecified),
       IntentSpec(IS_unspecified),
@@ -120,7 +121,7 @@ public:
   /// getSpecifierName - Turn a type-specifier-type into a string like "REAL"
   /// or "ALLOCATABLE".
   static const char *getSpecifierName(DeclSpec::TQ Q);
-  static const char *getSpecifierName(DeclSpec::ITS I);
+  static const char *getSpecifierName(DeclSpec::TST I);
   static const char *getSpecifierName(DeclSpec::AS A);
   static const char *getSpecifierName(DeclSpec::IS I);
 
@@ -137,10 +138,14 @@ public:
   void setAttributeSpec(DeclSpec::AS A) {
     AttributeSpecs |= A;
   }
+  unsigned getAttributeSpecs() const {
+    return AttributeSpecs;
+  }
 
   bool hasIntentSpec(DeclSpec::IS I) const {
     return IntentSpec & I;
   }
+  IS getIntentSpec() const { return IS(IntentSpec); }
   void setIntentSpec(DeclSpec::IS I) {
     IntentSpec |= I;
   }
@@ -148,16 +153,22 @@ public:
   bool hasAccessSpec(DeclSpec::AC A) const {
     return AccessSpec & A;
   }
+  AC getAccessSpec() const { return AC(AccessSpec); }
   void setAccessSpec(DeclSpec::AC A) {
     AccessSpec |= A;
   }
 
-  ITS getIntrinsicTypeSpec() const { return ITS(IntrinsicTypeSpec); }
-  bool SetIntrinsicTypeSpec(ITS T) {
-    if (ITS(IntrinsicTypeSpec) != ITS_unspecified)
+  TST getTypeSpecType() const { return TST(TypeSpecType); }
+  bool SetTypeSpecType(TST T) {
+    if (TST(TypeSpecType) != TST_unspecified)
       return true;
-    IntrinsicTypeSpec = T;
+    TypeSpecType = T;
     return false;
+  }
+
+  bool hasAttributes() const {
+    return hasKindSelector() || hasLengthSelector() ||
+      AttributeSpecs != 0 || IntentSpec != 0 || AccessSpec != 0;
   }
 
   TypeSpec getClassID() const { return None; } // FIXME: Remove

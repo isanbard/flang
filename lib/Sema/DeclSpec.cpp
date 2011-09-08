@@ -52,15 +52,16 @@ const char *DeclSpec::getSpecifierName(DeclSpec::TQ Q) {
   llvm_unreachable("Unknown typespec!");
 }
 
-const char *DeclSpec::getSpecifierName(DeclSpec::ITS I) {
+const char *DeclSpec::getSpecifierName(DeclSpec::TST I) {
   switch (I) {
-  case ITS_unspecified:     return "unspecified";
-  case ITS_integer:         return "INTEGER";
-  case ITS_real:            return "REAL";
-  case ITS_doubleprecision: return "DOUBLEPRECISION";
-  case ITS_complex:         return "COMPLEX";
-  case ITS_character:       return "CHARACTER";
-  case ITS_logical:         return "LOGICAL";
+  case TST_unspecified:     return "unspecified";
+  case TST_integer:         return "INTEGER";
+  case TST_real:            return "REAL";
+  case TST_doubleprecision: return "DOUBLEPRECISION";
+  case TST_complex:         return "COMPLEX";
+  case TST_character:       return "CHARACTER";
+  case TST_logical:         return "LOGICAL";
+  case TST_struct:          return "TYPE";
   }
   llvm_unreachable("Unknown typespec!");
 }

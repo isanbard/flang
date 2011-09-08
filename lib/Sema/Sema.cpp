@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Sema/Sema.h"
+#include "flang/Sema/DeclSpec.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Stmt.h"
@@ -73,9 +74,49 @@ void Sema::ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
   PopDeclContext();
 }
 
+/// \brief Convert the specified DeclSpec to the appropriate type object.
+QualType Sema::ActOnTypeName(ASTContext &C, DeclSpec &DS) {
+  QualType Result;
+  switch (DS.getTypeSpecType()) {
+  case DeclSpec::TST_integer:
+    Result = C.IntegerTy;
+    break;
+  case DeclSpec::TST_unspecified: // FIXME: Correct?
+  case DeclSpec::TST_real:
+    Result = C.RealTy;
+    break;
+  case DeclSpec::TST_doubleprecision:
+    Result = C.DoublePrecisionTy;
+    break;
+  case DeclSpec::TST_character:
+    Result = C.CharacterTy;
+    break;
+  case DeclSpec::TST_logical:
+    Result = C.LogicalTy;
+    break;
+  case DeclSpec::TST_complex:
+    Result = C.ComplexTy;
+    break;
+  case DeclSpec::TST_struct:
+    // FIXME: Finish this.
+    break;
+  }
+
+  if (!DS.hasAttributes())
+    return Result;
+
+  const Type *TypeNode = Result.getTypePtr();
+  Qualifiers Quals = Qualifiers::fromOpaqueValue(DS.getAttributeSpecs());
+  Quals.setIntentAttr(DS.getIntentSpec());
+  Quals.setAccessAttr(DS.getAccessSpec());
+  return C.getExtQualType(TypeNode, Quals, DS.getKindSelector(),
+                          DS.getLengthSelector());
+}
+
 Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
                             const IdentifierInfo *IDInfo) {
-  return 0;
+  QualType T;
+  return VarDecl::Create(C, CurContext, IDLoc, IDInfo, T);
 }
 
 StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,

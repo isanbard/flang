@@ -15,11 +15,13 @@
 #define FORTRAN_SEMA_OWNERSHIP_H__
 
 #include "llvm/ADT/PointerIntPair.h"
+#include "llvm/ADT/SmallVector.h"
 
 namespace flang {
 
 class Decl;
 class Expr;
+class QualType;
 class Stmt;
 
 /// OpaquePtr - This is a very simple POD type that wraps a pointer that the
@@ -58,6 +60,28 @@ public:
   static OpaquePtr getFromOpaquePtr(void *P) { return OpaquePtr(P); }
 };
 
+} // end flang namespace
+
+namespace llvm {
+  template <class T>
+  class PointerLikeTypeTraits<flang::OpaquePtr<T> > {
+  public:
+    static inline void *getAsVoidPointer(flang::OpaquePtr<T> P) {
+      // FIXME: Doesn't work? return P.getAs< void >();
+      return P.getAsOpaquePtr();
+    }
+    static inline flang::OpaquePtr<T> getFromVoidPointer(void *P) {
+      return flang::OpaquePtr<T>::getFromOpaquePtr(P);
+    }
+    enum { NumLowBitsAvailable = 0 };
+  };
+
+  template <class T>
+  struct isPodLike<flang::OpaquePtr<T> > { static const bool value = true; };
+}
+
+namespace flang {
+
 /// ActionResult - This structure is used while parsing and acting on
 /// expressions, stmts, etc.
 template <typename PtrTy>
@@ -88,6 +112,10 @@ public:
     return *this;
   }
 };
+
+/// An opaque type for threading parsed type information through the parser.
+typedef OpaquePtr<QualType> ParsedType;
+typedef ActionResult<ParsedType> TypeResult;
 
 typedef ActionResult<Decl*> DeclResult;
 typedef ActionResult<Expr*> ExprResult;
