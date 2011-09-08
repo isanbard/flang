@@ -42,16 +42,6 @@ static bool BadSpecifier(T TNew, T TPrev, const char *&PrevSpec,
   return true;
 }
 
-const char *DeclSpec::getSpecifierName(DeclSpec::TQ Q) {
-  switch (Q) {
-  case TQ_unspecified: return "unspecified";
-  case TQ_allocatable: return "ALLOCATABLE";
-  case TQ_parameter:   return "PARAMETER";
-  case TQ_volatile:    return "VOLATILE";
-  }
-  llvm_unreachable("Unknown typespec!");
-}
-
 const char *DeclSpec::getSpecifierName(DeclSpec::TST I) {
   switch (I) {
   case TST_unspecified:     return "unspecified";

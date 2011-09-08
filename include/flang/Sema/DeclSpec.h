@@ -77,28 +77,20 @@ public:
   static const AC AC_public = flang::AC_public;
   static const AC AC_private = flang::AC_private;
 
-  enum TQ { // NOTE: These flags must be kept in sync with Qualifiers::TQ.
-    TQ_unspecified = 0,
-    TQ_allocatable = 1 << 0,
-    TQ_parameter   = 1 << 1,
-    TQ_volatile    = 1 << 2
-  };
-
 private:
   /*TST*/unsigned TypeSpecType   : 3;
   /*AS*/ unsigned AttributeSpecs : 15;
-  /*TQ*/ unsigned TypeQualifiers : 3;  // Bitwise OR of TQ.
   /*IS*/ unsigned IntentSpec     : 3;
   /*AC*/ unsigned AccessSpec     : 3;
 
-  Expr *Kind;                   // Kind Selector
-  Expr *Len;                    // Length Selector
+  /// \brief The kind and length selectors.
+  Expr *Kind;
+  Expr *Len;
 
 public:
   explicit DeclSpec()
     : TypeSpecType(TST_unspecified),
       AttributeSpecs(AS_unspecified),
-      TypeQualifiers(TQ_unspecified),
       IntentSpec(IS_unspecified),
       AccessSpec(AC_unspecified),
       Kind(0), Len(0) {}
@@ -114,26 +106,16 @@ public:
 
   /// getSpecifierName - Turn a type-specifier-type into a string like "REAL"
   /// or "ALLOCATABLE".
-  static const char *getSpecifierName(DeclSpec::TQ Q);
   static const char *getSpecifierName(DeclSpec::TST I);
   static const char *getSpecifierName(DeclSpec::AS A);
   static const char *getSpecifierName(DeclSpec::IS I);
 
-  bool hasTypeQual(DeclSpec::TQ Q) const {
-    return TypeQualifiers & Q;
-  }
-  void setTypeQual(DeclSpec::TQ Q) {
-    TypeQualifiers |= Q;
-  }
-
   bool hasAttributeSpec(DeclSpec::AS A) const {
     return AttributeSpecs & A;
   }
+  unsigned getAttributeSpecs() const { return AttributeSpecs; }
   void setAttributeSpec(DeclSpec::AS A) {
     AttributeSpecs |= A;
-  }
-  unsigned getAttributeSpecs() const {
-    return AttributeSpecs;
   }
 
   bool hasIntentSpec(DeclSpec::IS I) const {

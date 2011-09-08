@@ -254,7 +254,6 @@ private:
   bool ParseTypeDeclarationList(DeclSpec &DS,
                                 SmallVectorImpl<DeclResult> &Decls);
 
-  bool AssignTypeQual(DeclSpec &DS, DeclSpec::TQ Val);
   bool AssignAttrSpec(DeclSpec &DS, DeclSpec::AS Val);
   bool AssignAccessSpec(DeclSpec &DS, DeclSpec::AC Val);
   bool AssignIntentSpec(DeclSpec &DS, DeclSpec::IS Val);

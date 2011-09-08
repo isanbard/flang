@@ -17,15 +17,6 @@
 #include "flang/Sema/Sema.h"
 using namespace flang;
 
-bool Parser::AssignTypeQual(DeclSpec &DS, DeclSpec::TQ Val) {
-  if (DS.hasTypeQual(Val))
-    return Diag.ReportError(Tok.getLocation(),
-                            "type qualifier defined more than once");
-  DS.setTypeQual(Val);
-  Lex();
-  return false;
-}
-
 /// AssignAttrSpec - Helper function that assigns the attribute specification to
 /// the list, but reports an error if that attribute was all ready assigned.
 bool Parser::AssignAttrSpec(DeclSpec &DS, DeclSpec::AS Val) {
@@ -525,5 +516,5 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
   // Set the selectors for declspec.
   DS.setKindSelector(Kind.get());
   DS.setLengthSelector(Len.get());
-  return true;
+  return false;
 }
