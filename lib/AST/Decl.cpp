@@ -15,6 +15,7 @@
 #include "flang/AST/DeclContextInternals.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
+#include "llvm/Support/raw_ostream.h"
 using namespace flang;
 
 //===----------------------------------------------------------------------===//
@@ -300,4 +301,31 @@ void StoredDeclsMap::DestroyAll(StoredDeclsMap *Map) {
     delete Map;
     Map = Next;
   }
+}
+
+void Decl::dump() const {
+  print(llvm::errs());
+}
+
+void Decl::print(raw_ostream &) const {
+}
+
+void NamedDecl::print(raw_ostream &OS) const {
+  Decl::print(OS);
+  Name.printName(OS);
+}
+
+void ValueDecl::print(raw_ostream &OS) const {
+  DeclType.print(OS);
+  OS << " :: ";
+  NamedDecl::print(OS);
+  OS << "\n";
+}
+
+void DeclaratorDecl::print(raw_ostream &OS) const {
+  ValueDecl::print(OS);
+}
+
+void VarDecl::print(raw_ostream &OS) const {
+  DeclaratorDecl::print(OS);
 }

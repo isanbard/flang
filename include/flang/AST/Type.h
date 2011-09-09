@@ -492,10 +492,8 @@ public:
     return LHS.Value != RHS.Value;
   }
 
-#if 0
-  void dump(const char *s) const;
+  void print(raw_ostream &OS) const;
   void dump() const;
-#endif
 
   void Profile(llvm::FoldingSetNodeID &ID) const {
     ID.AddPointer(getAsOpaquePtr());

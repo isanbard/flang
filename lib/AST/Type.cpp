@@ -42,19 +42,19 @@ void BuiltinType::print(llvm::raw_ostream &O) const {
   switch (getTypeSpec()) {
   default: assert(false && "Invalid built-in type!");
   case BuiltinType::Integer:
-    O << "integer";
+    O << "INTEGER";
     break;
   case BuiltinType::Real:
-    O << "real";
+    O << "REAL";
     break;
   case BuiltinType::DoublePrecision:
-    O << "double_precision";
+    O << "DOUBLE PRECISION";
     break;
   case BuiltinType::Complex:
-    O << "complex";
+    O << "COMPLEX";
     break;
   case BuiltinType::Logical:
-    O << "logical";
+    O << "LOGICAL";
     break;
   }
 
@@ -79,4 +79,19 @@ void CharacterBuiltinType::print(llvm::raw_ostream &O) const {
     Kind->print(O);
     O << "\"";
   }
+}
+
+void QualType::dump() const {
+  print(llvm::errs());
+}
+
+void QualType::print(raw_ostream &OS) const {
+  if (const ExtQuals *EQ = Value.getPointer().dyn_cast<const ExtQuals*>()) {
+    if (const BuiltinType *BTy = dyn_cast<BuiltinType>(EQ->BaseType))
+      BTy->print(OS);
+    return;
+  }
+  const Type *Ty = Value.getPointer().get<const Type*>();
+  if (const BuiltinType *BTy = dyn_cast<BuiltinType>(Ty))
+    BTy->print(OS);
 }

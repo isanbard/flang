@@ -168,6 +168,10 @@ public:
   static bool classof(const Decl *) { return true; }
   static DeclContext *castToDeclContext(const Decl *);
   static Decl *castFromDeclContext(const DeclContext *);
+
+  virtual void print(raw_ostream &OS) const;
+
+  void dump() const;
 };
 
 /// PrettyStackTraceDecl - If a crash occurs, indicate that it happened when
@@ -449,6 +453,8 @@ public:
   /// \brief Set the name of this declaration.
   void setDeclName(DeclarationName N) { Name = N; }
 
+  virtual void print(raw_ostream &OS) const;
+
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const NamedDecl *D) { return true; }
@@ -590,6 +596,8 @@ public:
   QualType getType() const { return DeclType; }
   void setType(QualType newType) { DeclType = newType; }
 
+  virtual void print(raw_ostream &OS) const;
+
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
   static bool classof(const ValueDecl *D) { return true; }
@@ -639,6 +647,8 @@ public:
     // TODO
     return SourceRange();
   }
+
+  virtual void print(raw_ostream &OS) const;
 
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }
@@ -789,7 +799,6 @@ public:
 class VarDecl : public DeclaratorDecl {
   /// \brief The initializer for this variable.
   mutable Expr *Init; // FIXME: This should be a different type?
-  const DeclSpec *DS;
 
   friend class ASTContext;  // ASTContext creates these.
 
@@ -803,19 +812,14 @@ public:
                          llvm::SMLoc IDLoc, const IdentifierInfo *ID,
                          QualType T);
 
-  const DeclSpec *getDeclSpec() const { return DS; }
-  void setDeclSpec(const DeclSpec *Val) { DS = Val; }
-
-  /// isImplicitlyDefined - A variable which isn't defined and there isn't an
-  /// "implicit none" statement has a default type of REAL.
-  bool isImplicitlyDefined() const { return DS == 0; }
-
   void Profile(llvm::FoldingSetNodeID &ID) {
     Profile(ID, getIdentifier());
   }
   static void Profile(llvm::FoldingSetNodeID &ID, const IdentifierInfo *Info) {
     ID.AddPointer(Info);
   }
+
+  virtual void print(raw_ostream &OS) const;
 
   // Implement isa/cast/dyncast/etc.
   static bool classof(const Decl *D) { return classofKind(D->getKind()); }

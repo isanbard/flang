@@ -332,18 +332,23 @@ bool Parser::ParseMainProgram() {
   }
 
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
-  if (!EndProgStmt.isUsable()) return true;
+
+  const IdentifierInfo *IDInfo = 0;
+  llvm::SMLoc NameLoc;
+
+  if (EndProgStmt.isUsable()) {
+    EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
+    IDInfo = EPS->getProgramName();
+    NameLoc = EPS->getNameLocation();
+  }
 
   {
-    EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
-    const IdentifierInfo *IDInfo = EPS->getProgramName();
-    llvm::SMLoc NameLoc = EPS->getNameLocation();
-
     DeclarationName DN(IDInfo);
     DeclarationNameInfo DNI(DN, NameLoc);
     Actions.ActOnEndMainProgram(DNI);
   }
-  return false;
+
+  return EndProgStmt.isInvalid();
 }
 
 /// ParseSpecificationPart - Parse the specification part.

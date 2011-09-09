@@ -45,8 +45,7 @@ std::string DeclarationName::getAsString() const {
 }
 
 void DeclarationName::printName(llvm::raw_ostream &OS) const {
-  switch (getNameKind()) {
-  case Identifier:
+  if (getNameKind() == Identifier) {
     if (const IdentifierInfo *II = getAsIdentifierInfo())
       OS << II->getName();
     return;
