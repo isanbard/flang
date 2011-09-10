@@ -15,6 +15,7 @@
 #define FORTRAN_AST_STMT_H__
 
 #include "flang/Basic/Token.h"
+#include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/SMLoc.h"
 
@@ -37,7 +38,8 @@ public:
     Use,
     Import,
     Asynchronous,
-    EndProgram
+    EndProgram,
+    Assignment
   };
 private:
   StmtTy StmtID;
@@ -195,6 +197,26 @@ public:
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Asynchronous;
+  }
+};
+
+//===----------------------------------------------------------------------===//
+/// AssignmentStmt
+class AssignmentStmt : public Stmt {
+  const IdentifierInfo *LHS;
+  llvm::SMLoc LHSLoc;
+  ExprResult RHS;
+
+  AssignmentStmt(const IdentifierInfo *LHS, llvm::SMLoc LHSLoc,
+                 ExprResult RHS, Token StmtLabelTok);
+public:
+  static AssignmentStmt *Create(ASTContext &C, const IdentifierInfo *LHS,
+                                llvm::SMLoc LHSLoc, ExprResult RHS,
+                                Token StmtLabelTok);
+
+  static bool classof(const AssignmentStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Assignment;
   }
 };
 

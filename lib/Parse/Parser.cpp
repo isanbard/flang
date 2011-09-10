@@ -289,7 +289,7 @@ bool Parser::ParseProgramUnit() {
 
 /// ParseMainProgram - Parse the main program.
 ///
-///   R1101:
+///   [R1101]:
 ///     main-program :=
 ///         [program-stmt]
 ///           [specification-part]
@@ -326,8 +326,9 @@ bool Parser::ParseMainProgram() {
     ParseStatementLabel();
   }
 
+  std::vector<StmtResult> Stmts;
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
-    ParseExecutionPart();
+    ParseExecutionPart(Stmts);
     ParseStatementLabel();
   }
 
@@ -488,8 +489,13 @@ bool Parser::ParseImplicitPart() {
 ///     execution-part :=
 ///         executable-construct
 ///           [ execution-part-construct ] ...
-bool Parser::ParseExecutionPart() {
-  ParseExecutableConstruct();
+bool Parser::ParseExecutionPart(std::vector<StmtResult> &Stmts) {
+  while (true) {
+    StmtResult SR = ParseExecutableConstruct();
+    if (SR.isInvalid()) return true;
+    Stmts.push_back(SR);
+  }
+
   return false;
 }
 

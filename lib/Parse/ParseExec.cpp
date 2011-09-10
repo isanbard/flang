@@ -24,7 +24,7 @@ using namespace flang;
 
 /// ParseExecutableConstruct - Parse the executable construct.
 ///
-///   R213:
+///   [R213]:
 ///     executable-construct :=
 ///         action-stmt
 ///      or associate-construct
@@ -36,15 +36,16 @@ using namespace flang;
 ///      or if-construct
 ///      or select-type-construct
 ///      or where-construct
-bool Parser::ParseExecutableConstruct() {
-  if (ParseActionStmt())
-    return true;
-  return false;
+StmtResult Parser::ParseExecutableConstruct() {
+  StmtResult SR = ParseActionStmt();
+  if (SR.isUsable()) return SR;
+
+  return StmtResult();
 }
 
 /// ParseActionStmt - Parse an action statement.
 ///
-///   R214:
+///   [R214]:
 ///     action-stmt :=
 ///         allocate-stmt
 ///      or assignment-stmt
@@ -84,34 +85,52 @@ bool Parser::ParseExecutableConstruct() {
 ///      or write-stmt
 ///[obs] or arithmetic-if-stmt
 ///[obs] or computed-goto-stmt
-bool Parser::ParseActionStmt() {
+Parser::StmtResult Parser::ParseActionStmt() {
   ParseStatementLabel();
 
+  if (Tok.getIdentifierInfo() && !NextTok.isAtStartOfStatement() &&
+      NextTok.is(tok::equal))
+    return ParseAssignmentStmt();
+      
   StmtResult SR;
   switch (Tok.getKind()) {
-  default:
-    // Assignment Statement.
-    //   R732:
-    //     assignment-stmt :=
-    //         variable = expr
-    break;
+  default: assert(false && "Unknown statement type!"); break;
   case tok::kw_ALLOCATE:
     Lex();
     break;
   case tok::kw_END:
     // TODO: All of the end-* stmts.
     break;
+  case tok::kw_ENDFUNCTION:
   case tok::kw_ENDPROGRAM:
-    SR = ParseEND_PROGRAMStmt();
-    break;
+  case tok::kw_ENDSUBPROGRAM:
+  case tok::kw_ENDSUBROUTINE:
+    // Handle in parent.
+    return StmtResult();
   }
 
-  return false;
+  return SR;
+}
+
+/// Assignment Statement.
+///   R732:
+///     assignment-stmt :=
+///         variable = expr
+Parser::StmtResult Parser::ParseAssignmentStmt() {
+  const IdentifierInfo *LHS = Tok.getIdentifierInfo();
+  llvm::SMLoc LHSLoc = Tok.getLocation();
+  Lex();
+
+  assert(Tok.is(tok::equal) && "Not a valid assignment statement!");
+  EatIfPresent(tok::equal);
+
+  ExprResult RHS = ParseExpression();
+  return Actions.ActOnAssignmentStmt(Context, LHS, LHSLoc, RHS, StmtLabelTok);
 }
 
 /// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.
 ///
-///   [11.1] R1103:
+///   [R1103]:
 ///     end-program-stmt :=
 ///         END [ PROGRAM [ program-name ] ]
 Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {

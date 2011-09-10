@@ -98,3 +98,18 @@ AsynchronousStmt *AsynchronousStmt::
 Create(llvm::ArrayRef<const IdentifierInfo*> objNames, Token StmtLabelTok) {
   return new AsynchronousStmt(objNames, StmtLabelTok);
 }
+
+//===----------------------------------------------------------------------===//
+// Assignment Statement
+//===----------------------------------------------------------------------===//
+
+AssignmentStmt::AssignmentStmt(const IdentifierInfo *lhs, llvm::SMLoc lhsLoc,
+                               ExprResult rhs, Token StmtLabelTok)
+  : Stmt(Assignment, LHSLoc, StmtLabelTok), LHS(lhs), LHSLoc(lhsLoc), RHS(rhs)
+{}
+
+AssignmentStmt *AssignmentStmt::Create(ASTContext &C, const IdentifierInfo *lhs,
+                                       llvm::SMLoc lhsLoc,
+                                       ExprResult rhs, Token StmtLabelTok) {
+  return new (C) AssignmentStmt(lhs, lhsLoc, rhs, StmtLabelTok);
+}
