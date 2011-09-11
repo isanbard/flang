@@ -14,6 +14,7 @@
 #ifndef FORTRAN_AST_STMT_H__
 #define FORTRAN_AST_STMT_H__
 
+#include "flang/AST/ASTContext.h"
 #include "flang/Basic/Token.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
@@ -25,7 +26,6 @@ namespace llvm {
 
 namespace flang {
 
-class ASTContext;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
@@ -49,6 +49,15 @@ private:
   Stmt(const Stmt &);           // Do not implement!
   friend class ASTContext;
 protected:
+  // Make vanilla 'new' and 'delete' illegal for Stmts.
+  void* operator new(size_t bytes) throw() {
+    assert(0 && "Stmts cannot be allocated with regular 'new'.");
+    return 0;
+  }
+  void operator delete(void* data) throw() {
+    assert(0 && "Stmts cannot be released with regular 'delete'.");
+  }
+
   Stmt(StmtTy ID, llvm::SMLoc L, Token SLT)
     : StmtID(ID), Loc(L), StmtLabelTok(SLT) {}
 public:
@@ -64,6 +73,28 @@ public:
   const Token &getStmtLabel() const { return StmtLabelTok; }
 
   static bool classof(const Stmt*) { return true; }
+
+public:
+  // Only allow allocation of Stmts using the allocator in ASTContext
+  // or by doing a placement new.
+  void *operator new(size_t bytes, ASTContext &C,
+                     unsigned alignment = 8) throw() {
+    return ::operator new(bytes, C, alignment);
+  }
+
+  void *operator new(size_t bytes, ASTContext *C,
+                     unsigned alignment = 8) throw() {
+    return ::operator new(bytes, *C, alignment);
+  }
+
+  void *operator new(size_t bytes, void *mem) throw() {
+    return mem;
+  }
+
+  void operator delete(void*, ASTContext&, unsigned) throw() { }
+  void operator delete(void*, ASTContext*, unsigned) throw() { }
+  void operator delete(void*, std::size_t) throw() { }
+  void operator delete(void*, void*) throw() { }
 };
 
 //===----------------------------------------------------------------------===//
