@@ -86,12 +86,55 @@ void QualType::dump() const {
 }
 
 void QualType::print(raw_ostream &OS) const {
-  if (const ExtQuals *EQ = Value.getPointer().dyn_cast<const ExtQuals*>()) {
-    if (const BuiltinType *BTy = dyn_cast<BuiltinType>(EQ->BaseType))
+  if (const Type *Ty = Value.getPointer().dyn_cast<const Type*>()) {
+    if (const BuiltinType *BTy = dyn_cast<BuiltinType>(Ty))
       BTy->print(OS);
     return;
   }
-  const Type *Ty = Value.getPointer().get<const Type*>();
-  if (const BuiltinType *BTy = dyn_cast<BuiltinType>(Ty))
+
+  const ExtQuals *EQ = Value.getPointer().get<const ExtQuals*>();
+  if (const BuiltinType *BTy = dyn_cast<BuiltinType>(EQ->BaseType))
     BTy->print(OS);
+
+  bool Comma = false;
+  if (EQ->hasKindSelector()) {
+    OS << " (KIND=";
+    EQ->getKindSelector()->print(OS);
+    if (EQ->hasLengthSelector()) {
+      OS << ", LEN=";
+      EQ->getLengthSelector()->print(OS);
+    }
+    OS << ")";
+    Comma = true;
+  } else if (EQ->hasLengthSelector()) {
+    OS << " (LEN=";
+    EQ->getLengthSelector()->print(OS);
+    OS << ")";
+    Comma = true;
+  }
+
+#define PRINT_QUAL(Q, QNAME) \
+  do {                                                      \
+    if (Quals.hasAttributeSpec(Qualifiers::Q)) {            \
+      if (Comma) OS << ", "; Comma = true;                  \
+      OS << QNAME;                                          \
+    }                                                       \
+  } while (0)
+
+  Qualifiers Quals = EQ->getQualifiers();
+  PRINT_QUAL(AS_allocatable,  "ALLOCATABLE");
+  PRINT_QUAL(AS_asynchronous, "ASYNCHRONOUS");
+  PRINT_QUAL(AS_codimension,  "CODIMENSION");
+  PRINT_QUAL(AS_contiguous,   "CONTIGUOUS");
+  PRINT_QUAL(AS_dimension,    "DIMENSION");
+  PRINT_QUAL(AS_external,     "EXTERNAL");
+  PRINT_QUAL(AS_intrinsic,    "INTRINSIC");
+  PRINT_QUAL(AS_optional,     "OPTIONAL");
+  PRINT_QUAL(AS_parameter,    "PARAMETER");
+  PRINT_QUAL(AS_pointer,      "POINTER");
+  PRINT_QUAL(AS_protected,    "PROTECTED");
+  PRINT_QUAL(AS_save,         "SAVE");
+  PRINT_QUAL(AS_target,       "TARGET");
+  PRINT_QUAL(AS_value,        "VALUE");
+  PRINT_QUAL(AS_volatile,     "VOLATILE");
 }

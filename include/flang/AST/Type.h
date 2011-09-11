@@ -183,6 +183,10 @@ public:
     return Mask;
   }
 
+  bool hasAttributeSpec(AS A) const {
+    return (Mask & ExtAttrMask) & A;
+  }
+
   /// Allocatable, Parameter, and Volatile attributes.
   bool hasAPVQualifiers() const { return getAPVQualifiers(); }
   unsigned getAPVQualifiers() const { return Mask & APVMask; }
