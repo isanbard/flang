@@ -278,15 +278,6 @@ public:
     return L;
   }
 
-#if 0
-  std::string getAsString() const;
-  std::string getAsString(const PrintingPolicy &Policy) const {
-    std::string Buffer;
-    getAsStringInternal(Buffer, Policy);
-    return Buffer;
-  }
-  void getAsStringInternal(std::string &S, const PrintingPolicy &Policy) const;
-#endif
   void Profile(llvm::FoldingSetNodeID &ID) const {
     ID.AddInteger(Mask);
   }
@@ -600,6 +591,7 @@ public:
   bool isDoublePrecisionType() const;
   bool isComplexType() const;
   bool isLogicalType() const;
+
   bool isArrayType() const;
   bool isConstantArrayType() const;
 
@@ -668,12 +660,19 @@ public:
 /// ArrayType - Array types.
 class ArrayType : public Type, public llvm::FoldingSetNode {
   QualType ElementType;
+  SmallVector<ExprResult, 4> Dims;
 protected:
   ArrayType(TypeClass tc, QualType et, QualType can)
     : Type(tc, can), ElementType(et) {}
+  ArrayType(TypeClass tc, QualType et, QualType can,
+            ArrayRef<ExprResult> dims)
+    : Type(tc, can), ElementType(et), Dims(dims.begin(), dims.end()) {}
 
   friend class ASTContext;  // ASTContext creates these.
 public:
+  static ArrayType *Create(ASTContext &C, QualType ElemTy,
+                           ArrayRef<ExprResult> Dims);
+
   QualType getElementType() const { return ElementType; }
 
   void print(llvm::raw_ostream &O) const {} // FIXME

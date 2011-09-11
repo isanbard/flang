@@ -32,6 +32,11 @@ QualifierCollector::apply(const ASTContext &Context, const Type *T) const {
 //                             Subtype Methods
 //===----------------------------------------------------------------------===//
 
+ArrayType *ArrayType::Create(ASTContext &C, QualType ElemTy,
+                             ArrayRef<ExprResult> Dims) {
+  return new (C) ArrayType(Array, ElemTy, QualType(), Dims);
+}
+
 void BuiltinType::print(llvm::raw_ostream &O) const {
   switch (getTypeSpec()) {
   default: assert(false && "Invalid built-in type!");

@@ -79,6 +79,10 @@ public:
   StmtResult ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
                                  ExprResult RHS, Token StmtLabel);
 
+  QualType ActOnArraySpec(ASTContext &C, QualType ElemTy,
+                          ArrayRef<ExprResult> Dims);
+
+
   // FIXME: TODO:
 
   StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
@@ -104,8 +108,6 @@ public:
                                      Expr *Len,
                                      Expr *Kind) { return QualType(); }
   DeclSpec *ActOnTypeDeclSpec(ASTContext *Ctx) { return 0; }
-
-  bool ActOnArraySpec() { return false; }
 
   ExprResult ActOnDataReference(llvm::ArrayRef<ExprResult> Exprs) {
     return ExprResult();

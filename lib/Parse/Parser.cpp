@@ -569,7 +569,7 @@ bool Parser::ParseForAllConstruct() {
 ///      or assumed-shape-spec-list
 ///      or deferred-shape-spec-list
 ///      or assumed-size-spec
-bool Parser::ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims) {
+bool Parser::ParseArraySpec(SmallVectorImpl<ExprResult> &Dims) {
   if (!EatIfPresent(tok::l_paren))
     return Diag.ReportError(Tok.getLocation(),
                             "expected '(' in array spec");
@@ -591,18 +591,26 @@ bool Parser::ParseArraySpec(llvm::SmallVectorImpl<ExprResult> &Dims) {
   //       expr
   //
   //   C708: int-expr shall be of type integer.
-
   do {
     ExprResult E = ParseExpression();
-    if (E.isInvalid()) return true;;
+    if (E.isInvalid()) goto error;
     Dims.push_back(E);
   } while (EatIfPresent(tok::comma));
 
-  if (!EatIfPresent(tok::r_paren))
-    return Diag.ReportError(Tok.getLocation(),
-                            "expected ')' in array spec");
+  if (!EatIfPresent(tok::r_paren)) {
+    Diag.ReportError(Tok.getLocation(),
+                     "expected ')' in array spec");
+    goto error;
+  }
 
-  return Actions.ActOnArraySpec(); // FIXME: Use the dims.
+  return false;
+ error:
+  // Clean up any expressions we may have created before the error.
+  for (llvm::SmallVectorImpl<ExprResult>::iterator
+         I = Dims.begin(), E = Dims.end(); I != E; ++I)
+    delete I->take();
+  
+  return true;
 }
 
 /// ParsePROGRAMStmt - If there is a PROGRAM statement, parse it.

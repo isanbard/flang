@@ -141,3 +141,8 @@ StmtResult Sema::ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
                                      ExprResult RHS, Token StmtLabel) {
   return AssignmentStmt::Create(C, LHS, RHS, StmtLabel);
 }
+
+QualType Sema::ActOnArraySpec(ASTContext &C, QualType ElemTy,
+                              ArrayRef<ExprResult> Dims) {
+  return QualType(ArrayType::Create(C, ElemTy, Dims), 0);
+}
