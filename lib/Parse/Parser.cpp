@@ -492,7 +492,7 @@ bool Parser::ParseImplicitPart() {
 bool Parser::ParseExecutionPart(std::vector<StmtResult> &Stmts) {
   while (true) {
     StmtResult SR = ParseExecutableConstruct();
-    if (SR.isInvalid()) return true;
+    if (SR.isUsable()) return true;
     Stmts.push_back(SR);
   }
 

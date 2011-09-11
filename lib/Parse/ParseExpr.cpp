@@ -402,13 +402,17 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     break;
   }
+  case tok::char_literal_constant:
+    if (NextTok.is(tok::l_paren))
+      // Possible substring.
+      goto parse_designator;
   case tok::numeric_constant:
     E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
                                               Tok.getLength()));
     Lex();
     break;
-  case tok::char_literal_constant:
   case tok::identifier:
+    parse_designator:
     E = Parser::ParseDesignator();
     if (E.isInvalid()) return ExprResult();
     break;
@@ -542,6 +546,7 @@ ExprResult Parser::ParseStructureComponent() {
 ///         [ scalar-int-expr ] : [ scalar-int-expr ]
 ExprResult Parser::ParseSubstring() {
   ExprResult E;
+  Lex();
   return E;
 }
 
