@@ -103,13 +103,12 @@ Create(llvm::ArrayRef<const IdentifierInfo*> objNames, Token StmtLabelTok) {
 // Assignment Statement
 //===----------------------------------------------------------------------===//
 
-AssignmentStmt::AssignmentStmt(const IdentifierInfo *lhs, llvm::SMLoc lhsLoc,
-                               ExprResult rhs, Token StmtLabelTok)
-  : Stmt(Assignment, LHSLoc, StmtLabelTok), LHS(lhs), LHSLoc(lhsLoc), RHS(rhs)
+AssignmentStmt::AssignmentStmt(ExprResult lhs, ExprResult rhs,
+                               Token StmtLabelTok)
+  : Stmt(Assignment, llvm::SMLoc(), StmtLabelTok), LHS(lhs), RHS(rhs)
 {}
 
-AssignmentStmt *AssignmentStmt::Create(ASTContext &C, const IdentifierInfo *lhs,
-                                       llvm::SMLoc lhsLoc,
+AssignmentStmt *AssignmentStmt::Create(ASTContext &C, ExprResult lhs,
                                        ExprResult rhs, Token StmtLabelTok) {
-  return new (C) AssignmentStmt(lhs, lhsLoc, rhs, StmtLabelTok);
+  return new (C) AssignmentStmt(lhs, rhs, StmtLabelTok);
 }

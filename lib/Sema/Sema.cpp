@@ -134,9 +134,7 @@ StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
   return EndProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
-StmtResult Sema::ActOnAssignmentStmt(ASTContext &C,
-                                     const IdentifierInfo *LHS,
-                                     llvm::SMLoc LHSLoc, ExprResult RHS,
-                                     Token StmtLabel) {
-  return AssignmentStmt::Create(C, LHS, LHSLoc, RHS, StmtLabel);
+StmtResult Sema::ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
+                                     ExprResult RHS, Token StmtLabel) {
+  return AssignmentStmt::Create(C, LHS, RHS, StmtLabel);
 }

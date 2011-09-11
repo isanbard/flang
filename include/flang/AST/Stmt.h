@@ -75,8 +75,8 @@ public:
   static bool classof(const Stmt*) { return true; }
 
 public:
-  // Only allow allocation of Stmts using the allocator in ASTContext
-  // or by doing a placement new.
+  // Only allow allocation of Stmts using the allocator in ASTContext or by
+  // doing a placement new.
   void *operator new(size_t bytes, ASTContext &C,
                      unsigned alignment = 8) throw() {
     return ::operator new(bytes, C, alignment);
@@ -234,16 +234,13 @@ public:
 //===----------------------------------------------------------------------===//
 /// AssignmentStmt
 class AssignmentStmt : public Stmt {
-  const IdentifierInfo *LHS;
-  llvm::SMLoc LHSLoc;
+  ExprResult LHS;
   ExprResult RHS;
 
-  AssignmentStmt(const IdentifierInfo *LHS, llvm::SMLoc LHSLoc,
-                 ExprResult RHS, Token StmtLabelTok);
+  AssignmentStmt(ExprResult LHS, ExprResult RHS, Token StmtLabelTok);
 public:
-  static AssignmentStmt *Create(ASTContext &C, const IdentifierInfo *LHS,
-                                llvm::SMLoc LHSLoc, ExprResult RHS,
-                                Token StmtLabelTok);
+  static AssignmentStmt *Create(ASTContext &C, ExprResult LHS,
+                                ExprResult RHS, Token StmtLabelTok);
 
   static bool classof(const AssignmentStmt*) { return true; }
   static bool classof(const Stmt *S) {

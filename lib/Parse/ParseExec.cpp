@@ -117,15 +117,13 @@ Parser::StmtResult Parser::ParseActionStmt() {
 ///     assignment-stmt :=
 ///         variable = expr
 Parser::StmtResult Parser::ParseAssignmentStmt() {
-  const IdentifierInfo *LHS = Tok.getIdentifierInfo();
-  llvm::SMLoc LHSLoc = Tok.getLocation();
-  Lex();
+  ExprResult LHS = ParseExpression();
 
   assert(Tok.is(tok::equal) && "Not a valid assignment statement!");
   EatIfPresent(tok::equal);
 
   ExprResult RHS = ParseExpression();
-  return Actions.ActOnAssignmentStmt(Context, LHS, LHSLoc, RHS, StmtLabelTok);
+  return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabelTok);
 }
 
 /// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.

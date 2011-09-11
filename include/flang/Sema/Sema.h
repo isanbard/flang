@@ -76,10 +76,8 @@ public:
                              llvm::SMLoc Loc, llvm::SMLoc NameLoc,
                              Token StmtLabel);
 
-  StmtResult ActOnAssignmentStmt(ASTContext &C,
-                                 const IdentifierInfo *LHS,
-                                 llvm::SMLoc LHSLoc, ExprResult RHS,
-                                 Token StmtLabel);
+  StmtResult ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
+                                 ExprResult RHS, Token StmtLabel);
 
   // FIXME: TODO:
 
