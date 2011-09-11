@@ -61,16 +61,19 @@ void Sema::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {
 void Sema::ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
   assert(CurContext && "DeclContext imbalance!");
   StringRef ProgName = cast<MainProgramDecl>(CurContext)->getName();
-  if (ProgName.empty()) return;
+  if (ProgName.empty()) {
+    PopDeclContext();
+    return;
+  }
 
   const IdentifierInfo *ID = EndNameInfo.getName().getAsIdentifierInfo();
-  if (!ID) return;
+  if (!ID) goto exit;
 
   if (ProgName != ID->getName())
     Diags.ReportError(EndNameInfo.getLoc(),
                       llvm::Twine("expected label '") +
                       ProgName + "' for END PROGRAM statement");
-
+ exit:
   PopDeclContext();
 }
 

@@ -65,10 +65,9 @@ void *DeclarationName::getFETokenInfoAsVoid() const {
 }
 
 void DeclarationName::setFETokenInfo(void *T) {
-  switch (getNameKind()) {
-  case Identifier:
+  if (getNameKind() == Identifier) {
     getAsIdentifierInfo()->setFETokenInfo(T);
-    break;
+    return;
   }
 
   assert(false && "Declaration name has no FETokenInfo");

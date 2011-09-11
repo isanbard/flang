@@ -63,16 +63,13 @@ QualType ASTContext::getBuiltinQualType(BuiltinType::TypeSpec TS) const {
 
 QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
                                     Expr *KindSel, Expr *LenSel) const {
-  unsigned FastQuals = Quals.getFastQualifiers();
-  Quals.removeFastQualifiers();
-
   // Check if we've already instantiated this type.
   llvm::FoldingSetNodeID ID;
   ExtQuals::Profile(ID, BaseType, Quals, KindSel, LenSel);
   void *InsertPos = 0;
   if (ExtQuals *EQ = ExtQualNodes.FindNodeOrInsertPos(ID, InsertPos)) {
     assert(EQ->getQualifiers() == Quals);
-    return QualType(EQ, FastQuals);
+    return QualType(EQ, 0);
   }
 
   // If the base type is not canonical, make the appropriate canonical type.
@@ -90,7 +87,7 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
   ExtQuals *EQ = new (*this, TypeAlignment) ExtQuals(BaseType, Canon, Quals,
                                                      KindSel);
   ExtQualNodes.InsertNode(EQ, InsertPos);
-  return QualType(EQ, FastQuals);
+  return QualType(EQ, 0);
 }
 
 /// getPointerType - Return the uniqued reference to the type for a pointer to

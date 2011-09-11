@@ -131,8 +131,6 @@ public:
 
   /// getQualifiedType - Returns a type with additional qualifiers.
   QualType getQualifiedType(QualType T, Qualifiers Qs) const {
-    if (!Qs.hasNonFastQualifiers())
-      return T.withFastQualifiers(Qs.getFastQualifiers());
     QualifierCollector Qc(Qs);
     const Type *Ptr = Qc.strip(T);
     return getExtQualType(Ptr, Qc, 0, 0);
@@ -140,8 +138,6 @@ public:
 
   /// getQualifiedType - Returns a type with additional qualifiers.
   QualType getQualifiedType(const Type *T, Qualifiers Qs) const {
-    if (!Qs.hasNonFastQualifiers())
-      return QualType(T, Qs.getFastQualifiers());
     return getExtQualType(T, Qs, 0, 0);
   }
 

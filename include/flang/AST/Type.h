@@ -114,24 +114,6 @@ public:
     APVMask     = (Allocatable | Parameter | Volatile)
   };
 
-  enum ExtAttr {
-    EA_None         = 0,
-    Asynchronous    = 1 << 0,
-    Contiguous      = 1 << 1,
-    Optional        = 1 << 2,
-    Pointer         = 1 << 3,
-    Save            = 1 << 4,
-    Target          = 1 << 5,
-    Value           = 1 << 6
-  };
-
-  enum IntentAttr {
-    IA_None = 0,
-    In      = 1 << 0,
-    Out     = 1 << 1,
-    InOut   = In | Out
-  };
-
   enum {
     /// The maximum supported address space number.
     MaxAddressSpace = 0xFFFU,
@@ -147,27 +129,21 @@ private:
   //       |Attributes|Intent|Access|AddressSpace|
   uint32_t Mask;
 
-  static const uint32_t ExtAttrShift = 0;
-  static const uint32_t ExtAttrMask = 0x7FFF << ExtAttrShift;
+  static const uint32_t AttrSpecShift = 0;
+  static const uint32_t AttrSpecMask = 0x7FFF << AttrSpecShift;
   static const uint32_t IntentAttrShift = 15;
   static const uint32_t IntentAttrMask = 0x7 << IntentAttrShift;
   static const uint32_t AccessAttrShift = 18;
   static const uint32_t AccessAttrMask = 0x3 << AccessAttrShift;
   static const uint32_t AddressSpaceShift = 20;
   static const uint32_t AddressSpaceMask =
-    ~(APVMask | ExtAttrMask | IntentAttrMask);
+    ~(AttrSpecMask | IntentAttrMask | AccessAttrMask);
 public:
   Qualifiers() : Mask(0) {}
 
   static Qualifiers fromFastMask(unsigned Mask) {
     Qualifiers Qs;
     Qs.addFastQualifiers(Mask);
-    return Qs;
-  }
-
-  static Qualifiers fromAPVMask(unsigned APV) {
-    Qualifiers Qs;
-    Qs.addAPVQualifiers(APV);
     return Qs;
   }
 
@@ -183,62 +159,20 @@ public:
     return Mask;
   }
 
+  /// General attributes.
   bool hasAttributeSpec(AS A) const {
-    return (Mask & ExtAttrMask) & A;
+    return (Mask & AttrSpecMask) & A;
   }
-
-  /// Allocatable, Parameter, and Volatile attributes.
-  bool hasAPVQualifiers() const { return getAPVQualifiers(); }
-  unsigned getAPVQualifiers() const { return Mask & APVMask; }
-  void setAPVQualifiers(unsigned mask) {
-    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
-    Mask = (Mask & ~APVMask) | mask;
+  bool hasAttributeSpecs() const { return Mask & AttrSpecMask; }
+  unsigned getAttributeSpecs() const {
+    return (Mask & AttrSpecMask) >> AttrSpecShift;
   }
-  void removeAPVQualifiers(unsigned mask) {
-    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
-    Mask &= ~mask;
+  void setAttributeSpecs(unsigned type) {
+    Mask = (Mask & ~AttrSpecMask) | (type << AttrSpecShift);
   }
-  void removeAPVQualifiers() {
-    removeAPVQualifiers(APVMask);
-  }
-  void addAPVQualifiers(unsigned mask) {
-    assert(!(mask & ~APVMask) && "bitmask contains non-APV bits");
-    Mask |= mask;
-  }
-
-  bool hasAllocatable() const { return Mask & Allocatable; }
-  void setAllocatable(bool flag) {
-    Mask = (Mask & ~Allocatable) | (flag ? Allocatable : 0);
-  } 
-  void removeAllocatable() { Mask &= ~Allocatable; }
-  void addAllocatable() { Mask |= Allocatable; }
-
-  bool hasParameter() const { return Mask & Parameter; }
-  void setParameter(bool flag) {
-    Mask = (Mask & ~Parameter) | (flag ? Parameter : 0);
-  } 
-  void removeParameter() { Mask &= ~Parameter; }
-  void addParameter() { Mask |= Parameter; }
-
-  bool hasVolatile() const { return Mask & Volatile; }
-  void setVolatile(bool flag) {
-    Mask = (Mask & ~Volatile) | (flag ? Volatile : 0);
-  } 
-  void removeVolatile() { Mask &= ~Volatile; }
-  void addVolatile() { Mask |= Volatile; }
-
-  /// Extra attributes.
-  bool hasExtAttr() const { return Mask & ExtAttrMask; }
-  ExtAttr getExtAttr() const {
-    return ExtAttr((Mask & ExtAttrMask) >> ExtAttrShift);
-  }
-  void setExtAttr(ExtAttr type) {
-    Mask = (Mask & ~ExtAttrMask) | (type << ExtAttrShift);
-  }
-  void removeExtAttr() { setExtAttr(EA_None); }
-  void addExtAttr(ExtAttr type) {
+  void addAttributeSpecs(unsigned type) {
     assert(type);
-    setExtAttr(type);
+    setAttributeSpecs(type);
   }
 
   /// Intent attributes.
@@ -283,33 +217,9 @@ public:
     setAddressSpace(space);
   }
 
-  // Fast qualifiers are those that can be allocated directly on a QualType
-  // object.
-  bool hasFastQualifiers() const { return getFastQualifiers(); }
-  unsigned getFastQualifiers() const { return Mask & FastMask; }
-  void setFastQualifiers(unsigned mask) {
-    assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
-    Mask = (Mask & ~FastMask) | mask;
-  }
-  void removeFastQualifiers(unsigned mask) {
-    assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
-    Mask &= ~mask;
-  }
-  void removeFastQualifiers() {
-    removeFastQualifiers(FastMask);
-  }
   void addFastQualifiers(unsigned mask) {
     assert(!(mask & ~FastMask) && "bitmask contains non-fast qualifier bits");
     Mask |= mask;
-  }
-
-  /// hasNonFastQualifiers - Return true if the set contains any
-  /// qualifiers which require an ExtQuals node to be allocated.
-  bool hasNonFastQualifiers() const { return Mask & ~FastMask; }
-  Qualifiers getNonFastQualifiers() const {
-    Qualifiers Quals = *this;
-    Quals.setFastQualifiers(0);
-    return Quals;
   }
 
   /// hasQualifiers - Return true if the set contains any qualifiers.
@@ -320,17 +230,12 @@ public:
   void addQualifiers(Qualifiers Q) {
     // If the other set doesn't have any non-boolean qualifiers, just
     // bit-or it in.
-    if (!(Q.Mask & ~APVMask)) {
-      Mask |= Q.Mask;
-    } else {
-      Mask |= (Q.Mask & APVMask);
-      if (Q.hasAddressSpace())
-        addAddressSpace(Q.getAddressSpace());
-      if (Q.hasExtAttr())
-        addExtAttr(Q.getExtAttr());
-      if (Q.hasIntentAttr())
-        addIntentAttr(Q.getIntentAttr());
-    }
+    if (Q.hasAttributeSpecs())
+      addAttributeSpecs(Q.getAttributeSpecs());
+    if (Q.hasIntentAttr())
+      addIntentAttr(Q.getIntentAttr());
+    if (Q.hasAddressSpace())
+      addAddressSpace(Q.getAddressSpace());
   }
 
   /// \brief Add the qualifiers from the given set to this set, given that
@@ -340,8 +245,8 @@ public:
            !hasAddressSpace() || !qs.hasAddressSpace());
     assert(getIntentAttr() == qs.getIntentAttr() ||
            !hasIntentAttr() || !qs.hasIntentAttr());
-    assert(getExtAttr() == qs.getExtAttr() ||
-           !hasExtAttr() || !qs.hasExtAttr());
+    assert(getAttributeSpecs() == qs.getAttributeSpecs() ||
+           !hasAttributeSpecs() || !qs.hasAttributeSpecs());
     Mask |= qs.Mask;
   }
 
@@ -587,8 +492,8 @@ public:
 
   Qualifiers getQualifiers() const { return Quals; }
 
-  bool hasExtAttr() const { return Quals.hasExtAttr(); }
-  unsigned getExtAttr() const { return Quals.getExtAttr(); }
+  bool hasAttributeSpecs() const { return Quals.hasAttributeSpecs(); }
+  unsigned getAttributeSpecs() const { return Quals.getAttributeSpecs(); }
 
   bool hasIntentAttr() const { return Quals.hasIntentAttr(); }
   unsigned getIntentAttr() const { return Quals.getIntentAttr(); }
@@ -716,8 +621,6 @@ public:
     Logical         = 5
   };
 protected:
-  Expr *Kind;
-
   friend class ASTContext;      // ASTContext creates these.
   BuiltinType()
     : Type(Builtin, QualType()) {
@@ -730,32 +633,10 @@ protected:
 public:
   TypeSpec getTypeSpec() const { return TypeSpec(BuiltinTypeBits.Kind); }
 
-  void print(llvm::raw_ostream &O) const;
+  void print(raw_ostream &OS) const;
 
   static bool classof(const Type *T) { return T->getTypeClass() == Builtin; }
   static bool classof(const BuiltinType *) { return true; }
-};
-
-/// CharacterBuiltinType - A character builtin type has an optional 'LEN' kind
-/// selector.
-class CharacterBuiltinType : public BuiltinType {
-  Expr *Len;
-  friend class ASTContext;  // ASTContext creates these.
-  CharacterBuiltinType(Expr *L, Expr *K)
-    : BuiltinType(Character), Len(L) {}
-public:
-  bool hasLen() const { return Len != 0; }
-  Expr *getLen() const { return Len; }
-  void setLen(Expr *L) { Len = L; }
-
-  void print(llvm::raw_ostream &O) const;
-
-  static bool classof(const Type *T) {
-    return T->getTypeClass() == Builtin &&
-      ((const BuiltinType*)T)->isCharacterType();
-  }
-  static bool classof(const BuiltinType *BT) { return BT->isCharacterType(); }
-  static bool classof(const CharacterBuiltinType *) { return true; }
 };
 
 /// PointerType - Allocatable types.

@@ -20,17 +20,11 @@ using namespace flang;
 
 QualType
 QualifierCollector::apply(const ASTContext &Context, QualType QT) const {
-  if (!hasNonFastQualifiers())
-    return QT.withFastQualifiers(getFastQualifiers());
-
   return Context.getQualifiedType(QT, *this);
 }
 
 QualType
 QualifierCollector::apply(const ASTContext &Context, const Type *T) const {
-  if (!hasNonFastQualifiers())
-    return QualType(T, getFastQualifiers());
-
   return Context.getQualifiedType(T, *this);
 }
 
@@ -50,34 +44,15 @@ void BuiltinType::print(llvm::raw_ostream &O) const {
   case BuiltinType::DoublePrecision:
     O << "DOUBLE PRECISION";
     break;
+  case BuiltinType::Character:
+    O << "CHARACTER";
+    break;
   case BuiltinType::Complex:
     O << "COMPLEX";
     break;
   case BuiltinType::Logical:
     O << "LOGICAL";
     break;
-  }
-
-  if (Kind) {
-    O << " kind=\"";
-    Kind->print(O);
-    O << "\"";
-  }
-}
-
-void CharacterBuiltinType::print(llvm::raw_ostream &O) const {
-  O << "character";
-
-  if (Len) {
-    O << " length=\"";
-    Len->print(O);
-    O << "\"";
-  }
-
-  if (Kind) {
-    O << " kind=\"";
-    Kind->print(O);
-    O << "\"";
   }
 }
 
