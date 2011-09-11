@@ -18,10 +18,10 @@
 #include "flang/Basic/Specifiers.h"
 #include "flang/Sema/Ownership.h"
 #include "llvm/Support/SMLoc.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace llvm {
-  template <typename T> class ArrayRef;
   class raw_ostream;
 } // end llvm namespace
 
@@ -86,6 +86,7 @@ private:
   /// \brief The kind and length selectors.
   Expr *Kind;
   Expr *Len;
+  SmallVector<ExprResult, 4> Dimensions;
 
 public:
   explicit DeclSpec()
@@ -103,6 +104,17 @@ public:
   bool hasLengthSelector() const { return Len != 0; }
   Expr *getLengthSelector() const { return Len; }
   void setLengthSelector(Expr *L) { Len = L; }
+
+  bool hasDimensions() const { return !Dimensions.empty(); }
+  void setDimensions(ArrayRef<ExprResult> Dims);
+  ArrayRef<ExprResult> getDimensions() const { return Dimensions; }
+
+  typedef SmallVectorImpl<ExprResult>::iterator       dim_iterator;
+  typedef SmallVectorImpl<ExprResult>::const_iterator const_dim_iterator;
+  dim_iterator begin() { return Dimensions.begin(); }
+  dim_iterator end()   { return Dimensions.end();   }
+  const_dim_iterator begin() const { return Dimensions.begin(); }
+  const_dim_iterator end() const   { return Dimensions.end();   }
 
   /// getSpecifierName - Turn a type-specifier-type into a string like "REAL"
   /// or "ALLOCATABLE".

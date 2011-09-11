@@ -675,10 +675,10 @@ public:
 
   QualType getElementType() const { return ElementType; }
 
-  void print(llvm::raw_ostream &O) const {} // FIXME
+  void print(llvm::raw_ostream &OS) const;
 
   static bool classof(const Type *T) {
-    return T->getTypeClass() == ConstantArray;
+    return T->getTypeClass() == Array;
   }
   static bool classof(const ArrayType *) { return true; }
 };

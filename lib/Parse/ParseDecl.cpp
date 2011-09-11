@@ -158,6 +158,7 @@ bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
         goto error;
       if (ParseArraySpec(Dimensions))
         goto error;
+      DS.setDimensions(Dimensions);
       break;
     case tok::kw_EXTERNAL:
       if (AssignAttrSpec(DS, DeclSpec::AS_external))

@@ -69,6 +69,8 @@ void QualType::print(raw_ostream &OS) const {
   if (const Type *Ty = Value.getPointer().dyn_cast<const Type*>()) {
     if (const BuiltinType *BTy = dyn_cast<BuiltinType>(Ty))
       BTy->print(OS);
+    else if (const ArrayType *ATy = dyn_cast<ArrayType>(Ty))
+      ATy->print(OS);
     return;
   }
 
@@ -106,7 +108,6 @@ void QualType::print(raw_ostream &OS) const {
   PRINT_QUAL(AS_asynchronous, "ASYNCHRONOUS");
   PRINT_QUAL(AS_codimension,  "CODIMENSION");
   PRINT_QUAL(AS_contiguous,   "CONTIGUOUS");
-  PRINT_QUAL(AS_dimension,    "DIMENSION");
   PRINT_QUAL(AS_external,     "EXTERNAL");
   PRINT_QUAL(AS_intrinsic,    "INTRINSIC");
   PRINT_QUAL(AS_optional,     "OPTIONAL");
@@ -117,4 +118,17 @@ void QualType::print(raw_ostream &OS) const {
   PRINT_QUAL(AS_target,       "TARGET");
   PRINT_QUAL(AS_value,        "VALUE");
   PRINT_QUAL(AS_volatile,     "VOLATILE");
+}
+
+void ArrayType::print(raw_ostream &OS) const {
+  ElementType.print(OS);
+  OS << ", DIMENSION(";
+
+  for (SmallVectorImpl<ExprResult>::const_iterator
+         I = Dims.begin(), E = Dims.end(); I != E; ++I) {
+    if (I != Dims.begin()) OS << ", ";
+    I->get()->print(OS);
+  }
+
+  OS << ")";
 }

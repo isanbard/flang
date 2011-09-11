@@ -112,8 +112,12 @@ QualType Sema::ActOnTypeName(ASTContext &C, DeclSpec &DS) {
   Qualifiers Quals = Qualifiers::fromOpaqueValue(DS.getAttributeSpecs());
   Quals.setIntentAttr(DS.getIntentSpec());
   Quals.setAccessAttr(DS.getAccessSpec());
-  return C.getExtQualType(TypeNode, Quals, DS.getKindSelector(),
-                          DS.getLengthSelector());
+  QualType EQs =  C.getExtQualType(TypeNode, Quals, DS.getKindSelector(),
+                                   DS.getLengthSelector());
+  if (!Quals.hasAttributeSpec(Qualifiers::AS_dimension))
+    return EQs;
+
+  return ActOnArraySpec(C, EQs, DS.getDimensions());
 }
 
 Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,

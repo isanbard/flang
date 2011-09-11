@@ -87,3 +87,12 @@ const char *DeclSpec::getSpecifierName(DeclSpec::IS I) {
   }
   llvm_unreachable("Unknown typespec!");
 }
+
+void DeclSpec::setDimensions(ArrayRef<ExprResult> Dims) {
+  assert(hasAttributeSpec(AS_dimension) &&
+         "Adding dimensions to a non-array declspec!");
+  Dimensions.reserve(Dims.size());
+  for (ArrayRef<ExprResult>::iterator
+         I = Dims.begin(), E = Dims.end(); I != E; ++I)
+    Dimensions.push_back(*I);
+}
