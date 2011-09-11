@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_LANGOPTIONS_H__
-#define FORTRAN_LANGOPTIONS_H__
+#ifndef FLANG_LANGOPTIONS_H__
+#define FLANG_LANGOPTIONS_H__
 
 #include <string>
 

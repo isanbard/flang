@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_FORTRAN_SOURCELOCATION_H
-#define LLVM_FORTRAN_SOURCELOCATION_H
+#ifndef LLVM_FLANG_SOURCELOCATION_H
+#define LLVM_FLANG_SOURCELOCATION_H
 
 #include "llvm/Support/SMLoc.h"
 

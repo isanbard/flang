@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_FORTRAN_TOKEN_H__
-#define LLVM_FORTRAN_TOKEN_H__
+#ifndef LLVM_FLANG_TOKEN_H__
+#define LLVM_FLANG_TOKEN_H__
 
 #include "flang/Basic/TokenKinds.h"
 #include "llvm/Support/SMLoc.h"

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_EXPR_H__
-#define FORTRAN_AST_EXPR_H__
+#ifndef FLANG_AST_EXPR_H__
+#define FLANG_AST_EXPR_H__
 
 #include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"

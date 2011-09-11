@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_PARSER_PARSER_H__
-#define FORTRAN_PARSER_PARSER_H__
+#ifndef FLANG_PARSER_PARSER_H__
+#define FLANG_PARSER_PARSER_H__
 
 #include "flang/AST/ASTContext.h" // FIXME: Move to AST construction.
 #include "flang/Basic/Diagnostic.h"

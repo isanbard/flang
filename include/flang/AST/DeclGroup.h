@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_DECLGROUP_H__
-#define FORTRAN_AST_DECLGROUP_H__
+#ifndef FLANG_AST_DECLGROUP_H__
+#define FLANG_AST_DECLGROUP_H__
 
 #include "llvm/Support/DataTypes.h"
 #include <cassert>

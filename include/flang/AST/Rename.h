@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_RENAME_H__
-#define FORTRAN_AST_RENAME_H__
+#ifndef FLANG_AST_RENAME_H__
+#define FLANG_AST_RENAME_H__
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_stream.h"
@@ -35,4 +35,4 @@ public:
 
 } // end flang namespace
 
-#endif // FORTRAN_AST_RENAME_H__
+#endif // FLANG_AST_RENAME_H__

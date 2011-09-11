@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_STMT_H__
-#define FORTRAN_AST_STMT_H__
+#ifndef FLANG_AST_STMT_H__
+#define FLANG_AST_STMT_H__
 
 #include "flang/AST/ASTContext.h"
 #include "flang/Basic/Token.h"

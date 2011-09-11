@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_TYPE_H__
-#define FORTRAN_TYPE_H__
+#ifndef FLANG_TYPE_H__
+#define FLANG_TYPE_H__
 
 #include "flang/Basic/Specifiers.h"
 #include "flang/Sema/Ownership.h"

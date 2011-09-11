@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_SEMA_OWNERSHIP_H__
-#define FORTRAN_SEMA_OWNERSHIP_H__
+#ifndef FLANG_SEMA_OWNERSHIP_H__
+#define FLANG_SEMA_OWNERSHIP_H__
 
 #include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/SmallVector.h"

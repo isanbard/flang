@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_FORTRAN_TOKENKINDS_H__
-#define LLVM_FORTRAN_TOKENKINDS_H__
+#ifndef LLVM_FLANG_TOKENKINDS_H__
+#define LLVM_FLANG_TOKENKINDS_H__
 
 namespace flang {
 namespace tok {

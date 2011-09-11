@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_FRONTEND_TEXT_DIAGNOSTIC_PRINTER_H_
-#define FORTRAN_FRONTEND_TEXT_DIAGNOSTIC_PRINTER_H_
+#ifndef FLANG_FRONTEND_TEXT_DIAGNOSTIC_PRINTER_H_
+#define FLANG_FRONTEND_TEXT_DIAGNOSTIC_PRINTER_H_
 
 #include "flang/Basic/Diagnostic.h"
 

@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_BASIC_IDENTIFIERTABLE_H__
-#define FORTRAN_BASIC_IDENTIFIERTABLE_H__
+#ifndef FLANG_BASIC_IDENTIFIERTABLE_H__
+#define FLANG_BASIC_IDENTIFIERTABLE_H__
 
 #include "TokenKinds.h"
 #include "llvm/ADT/StringMap.h"

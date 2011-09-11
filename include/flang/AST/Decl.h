@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_DECL_H__
-#define FORTRAN_AST_DECL_H__
+#ifndef FLANG_AST_DECL_H__
+#define FLANG_AST_DECL_H__
 
 #include "flang/AST/DeclarationName.h"
 #include "flang/AST/Type.h"

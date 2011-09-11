@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_BASIC_LLVM_H__
-#define FORTRAN_BASIC_LLVM_H__
+#ifndef FLANG_BASIC_LLVM_H__
+#define FLANG_BASIC_LLVM_H__
 
 // This should be the only #include, force #includes of all the others on
 // clients.

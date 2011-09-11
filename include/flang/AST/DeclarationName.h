@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_DECLARATIONNAME_H__
-#define FORTRAN_AST_DECLARATIONNAME_H__
+#ifndef FLANG_AST_DECLARATIONNAME_H__
+#define FLANG_AST_DECLARATIONNAME_H__
 
 #include "flang/Basic/IdentifierTable.h"
 #include "flang/Basic/SourceLocation.h"

@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_AST_DECLCONTEXTINTERNALS_H__
-#define FORTRAN_AST_DECLCONTEXTINTERNALS_H__
+#ifndef FLANG_AST_DECLCONTEXTINTERNALS_H__
+#define FLANG_AST_DECLCONTEXTINTERNALS_H__
 
 #include "flang/AST/Decl.h"
 #include "flang/AST/DeclarationName.h"

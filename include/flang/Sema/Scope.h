@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_SEMA_SCOPE_H__
-#define FORTRAN_SEMA_SCOPE_H__
+#ifndef FLANG_SEMA_SCOPE_H__
+#define FLANG_SEMA_SCOPE_H__
 
 #include "flang/Basic/Diagnostic.h"
 #include "llvm/ADT/SmallPtrSet.h"

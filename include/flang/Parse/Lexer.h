@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_PARSER_LEXER_H__
-#define FORTRAN_PARSER_LEXER_H__
+#ifndef FLANG_PARSER_LEXER_H__
+#define FLANG_PARSER_LEXER_H__
 
 #include "flang/Basic/LangOptions.h"
 #include "flang/Basic/Token.h"

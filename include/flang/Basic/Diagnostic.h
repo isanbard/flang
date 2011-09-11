@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef FORTRAN_DIAGNOSTIC_H__
-#define FORTRAN_DIAGNOSTIC_H__
+#ifndef FLANG_DIAGNOSTIC_H__
+#define FLANG_DIAGNOSTIC_H__
 
 #include "llvm/Support/SMLoc.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
