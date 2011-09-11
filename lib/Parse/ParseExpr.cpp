@@ -406,6 +406,9 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     if (NextTok.is(tok::l_paren))
       // Possible substring.
       goto parse_designator;
+  case tok::binary_boz_constant:
+  case tok::octal_boz_constant:
+  case tok::hex_boz_constant:
   case tok::numeric_constant:
     E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
                                               Tok.getLength()));
