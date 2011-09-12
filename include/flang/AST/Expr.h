@@ -60,8 +60,6 @@ private:
 protected:
   Expr(ExprType ET, llvm::SMLoc L) : ExprID(ET), Loc(L) {}
 public:
-  virtual ~Expr();
-
   ExprType getExpressionID() const { return ExprID; }
   llvm::SMLoc getLocation() const { return Loc; }
 
@@ -182,13 +180,10 @@ public:
   };
 private:
   DesignatorTy Ty;
-  DesignatorExpr(ExprType ET, llvm::SMLoc loc, DesignatorTy ty)
-    : Expr(ET, loc), Ty(ty) {}
-public:
+protected:
   DesignatorExpr(llvm::SMLoc loc, DesignatorTy ty)
     : Expr(Expr::Designator, loc), Ty(ty) {}
-  virtual ~DesignatorExpr();
-
+public:
   DesignatorTy getDesignatorType() const { return Ty; }
 
   virtual void print(llvm::raw_ostream&);
@@ -212,8 +207,6 @@ private:
     : Ty(ty), Val(e) {}
   Subscript(const Subscript&);  // Don't implement.
 public:
-  virtual ~Subscript();
-
   static Subscript *create(Expr *E);
   static Subscript *createEmptyRange();
   static Subscript *createSplat();
