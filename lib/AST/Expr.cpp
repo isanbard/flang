@@ -7,9 +7,40 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
+#include "llvm/ADT/APInt.h"
+#include "llvm/ADT/StringRef.h"
 using namespace flang;
+
+BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+  : ConstantExpr(BOZConstant, Loc) {
+  switch (Data[0]) {
+  case 'B': Kind = Binary; break;
+  case 'O': Kind = Octal; break;
+  case 'Z': case 'X': Kind = Hexadecimal; break;
+  }
+
+  size_t LastQuote = Data.rfind(Data[1]);
+  assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
+  llvm::StringRef Num = Data.slice(2, LastQuote);
+  unsigned NumBits = (LastQuote - 2) *
+    (Kind == Binary ? 1 : (Kind == Octal ? 3 : 4));
+  Value = llvm::APInt(NumBits, Num,
+                      (Kind == Binary ? 1 : (Kind == Octal ? 8 : 16)));
+
+  // See if there's a "kind" associated with the BOZ constant.
+  size_t Under = Data.find('_');
+  if (Under == StringRef::npos)
+    return;
+  setKindSelector(Data.slice(Under + 1, StringRef::npos));
+}
+
+BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
+                                         llvm::StringRef Data) {
+  return new (C) BOZConstantExpr(Loc, Data);
+}
 
 //===----------------------------------------------------------------------===//
 // Expression D'tors

@@ -17,6 +17,7 @@
 #include "flang/Sema/Ownership.h"
 #include "flang/Sema/Sema.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/Twine.h"
 using namespace flang;
 
@@ -409,11 +410,39 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   case tok::binary_boz_constant:
   case tok::octal_boz_constant:
   case tok::hex_boz_constant:
-  case tok::numeric_constant:
-    E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
-                                              Tok.getLength()));
+  case tok::numeric_constant: {
+    std::string NameStr;
+    if (!Tok.needsCleaning()) {
+      NameStr = llvm::StringRef(Tok.getLiteralData(),
+                                Tok.getLength()).str();
+    } else {
+      llvm::SmallVector<llvm::StringRef, 2> Spelling;
+      TheLexer.getSpelling(Tok, Spelling);
+
+      llvm::SmallString<256> Name;
+      llvm::raw_svector_ostream OS(Name);
+      for (llvm::SmallVectorImpl<llvm::StringRef>::const_iterator
+             I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
+        OS << *I;
+
+      NameStr = Name.str();
+    }
+
+    switch (Tok.getKind()) {
+    default:
+      E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
+                                                Tok.getLength()));
+      break;
+    case tok::binary_boz_constant:
+    case tok::octal_boz_constant:
+    case tok::hex_boz_constant:
+      E = BOZConstantExpr::Create(Context, Loc, NameStr);
+      break;
+    }
+
     Lex();
     break;
+  }
   case tok::identifier:
     parse_designator:
     E = Parser::ParseDesignator();

@@ -23,6 +23,7 @@
 
 namespace flang {
 
+class ASTContext;
 class IdentifierInfo;
 class Decl;
 class VarDecl;
@@ -37,6 +38,7 @@ protected:
 
     // Unary Expressions
     Constant,
+    BOZConstant,
     Variable,
     Unary,
     DefinedUnaryOperator,
@@ -48,6 +50,7 @@ protected:
 private:
   ExprType ExprID;
   llvm::SMLoc Loc;
+  friend class ASTContext;
 public:
   Expr(ExprType ET, llvm::SMLoc L) : ExprID(ET), Loc(L) {}
   virtual ~Expr();
@@ -65,11 +68,21 @@ public:
 /// ConstantExpr -
 class ConstantExpr : public Expr {
   llvm::StringRef Data;
+  std::string Kind;         // Optional Kind Selector
+protected:
+  llvm::APInt Value;
+  ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
+    : Expr(Ty, Loc) {}
 public:
   ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
     : Expr(Expr::Constant, loc), Data(data) {}
 
   llvm::StringRef getData() const { return Data; }
+
+  llvm::APInt getValue() const { return Value; }
+
+  const std::string &getKindSelector() const { return Kind; }
+  void setKindSelector(llvm::StringRef K) { Kind = K; }
 
   virtual void print(llvm::raw_ostream&);
 
@@ -77,6 +90,24 @@ public:
     return E->getExpressionID() == Expr::Constant;
   }
   static bool classof(const ConstantExpr *) { return true; }
+};
+
+class BOZConstantExpr : public ConstantExpr {
+public:
+  enum BOZKind { Hexadecimal, Octal, Binary };
+private:
+  BOZKind Kind;
+  BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+public:
+  static BOZConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
+                                 llvm::StringRef Data);
+
+  BOZKind getBOZKind() const { return Kind; }
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::BOZConstant;
+  }
+  static bool classof(const BOZConstantExpr *) { return true; }
 };
 
 //===----------------------------------------------------------------------===//
