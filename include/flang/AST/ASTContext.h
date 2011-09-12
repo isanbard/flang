@@ -40,11 +40,11 @@ class TypeDecl;
 class ASTContext {
   ASTContext &this_() { return *this; }
 
-  mutable std::vector<Type*>                  Types;
-  mutable llvm::FoldingSet<ExtQuals>          ExtQualNodes;
-  mutable llvm::FoldingSet<PointerType>       PointerTypes;
-  mutable llvm::FoldingSet<ConstantArrayType> ConstantArrayTypes;
-  mutable llvm::FoldingSet<RecordType>        RecordTypes;
+  mutable std::vector<Type*>            Types;
+  mutable llvm::FoldingSet<ExtQuals>    ExtQualNodes;
+  mutable llvm::FoldingSet<PointerType> PointerTypes;
+  mutable llvm::FoldingSet<ArrayType>   ArrayTypes;
+  mutable llvm::FoldingSet<RecordType>  RecordTypes;
 
   /// \brief The allocator used to create AST objects.
   ///
@@ -102,10 +102,9 @@ public:
   /// the specified type.
   PointerType *getPointerType(const Type *Ty, unsigned NumDims);
 
-  /// getConstantArrayType - Return the unique reference to the type for a
-  /// constant array of the specified element type.
-  QualType getConstantArrayType(QualType EltTy,
-                                const llvm::APInt &ArySize) const;
+  /// getArrayType - Return the unique reference to the type for an array of the
+  /// specified element type.
+  QualType getArrayType(QualType EltTy, ArrayRef<ExprResult> Dims) const;
 
   /// getRecordType - Return the uniqued reference to the type for a structure
   /// of the specified type.

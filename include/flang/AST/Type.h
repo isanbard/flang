@@ -675,38 +675,31 @@ public:
 
   QualType getElementType() const { return ElementType; }
 
+  typedef SmallVectorImpl<ExprResult>::iterator       dim_iterator;
+  typedef SmallVectorImpl<ExprResult>::const_iterator const_dim_iterator;
+
+  dim_iterator begin() { return Dims.begin(); }
+  dim_iterator end()   { return Dims.end(); }
+  const_dim_iterator begin() const { return Dims.begin(); }
+  const_dim_iterator end() const   { return Dims.end(); }
+
+  void Profile(llvm::FoldingSetNodeID &ID) {
+    Profile(ID, getElementType(), Dims);
+  }
+  static void Profile(llvm::FoldingSetNodeID &ID, QualType ET,
+                      ArrayRef<ExprResult> Dims) {
+    ID.AddPointer(ET.getAsOpaquePtr());
+    for (ArrayRef<ExprResult>::iterator
+           I = Dims.begin(), E = Dims.end(); I != E; ++I)
+      ID.AddPointer(I->get());
+  }
+
   void print(llvm::raw_ostream &OS) const;
 
   static bool classof(const Type *T) {
     return T->getTypeClass() == Array;
   }
   static bool classof(const ArrayType *) { return true; }
-};
-
-/// ConstantArrayType - This class represents the canonical version of
-/// Fortran arrays with a specified constant size.
-class ConstantArrayType : public ArrayType {
-  llvm::APInt Size;
-
-  ConstantArrayType(QualType et, QualType canon, const llvm::APInt &size)
-    : ArrayType(ConstantArray, et, canon), Size(size) {}
-protected:
-  friend class ASTContext;
-public:
-  const llvm::APInt &getSize() const { return Size; }
-
-  void Profile(llvm::FoldingSetNodeID &ID) {
-    Profile(ID, getElementType(), getSize());
-  }
-  static void Profile(llvm::FoldingSetNodeID &ID, QualType ET,
-                      const llvm::APInt &ArraySize) {
-    ID.AddPointer(ET.getAsOpaquePtr());
-    ID.AddInteger(ArraySize.getZExtValue());
-  }
-  static bool classof(const Type *T) {
-    return T->getTypeClass() == ConstantArray;
-  }
-  static bool classof(const ConstantArrayType *) { return true; }
 };
 
 /// RecordType - Record types.
@@ -820,9 +813,6 @@ inline bool Type::isComplexType() const {
 }
 inline bool Type::isArrayType() const {
   return isa<ArrayType>(CanonicalType);
-}
-inline bool Type::isConstantArrayType() const {
-  return isa<ConstantArrayType>(CanonicalType);
 }
 
 } // end flang namespace

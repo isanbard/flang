@@ -108,40 +108,20 @@ PointerType *ASTContext::getPointerType(const Type *Ty, unsigned NumDims) {
   return New;
 }
 
-/// getConstantArrayType - Return the unique reference to the type for an
-/// array of the specified element type.
-QualType ASTContext::getConstantArrayType(QualType EltTy,
-                                          const llvm::APInt &ArySizeIn) const {
-  // Convert the array size into a canonical width matching the pointer size for
-  // the target.
-  llvm::APInt ArySize(ArySizeIn);
-  ArySize = ArySize.zextOrTrunc(8); // FIXME: Need to get target pointer width!
-
+/// getArrayType - Return the unique reference to the type for an array of the
+/// specified element type.
+QualType ASTContext::getArrayType(QualType EltTy,
+                                  ArrayRef<ExprResult> Dims) const {
   llvm::FoldingSetNodeID ID;
-  ConstantArrayType::Profile(ID, EltTy, ArySize);
+  ArrayType::Profile(ID, EltTy, Dims);
 
   void *InsertPos = 0;
-  if (ConstantArrayType *ATP =
-      ConstantArrayTypes.FindNodeOrInsertPos(ID, InsertPos))
+  if (ArrayType *ATP = ArrayTypes.FindNodeOrInsertPos(ID, InsertPos))
     return QualType(ATP, 0);
 
-  // If the element type isn't canonical or has qualifiers, this won't be a
-  // canonical type either, so fill in the canonical type field.
-  QualType Canon;
-  if (!EltTy.isCanonical() || EltTy.hasLocalQualifiers()) {
-    SplitQualType canonSplit = getCanonicalType(EltTy).split();
-    Canon = getConstantArrayType(QualType(canonSplit.first, 0), ArySize);
-    Canon = getQualifiedType(Canon, canonSplit.second);
-
-    // Get the new insert position for the node we care about.
-    ConstantArrayType *NewIP =
-      ConstantArrayTypes.FindNodeOrInsertPos(ID, InsertPos);
-    assert(NewIP == 0 && "Shouldn't be in the map!"); (void)NewIP;
-  }
-
-  ConstantArrayType *New = new (*this,TypeAlignment)
-    ConstantArrayType(EltTy, Canon, ArySize);
-  ConstantArrayTypes.InsertNode(New, InsertPos);
+  ArrayType *New = new (*this,TypeAlignment) ArrayType(Type::Array, EltTy,
+                                                       QualType(), Dims);
+  ArrayTypes.InsertNode(New, InsertPos);
   Types.push_back(New);
   return QualType(New, 0);
 }
