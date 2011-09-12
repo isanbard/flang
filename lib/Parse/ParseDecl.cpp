@@ -262,9 +262,6 @@ bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
 
   return false;
  error:
-  for (llvm::SmallVectorImpl<ExprResult>::iterator
-         I = Dimensions.begin(), E = Dimensions.end(); I != E; ++I)
-    delete I->take();
   return true;
 }
 
@@ -328,8 +325,6 @@ bool Parser::ParseDerivedTypeSpec(DeclSpec &DS) {
   return false;
 
  error:
-  for (unsigned I = 0, N = ExprVec.size(); I != N; ++I)
-    delete ExprVec[I].take();
   return true;
 }
 

@@ -112,14 +112,6 @@ DefinedOperatorBinaryExpr::Create(ASTContext &C, SMLoc loc, ExprResult lhs,
 }
 
 //===----------------------------------------------------------------------===//
-// Expression D'tors
-//===----------------------------------------------------------------------===//
-
-Expr::~Expr() {}
-
-DesignatorExpr::~DesignatorExpr() {}
-
-//===----------------------------------------------------------------------===//
 // Expression Print Statements
 //===----------------------------------------------------------------------===//
 
@@ -200,9 +192,6 @@ void DefinedOperatorBinaryExpr::print(llvm::raw_ostream &O) {
 //===----------------------------------------------------------------------===//
 // Subscript Methods
 //===----------------------------------------------------------------------===//
-
-Subscript::~Subscript() {
-}
 
 Subscript *Subscript::create(Expr *E) {
   return new Subscript(Subscript::Normal, E);

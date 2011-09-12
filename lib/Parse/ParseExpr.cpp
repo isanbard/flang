@@ -43,10 +43,7 @@ Parser::ExprResult Parser::ParseExpression() {
   Lex();
 
   ExprResult RHS = ParseLevel5Expr();
-  if (RHS.isInvalid()) {
-    delete LHS.take();
-    return ExprResult();
-  }
+  if (RHS.isInvalid()) return ExprResult();
 
   return DefinedOperatorBinaryExpr::Create(Context, OpLoc, LHS, RHS, II);
 }
@@ -99,10 +96,7 @@ Parser::ExprResult Parser::ParseOrOperand() {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
     ExprResult AndOp = ParseAndOperand();
-    if (AndOp.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (AndOp.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::And, E, AndOp);
   }
 
@@ -116,10 +110,7 @@ Parser::ExprResult Parser::ParseEquivOperand() {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
     ExprResult OrOp = ParseOrOperand();
-    if (OrOp.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (OrOp.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Or, E, OrOp);
   }
 
@@ -200,10 +191,7 @@ Parser::ExprResult Parser::ParseLevel4Expr() {
 
     Lex();
     ExprResult Lvl3Expr = ParseLevel3Expr();
-    if (Lvl3Expr.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (Lvl3Expr.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, Op, E, Lvl3Expr);
   }
 }
@@ -225,10 +213,7 @@ Parser::ExprResult Parser::ParseLevel3Expr() {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
     ExprResult Lvl2Expr = ParseLevel2Expr();
-    if (Lvl2Expr.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (Lvl2Expr.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Concat, E, Lvl2Expr);
   }
   
@@ -266,10 +251,7 @@ Parser::ExprResult Parser::ParseMultOperand() {
     llvm::SMLoc OpLoc = Tok.getLocation();
     Lex();
     ExprResult MulOp = ParseMultOperand();
-    if (MulOp.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (MulOp.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Power, E, MulOp);
   }
 
@@ -295,10 +277,7 @@ Parser::ExprResult Parser::ParseAddOperand() {
 
     Lex();
     ExprResult MulOp = ParseMultOperand();
-    if (MulOp.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (MulOp.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, Op, E, MulOp);
   }
 }
@@ -338,10 +317,7 @@ Parser::ExprResult Parser::ParseLevel2Expr() {
 
     Lex();
     ExprResult AddOp = ParseAddOperand();
-    if (AddOp.isInvalid()) {
-      delete E.take();
-      return ExprResult();
-    }
+    if (AddOp.isInvalid()) return ExprResult();
     E = BinaryExpr::Create(Context, OpLoc, Op, E, AddOp);
   }
 }
@@ -590,17 +566,11 @@ ExprResult Parser::ParseDataReference() {
 
   do {
     ExprResult E = ParsePartReference();
-    if (E.isInvalid())
-      goto error;
+    if (E.isInvalid()) return ExprResult();
     Exprs.push_back(E);
   } while (EatIfPresent(tok::percent));
 
   return Actions.ActOnDataReference(Exprs);
- error:
-  for (std::vector<ExprResult>::iterator
-         I = Exprs.begin(), E = Exprs.end(); I != E; ++I)
-    delete I->take();
-  return ExprResult();
 }
 
 /// ParsePartReference - Parse the part reference.
