@@ -93,6 +93,13 @@ UnaryExpr *UnaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
   return new (C) UnaryExpr(Expr::Unary, loc, op, e);
 }
 
+DefinedOperatorUnaryExpr *DefinedOperatorUnaryExpr::Create(ASTContext &C,
+                                                           SMLoc loc,
+                                                           ExprResult e,
+                                                           IdentifierInfo *ii) {
+  return new (C) DefinedOperatorUnaryExpr(loc, e, ii);
+}
+
 //===----------------------------------------------------------------------===//
 // Expression D'tors
 //===----------------------------------------------------------------------===//

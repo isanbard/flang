@@ -365,7 +365,7 @@ Parser::ExprResult Parser::ParseLevel1Expr() {
   if (E.isInvalid()) return ExprResult();
 
   if (II)
-    E = new DefinedOperatorUnaryExpr(OpLoc, E, II);
+    E = DefinedOperatorUnaryExpr::Create(Context, OpLoc, E, II);
 
   return E;
 }

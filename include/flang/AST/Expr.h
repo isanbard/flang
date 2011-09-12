@@ -314,9 +314,11 @@ public:
 /// DefinedOperatorUnaryExpr -
 class DefinedOperatorUnaryExpr : public UnaryExpr {
   IdentifierInfo *II;
-public:
-  DefinedOperatorUnaryExpr(llvm::SMLoc loc, ExprResult e, IdentifierInfo *ii)
+  DefinedOperatorUnaryExpr(SMLoc loc, ExprResult e, IdentifierInfo *ii)
     : UnaryExpr(Expr::DefinedUnaryOperator, loc, Defined, e), II(ii) {}
+public:
+  static DefinedOperatorUnaryExpr *Create(ASTContext &C, SMLoc loc,
+                                          ExprResult e, IdentifierInfo *ii);
 
   const IdentifierInfo *getIdentifierInfo() const { return II; }
   IdentifierInfo *getIdentifierInfo() { return II; }
