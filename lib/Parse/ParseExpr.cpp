@@ -103,7 +103,7 @@ Parser::ExprResult Parser::ParseOrOperand() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, BinaryExpr::And, E, AndOp);
+    E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::And, E, AndOp);
   }
 
   return E;
@@ -120,7 +120,7 @@ Parser::ExprResult Parser::ParseEquivOperand() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, BinaryExpr::Or, E, OrOp);
+    E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Or, E, OrOp);
   }
 
   return E;
@@ -136,11 +136,13 @@ Parser::ExprResult Parser::ParseLevel5Expr() {
       return E;
     case tok::kw_EQV:
       Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Eqv, E, ParseEquivOperand());
+      E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Eqv, E,
+                             ParseEquivOperand());
       break;
     case tok::kw_NEQV:
       Lex();
-      E = new BinaryExpr(OpLoc, BinaryExpr::Neqv, E, ParseEquivOperand());
+      E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Neqv, E,
+                             ParseEquivOperand());
       break;
     }
   }
@@ -202,7 +204,7 @@ Parser::ExprResult Parser::ParseLevel4Expr() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, Op, E, Lvl3Expr);
+    E = BinaryExpr::Create(Context, OpLoc, Op, E, Lvl3Expr);
   }
 }
 
@@ -227,7 +229,7 @@ Parser::ExprResult Parser::ParseLevel3Expr() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, BinaryExpr::Concat, E, Lvl2Expr);
+    E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Concat, E, Lvl2Expr);
   }
   
   return E;
@@ -268,7 +270,7 @@ Parser::ExprResult Parser::ParseMultOperand() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, BinaryExpr::Power, E, MulOp);
+    E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Power, E, MulOp);
   }
 
   return E;
@@ -297,7 +299,7 @@ Parser::ExprResult Parser::ParseAddOperand() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, Op, E, MulOp);
+    E = BinaryExpr::Create(Context, OpLoc, Op, E, MulOp);
   }
 }
 Parser::ExprResult Parser::ParseLevel2Expr() {
@@ -340,7 +342,7 @@ Parser::ExprResult Parser::ParseLevel2Expr() {
       delete E.take();
       return ExprResult();
     }
-    E = new BinaryExpr(OpLoc, Op, E, AddOp);
+    E = BinaryExpr::Create(Context, OpLoc, Op, E, AddOp);
   }
 }
 

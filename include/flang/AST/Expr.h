@@ -371,9 +371,8 @@ protected:
              ExprResult lhs, ExprResult rhs)
     : Expr(ET, loc), Op(op), LHS(lhs), RHS(rhs) {}
 public:
-  BinaryExpr(llvm::SMLoc loc, Operator op, ExprResult lhs, ExprResult rhs)
-    : Expr(Expr::Binary, loc), Op(op), LHS(lhs), RHS(rhs) {}
-  virtual ~BinaryExpr();
+  static BinaryExpr *Create(ASTContext &C, SMLoc loc, Operator op,
+                            ExprResult lhs, ExprResult rhs);
 
   Operator getOperator() const { return Op; }
 

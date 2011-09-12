@@ -100,6 +100,11 @@ DefinedOperatorUnaryExpr *DefinedOperatorUnaryExpr::Create(ASTContext &C,
   return new (C) DefinedOperatorUnaryExpr(loc, e, ii);
 }
 
+BinaryExpr *BinaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
+                               ExprResult lhs, ExprResult rhs) {
+  return new (C) BinaryExpr(Expr::Binary, loc, op, lhs, rhs);
+}
+
 //===----------------------------------------------------------------------===//
 // Expression D'tors
 //===----------------------------------------------------------------------===//
@@ -107,8 +112,6 @@ DefinedOperatorUnaryExpr *DefinedOperatorUnaryExpr::Create(ASTContext &C,
 Expr::~Expr() {}
 
 DesignatorExpr::~DesignatorExpr() {}
-
-BinaryExpr::~BinaryExpr() {}
 
 //===----------------------------------------------------------------------===//
 // Expression Print Statements
