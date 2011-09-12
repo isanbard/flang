@@ -72,17 +72,15 @@ public:
 //===----------------------------------------------------------------------===//
 /// ConstantExpr -
 class ConstantExpr : public Expr {
-  StringRef Data;
   // FIXME: This leaks memory.
   std::string Kind;         // Optional Kind Selector
 protected:
   ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
     : Expr(Ty, Loc) {}
 public:
+  // FIXME: Remove this c'tor.
   ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
-    : Expr(Expr::Constant, loc), Data(data) {}
-
-  llvm::StringRef getData() const { return Data; }
+    : Expr(Expr::Constant, loc) {}
 
   const std::string &getKindSelector() const { return Kind; }
   void setKindSelector(llvm::StringRef K) { Kind = K; }

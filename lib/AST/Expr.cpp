@@ -166,7 +166,7 @@ void DefinedOperatorUnaryExpr::print(llvm::raw_ostream &O) {
 }
 
 void ConstantExpr::print(llvm::raw_ostream &O) {
-  O << Data;
+  O << '_' << Kind; 
 }
 
 void VarExpr::print(llvm::raw_ostream &O) {
