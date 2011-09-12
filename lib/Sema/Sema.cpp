@@ -122,9 +122,22 @@ QualType Sema::ActOnTypeName(ASTContext &C, DeclSpec &DS) {
 
 Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
                             const IdentifierInfo *IDInfo) {
+  if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {
+    Diags.ReportError(IDLoc,
+                      llvm::Twine("variable '") + IDInfo->getName() +
+                      "' already declared");
+    Diags.getClient()->HandleDiagnostic(Diagnostic::Note, Prev->getLocation(),
+                                        "previous declaration");
+    return 0;
+  }
+
   QualType T = ActOnTypeName(C, DS);
   VarDecl *VD = VarDecl::Create(C, CurContext, IDLoc, IDInfo, T);
   CurContext->addDecl(VD);
+
+  // Store the Decl in the IdentifierInfo for easy access.
+  // FIXME: This isn't good enough for multiple DeclContexts.
+  const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
   return VD;
 }
 
