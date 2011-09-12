@@ -57,8 +57,9 @@ private:
   ExprType ExprID;
   llvm::SMLoc Loc;
   friend class ASTContext;
-public:
+protected:
   Expr(ExprType ET, llvm::SMLoc L) : ExprID(ET), Loc(L) {}
+public:
   virtual ~Expr();
 
   ExprType getExpressionID() const { return ExprID; }
