@@ -88,6 +88,11 @@ LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
   return new (C) LogicalConstantExpr(Loc, Data);
 }
 
+UnaryExpr *UnaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
+                             ExprResult e) {
+  return new (C) UnaryExpr(Expr::Unary, loc, op, e);
+}
+
 //===----------------------------------------------------------------------===//
 // Expression D'tors
 //===----------------------------------------------------------------------===//
@@ -96,14 +101,7 @@ Expr::~Expr() {}
 
 DesignatorExpr::~DesignatorExpr() {}
 
-UnaryExpr::~UnaryExpr() {
-  delete E.take();
-}
-
-BinaryExpr::~BinaryExpr() {
-  delete LHS.take();
-  delete RHS.take();
-}
+BinaryExpr::~BinaryExpr() {}
 
 //===----------------------------------------------------------------------===//
 // Expression Print Statements

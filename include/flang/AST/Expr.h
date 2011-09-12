@@ -292,12 +292,10 @@ public:
 protected:
   Operator Op;
   ExprResult E;
-  UnaryExpr(ExprType ET, llvm::SMLoc loc, Operator op, ExprResult e)
+  UnaryExpr(ExprType ET, SMLoc loc, Operator op, ExprResult e)
     : Expr(ET, loc), Op(op), E(e) {}
 public:
-  UnaryExpr(llvm::SMLoc loc, Operator op, ExprResult e)
-    : Expr(Expr::Unary, loc), Op(op), E(e) {}
-  virtual ~UnaryExpr();
+  static UnaryExpr *Create(ASTContext &C, SMLoc loc, Operator op, ExprResult e);
 
   Operator getOperator() const { return Op; }
 

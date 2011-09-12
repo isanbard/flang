@@ -88,7 +88,7 @@ Parser::ExprResult Parser::ParseAndOperand() {
   if (E.isInvalid()) return ExprResult();
 
   if (Negate)
-    E = new UnaryExpr(NotLoc, UnaryExpr::Not, E);
+    E = UnaryExpr::Create(Context, NotLoc, UnaryExpr::Not, E);
   return E;
 }
 Parser::ExprResult Parser::ParseOrOperand() {
@@ -312,9 +312,9 @@ Parser::ExprResult Parser::ParseLevel2Expr() {
     if (E.isInvalid()) return ExprResult();
 
     if (Kind == tok::minus)
-      E = new UnaryExpr(OpLoc, UnaryExpr::Minus, E);
+      E = UnaryExpr::Create(Context, OpLoc, UnaryExpr::Minus, E);
     else
-      E = new UnaryExpr(OpLoc, UnaryExpr::Plus, E);
+      E = UnaryExpr::Create(Context, OpLoc, UnaryExpr::Plus, E);
   } else {
     E = ParseAddOperand();
     if (E.isInvalid()) return ExprResult();
@@ -410,18 +410,16 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   default:
     Diag.ReportError(Loc, "unknown unary expression");
     break;
-  case tok::l_paren: {
+  case tok::l_paren:
     Lex();
     E = ParseExpression();
     if (Tok.isNot(tok::r_paren)) {
-      delete E.take();
       Diag.ReportError(Tok.getLocation(),
                        "expected ')' in expression");
       return ExprResult();
     }
     Lex();
     break;
-  }
   case tok::logical_literal_constant:
     E = LogicalConstantExpr::Create(Context, Loc, NameStr);
     Lex();
@@ -450,13 +448,13 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     E = Parser::ParsePrimaryExpr();
     if (E.isInvalid()) return ExprResult();
-    E = new UnaryExpr(Loc, UnaryExpr::Minus, E);
+    E = UnaryExpr::Create(Context, Loc, UnaryExpr::Minus, E);
     break;
   case tok::plus:
     Lex();
     E = Parser::ParsePrimaryExpr();
     if (E.isInvalid()) return ExprResult();
-    E = new UnaryExpr(Loc, UnaryExpr::Plus, E);
+    E = UnaryExpr::Create(Context, Loc, UnaryExpr::Plus, E);
     break;
   }
 
