@@ -104,6 +104,10 @@ public:
 
   BOZKind getBOZKind() const { return Kind; }
 
+  bool isBinaryKind() const { return Kind == Binary; }
+  bool isOctalKind() const { return Kind == Octal; }
+  bool isHexKind() const { return Kind == Hexadecimal; }
+
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::BOZConstant;
   }
