@@ -48,7 +48,7 @@ Parser::ExprResult Parser::ParseExpression() {
     return ExprResult();
   }
 
-  return new DefinedOperatorBinaryExpr(OpLoc, LHS, RHS, II);
+  return DefinedOperatorBinaryExpr::Create(Context, OpLoc, LHS, RHS, II);
 }
 
 // ParseLevel5Expr - Level-5 expressions are level-4 expressions optionally

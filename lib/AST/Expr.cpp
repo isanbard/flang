@@ -105,6 +105,12 @@ BinaryExpr *BinaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
   return new (C) BinaryExpr(Expr::Binary, loc, op, lhs, rhs);
 }
 
+DefinedOperatorBinaryExpr *
+DefinedOperatorBinaryExpr::Create(ASTContext &C, SMLoc loc, ExprResult lhs,
+                                  ExprResult rhs, IdentifierInfo *ii) {
+  return new (C) DefinedOperatorBinaryExpr(loc, lhs, rhs, ii);
+}
+
 //===----------------------------------------------------------------------===//
 // Expression D'tors
 //===----------------------------------------------------------------------===//

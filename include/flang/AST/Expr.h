@@ -393,10 +393,13 @@ public:
 /// DefinedOperatorBinaryExpr -
 class DefinedOperatorBinaryExpr : public BinaryExpr {
   IdentifierInfo *II;
-public:
-  DefinedOperatorBinaryExpr(llvm::SMLoc loc, ExprResult lhs, ExprResult rhs,
+  DefinedOperatorBinaryExpr(SMLoc loc, ExprResult lhs, ExprResult rhs,
                             IdentifierInfo *ii)
     : BinaryExpr(Expr::DefinedBinaryOperator, loc, Defined, lhs, rhs), II(ii) {}
+public:
+  static DefinedOperatorBinaryExpr *Create(ASTContext &C, SMLoc loc,
+                                           ExprResult lhs, ExprResult rhs,
+                                           IdentifierInfo *ii);
 
   const IdentifierInfo *getIdentifierInfo() const { return II; }
   IdentifierInfo *getIdentifierInfo() { return II; }
