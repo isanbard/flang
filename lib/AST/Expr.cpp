@@ -27,6 +27,20 @@ IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
   return new (C) IntegerConstantExpr(Loc, Data);
 }
 
+RealConstantExpr::RealConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+  : ConstantExpr(RealConstant, Loc), Val(APFloat::IEEEsingle) {
+  std::pair<StringRef, StringRef> StrPair = Data.split('_');
+  if (!StrPair.second.empty())
+    setKindSelector(StrPair.second);
+  // FIXME: IEEEdouble?
+  Val = APFloat(APFloat::IEEEsingle, StrPair.first);
+}
+
+RealConstantExpr *RealConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
+                                                 llvm::StringRef Data) {
+  return new (C) RealConstantExpr(Loc, Data);
+}
+
 BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
   : ConstantExpr(BOZConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');

@@ -19,7 +19,9 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/StringRef.h"
+#include "flang/Basic/LLVM.h"
 
 namespace flang {
 
@@ -62,7 +64,7 @@ public:
   ExprType getExpressionID() const { return ExprID; }
   llvm::SMLoc getLocation() const { return Loc; }
 
-  virtual void print(llvm::raw_ostream&);
+  virtual void print(raw_ostream&);
   void dump();
 
   static bool classof(const Expr *) { return true; }
@@ -71,10 +73,10 @@ public:
 //===----------------------------------------------------------------------===//
 /// ConstantExpr -
 class ConstantExpr : public Expr {
-  llvm::StringRef Data;
+  StringRef Data;
   std::string Kind;         // Optional Kind Selector
 protected:
-  llvm::APInt Value;
+  APInt Value;
   ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
     : Expr(Ty, Loc) {}
 public:
@@ -100,17 +102,32 @@ public:
 };
 
 class IntegerConstantExpr : public ConstantExpr {
-  llvm::APInt Val;
-  IntegerConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+  APInt Val;
+  IntegerConstantExpr(SMLoc Loc, StringRef Data);
 public:
-  static IntegerConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
-                                     llvm::StringRef Data);
+  static IntegerConstantExpr *Create(ASTContext &C, SMLoc Loc,
+                                     StringRef Data);
 
+  const APInt &getValue() const { return Val; }
 
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::IntegerConstant;
   }
   static bool classof(const IntegerConstantExpr *) { return true; }
+};
+
+class RealConstantExpr : public ConstantExpr {
+  APFloat Val;
+  RealConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+public:
+  static RealConstantExpr *Create(ASTContext &C, SMLoc Loc, StringRef Data);
+
+  const APFloat &getValue() const { return Val; }
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::RealConstant;
+  }
+  static bool classof(const RealConstantExpr *) { return true; }
 };
 
 class BOZConstantExpr : public ConstantExpr {
