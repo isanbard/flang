@@ -97,14 +97,61 @@ public:
   static bool classof(const ConstantExpr *) { return true; }
 };
 
+/// \brief Used by IntegerConstantExpr/FloatingConstantExpr to store the numeric
+/// without leaking memory.
+///
+/// For large floats/integers, APFloat/APInt will allocate memory from the heap
+/// to represent these numbers. Unfortunately, when we use a BumpPtrAllocator
+/// to allocate IntegerLiteral/FloatingLiteral nodes the memory associated with
+/// the APFloat/APInt values will never get freed. APNumericStorage uses
+/// ASTContext's allocator for memory allocation.
+class APNumericStorage {
+  unsigned BitWidth;
+  union {
+    uint64_t VAL;    ///< Used to store the <= 64 bits integer value.
+    uint64_t *pVal;  ///< Used to store the >64 bits integer value.
+  };
+
+  bool hasAllocation() const { return llvm::APInt::getNumWords(BitWidth) > 1; }
+
+  APNumericStorage(const APNumericStorage&); // do not implement
+  APNumericStorage& operator=(const APNumericStorage&); // do not implement
+
+protected:
+  APNumericStorage() : BitWidth(0), VAL(0) { }
+
+  llvm::APInt getIntValue() const {
+    unsigned NumWords = llvm::APInt::getNumWords(BitWidth);
+    if (NumWords > 1)
+      return llvm::APInt(BitWidth, NumWords, pVal);
+    else
+      return llvm::APInt(BitWidth, VAL);
+  }
+  void setIntValue(ASTContext &C, const llvm::APInt &Val);
+};
+
+class APIntStorage : public APNumericStorage {
+public:  
+  llvm::APInt getValue() const { return getIntValue(); } 
+  void setValue(ASTContext &C, const llvm::APInt &Val) { setIntValue(C, Val); }
+};
+
+class APFloatStorage : public APNumericStorage {
+public:  
+  llvm::APFloat getValue() const { return llvm::APFloat(getIntValue()); } 
+  void setValue(ASTContext &C, const llvm::APFloat &Val) {
+    setIntValue(C, Val.bitcastToAPInt());
+  }
+};
+
 class IntegerConstantExpr : public ConstantExpr {
-  APInt Val;
-  IntegerConstantExpr(SMLoc Loc, StringRef Data);
+  APIntStorage Num;
+  IntegerConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data);
 public:
   static IntegerConstantExpr *Create(ASTContext &C, SMLoc Loc,
                                      StringRef Data);
 
-  const APInt &getValue() const { return Val; }
+  APInt getValue() const { return Num.getValue(); }
 
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::IntegerConstant;
@@ -113,12 +160,12 @@ public:
 };
 
 class RealConstantExpr : public ConstantExpr {
-  APFloat Val;
-  RealConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+  APFloatStorage Num;
+  RealConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data);
 public:
   static RealConstantExpr *Create(ASTContext &C, SMLoc Loc, StringRef Data);
 
-  const APFloat &getValue() const { return Val; }
+  APFloat getValue() const { return Num.getValue(); }
 
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::RealConstant;

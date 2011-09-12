@@ -605,11 +605,6 @@ bool Parser::ParseArraySpec(SmallVectorImpl<ExprResult> &Dims) {
 
   return false;
  error:
-  // Clean up any expressions we may have created before the error.
-  for (llvm::SmallVectorImpl<ExprResult>::iterator
-         I = Dims.begin(), E = Dims.end(); I != E; ++I)
-    delete I->take();
-  
   return true;
 }
 
@@ -853,11 +848,6 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
   return Actions.ActOnPARAMETER(NamedConsts, ConstExprs, StmtLabelTok);
 
  error:
-  // Clean up any expressions we may have created before the error.
-  for (llvm::SmallVectorImpl<ExprResult>::iterator
-         I = ConstExprs.begin(), E = ConstExprs.end(); I != E; ++I)
-    delete I->take();
-  
   return StmtResult();
 }
 

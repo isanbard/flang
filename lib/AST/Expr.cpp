@@ -14,31 +14,50 @@
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
-IntegerConstantExpr::IntegerConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+void APNumericStorage::setIntValue(ASTContext &C, const llvm::APInt &Val) {
+  if (hasAllocation())
+    C.Deallocate(pVal);
+
+  BitWidth = Val.getBitWidth();
+  unsigned NumWords = Val.getNumWords();
+  const uint64_t* Words = Val.getRawData();
+  if (NumWords > 1) {
+    pVal = new (C) uint64_t[NumWords];
+    std::copy(Words, Words + NumWords, pVal);
+  } else if (NumWords == 1)
+    VAL = Words[0];
+  else
+    VAL = 0;
+}
+
+IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
+                                         StringRef Data)
   : ConstantExpr(IntegerConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(StrPair.second);
-  Val = APInt(APInt::getBitsNeeded(StrPair.first, 10), StrPair.first, 10);
+  APInt Val(APInt::getBitsNeeded(StrPair.first, 10), StrPair.first, 10);
+  Num.setValue(C, Val);
 }
 
 IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
                                                  llvm::StringRef Data) {
-  return new (C) IntegerConstantExpr(Loc, Data);
+  return new (C) IntegerConstantExpr(C, Loc, Data);
 }
 
-RealConstantExpr::RealConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
-  : ConstantExpr(RealConstant, Loc), Val(APFloat::IEEEsingle) {
+RealConstantExpr::RealConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
+  : ConstantExpr(RealConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(StrPair.second);
   // FIXME: IEEEdouble?
-  Val = APFloat(APFloat::IEEEsingle, StrPair.first);
+  APFloat Val(APFloat::IEEEsingle, StrPair.first);
+  Num.setValue(C, Val);
 }
 
-RealConstantExpr *RealConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
-                                                 llvm::StringRef Data) {
-  return new (C) RealConstantExpr(Loc, Data);
+RealConstantExpr *RealConstantExpr::Create(ASTContext &C, SMLoc Loc,
+                                           StringRef Data) {
+  return new (C) RealConstantExpr(C, Loc, Data);
 }
 
 BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
