@@ -39,6 +39,7 @@ protected:
     // Unary Expressions
     Constant,
     BOZConstant,
+    LogicalConstant,
     Variable,
     Unary,
     DefinedUnaryOperator,
@@ -112,6 +113,22 @@ public:
     return E->getExpressionID() == Expr::BOZConstant;
   }
   static bool classof(const BOZConstantExpr *) { return true; }
+};
+
+class LogicalConstantExpr : public ConstantExpr {
+  bool Kind;
+  LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+public:
+  static LogicalConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
+                                     llvm::StringRef Data);
+
+  bool isTrue() const { return Kind; }
+  bool isFalse() const { return !Kind; }
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::LogicalConstant;
+  }
+  static bool classof(const LogicalConstantExpr *) { return true; }
 };
 
 //===----------------------------------------------------------------------===//

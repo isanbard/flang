@@ -323,28 +323,20 @@ void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
   llvm::StringRef Op(TokStart + 1, TokLen - 2);
   tok::TokenKind Kind = tok::defined_operator;
 
-  if (Op.compare_upper("EQ") == 0)
-    Kind = tok::kw_EQ;
-  else if (Op.compare_upper("NE") == 0)
-    Kind = tok::kw_NE;
-  else if (Op.compare_upper("LT") == 0)
-    Kind = tok::kw_LT;
-  else if (Op.compare_upper("LE") == 0)
-    Kind = tok::kw_LE;
-  else if (Op.compare_upper("GT") == 0)
-    Kind = tok::kw_GT;
-  else if (Op.compare_upper("GE") == 0)
-    Kind = tok::kw_GE;
-  else if (Op.compare_upper("NOT") == 0)
-    Kind = tok::kw_NOT;
-  else if (Op.compare_upper("AND") == 0)
-    Kind = tok::kw_AND;
-  else if (Op.compare_upper("OR") == 0)
-    Kind = tok::kw_OR;
-  else if (Op.compare_upper("EQV") == 0)
-    Kind = tok::kw_EQV;
-  else if (Op.compare_upper("NEQV") == 0)
-    Kind = tok::kw_NEQV;
+  if (Op.compare_upper("TRUE") == 0 || Op.compare_upper("FALSE") == 0)
+    Kind = tok::logical_literal_constant;
+  else if (Op.compare_upper("EQ") == 0 ||
+           Op.compare_upper("NE") == 0 ||
+           Op.compare_upper("LT") == 0 ||
+           Op.compare_upper("LE") == 0 ||
+           Op.compare_upper("GT") == 0 ||
+           Op.compare_upper("GE") == 0 ||
+           Op.compare_upper("NOT") == 0 ||
+           Op.compare_upper("AND") == 0 ||
+           Op.compare_upper("OR") == 0 ||
+           Op.compare_upper("EQV") == 0 ||
+           Op.compare_upper("NEQV") == 0)
+    Kind = tok::intrinsic_operator;
 
   return FormTokenWithChars(Result, Kind);
 }

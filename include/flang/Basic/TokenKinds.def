@@ -54,8 +54,14 @@ TOK(hex_boz_constant)    // Z"927A"
 // [FIXME]: Character Literal Constants
 TOK(char_literal_constant) // "foo", 'foo', 'a'
 
-// [7.1.2.8] R723: Defined Operators.
-TOK(defined_operator)    // .EQ., .LT., .NEQV.
+// [R723]: Defined Operators.
+TOK(defined_operator)    // .FOO., .BAR.
+
+// [R424]: Logical Literal Constants
+TOK(logical_literal_constant) // .TRUE., .FALSE.
+
+// [R309]: Intrinsic Operator
+TOK(intrinsic_operator)  // .EQ., .NE., ...
 
 // [FIXME]: Punctuators.
 TOK(equal)               // =

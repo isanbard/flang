@@ -386,6 +386,25 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   ExprResult E;
   llvm::SMLoc Loc = Tok.getLocation();
 
+  std::string NameStr;
+  if (Tok.isLiteral()) {
+    if (!Tok.needsCleaning()) {
+      NameStr = llvm::StringRef(Tok.getLiteralData(),
+                                Tok.getLength()).str();
+    } else {
+      llvm::SmallVector<llvm::StringRef, 2> Spelling;
+      TheLexer.getSpelling(Tok, Spelling);
+
+      llvm::SmallString<256> Name;
+      llvm::raw_svector_ostream OS(Name);
+      for (llvm::SmallVectorImpl<llvm::StringRef>::const_iterator
+             I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
+        OS << *I;
+
+      NameStr = Name.str();
+    }
+  }
+
   // FIXME: Add rest of the primary expressions.
   switch (Tok.getKind()) {
   default:
@@ -403,6 +422,10 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     break;
   }
+  case tok::logical_literal_constant:
+    E = LogicalConstantExpr::Create(Context, Loc, NameStr);
+    Lex();
+    break;
   case tok::char_literal_constant:
     if (NextTok.is(tok::l_paren))
       // Possible substring.
@@ -411,23 +434,6 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   case tok::octal_boz_constant:
   case tok::hex_boz_constant:
   case tok::numeric_constant: {
-    std::string NameStr;
-    if (!Tok.needsCleaning()) {
-      NameStr = llvm::StringRef(Tok.getLiteralData(),
-                                Tok.getLength()).str();
-    } else {
-      llvm::SmallVector<llvm::StringRef, 2> Spelling;
-      TheLexer.getSpelling(Tok, Spelling);
-
-      llvm::SmallString<256> Name;
-      llvm::raw_svector_ostream OS(Name);
-      for (llvm::SmallVectorImpl<llvm::StringRef>::const_iterator
-             I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
-        OS << *I;
-
-      NameStr = Name.str();
-    }
-
     switch (Tok.getKind()) {
     default:
       E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),

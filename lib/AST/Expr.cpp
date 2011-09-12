@@ -42,6 +42,16 @@ BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
   return new (C) BOZConstantExpr(Loc, Data);
 }
 
+LogicalConstantExpr::LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+  : ConstantExpr(LogicalConstant, Loc) {
+  Kind = (Data.compare_upper(".TRUE.") == 0);
+}
+
+LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
+                                                 llvm::StringRef Data) {
+  return new (C) LogicalConstantExpr(Loc, Data);
+}
+
 //===----------------------------------------------------------------------===//
 // Expression D'tors
 //===----------------------------------------------------------------------===//
