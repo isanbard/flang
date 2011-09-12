@@ -118,6 +118,28 @@ void QualType::print(raw_ostream &OS) const {
   PRINT_QUAL(AS_target,       "TARGET");
   PRINT_QUAL(AS_value,        "VALUE");
   PRINT_QUAL(AS_volatile,     "VOLATILE");
+
+  if (Quals.hasIntentAttr()) {
+    if (Comma) OS << ", "; Comma = true;
+    OS << "INTENT(";
+    switch (Quals.getIntentAttr()) {
+    default: assert(false && "Invalid intent attribute"); break;
+    case Qualifiers::IS_in:    OS << "IN"; break;
+    case Qualifiers::IS_out:   OS << "OUT"; break;
+    case Qualifiers::IS_inout: OS << "INOUT"; break;
+    }
+    OS << ")";
+  }
+
+  if (Quals.hasAccessAttr()) {
+    if (Comma) OS << ", "; Comma = true;
+    switch (Quals.getAccessAttr()) {
+    default: assert(false && "Invalid access attribute"); break;
+    case Qualifiers::AC_public:  OS << "PUBLIC";  break;
+    case Qualifiers::AC_private: OS << "PRIVATE"; break;
+    }
+    OS << ")";
+  }
 }
 
 void ArrayType::print(raw_ostream &OS) const {
