@@ -320,22 +320,28 @@ void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
     // TODO: Emit an error.
     return FormTokenWithChars(Result, tok::unknown);
 
-  llvm::StringRef Op(TokStart + 1, TokLen - 2);
+  llvm::StringRef FullOp(TokStart, TokLen);
+  size_t Under = FullOp.find('_');
+  llvm::StringRef Op = FullOp;
+
+  if (Under != llvm::StringRef::npos)
+    Op = FullOp.substr(0, Under);
+
   tok::TokenKind Kind = tok::defined_operator;
 
-  if (Op.compare_upper("TRUE") == 0 || Op.compare_upper("FALSE") == 0)
+  if (Op.compare_upper(".TRUE.") == 0 || Op.compare_upper(".FALSE.") == 0)
     Kind = tok::logical_literal_constant;
-  else if (Op.compare_upper("EQ") == 0 ||
-           Op.compare_upper("NE") == 0 ||
-           Op.compare_upper("LT") == 0 ||
-           Op.compare_upper("LE") == 0 ||
-           Op.compare_upper("GT") == 0 ||
-           Op.compare_upper("GE") == 0 ||
-           Op.compare_upper("NOT") == 0 ||
-           Op.compare_upper("AND") == 0 ||
-           Op.compare_upper("OR") == 0 ||
-           Op.compare_upper("EQV") == 0 ||
-           Op.compare_upper("NEQV") == 0)
+  else if (Op.compare_upper(".EQ.") == 0 ||
+           Op.compare_upper(".NE.") == 0 ||
+           Op.compare_upper(".LT.") == 0 ||
+           Op.compare_upper(".LE.") == 0 ||
+           Op.compare_upper(".GT.") == 0 ||
+           Op.compare_upper(".GE.") == 0 ||
+           Op.compare_upper(".NOT.") == 0 ||
+           Op.compare_upper(".AND.") == 0 ||
+           Op.compare_upper(".OR.") == 0 ||
+           Op.compare_upper(".EQV.") == 0 ||
+           Op.compare_upper(".NEQV.") == 0)
     Kind = tok::intrinsic_operator;
 
   return FormTokenWithChars(Result, Kind);
@@ -648,8 +654,6 @@ void Lexer::LexTokenInternal(Token &Result) {
         do {
           C = LineBuf[++CurPtr];
         } while (isIdentifierBody(C));
-
-        --CurPtr;               // Back up over the skipped character.
       }
 
       return FormDefinedOperatorTokenWithChars(Result);
