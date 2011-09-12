@@ -76,7 +76,6 @@ class ConstantExpr : public Expr {
   StringRef Data;
   std::string Kind;         // Optional Kind Selector
 protected:
-  APInt Value;
   ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
     : Expr(Ty, Loc) {}
 public:
@@ -84,8 +83,6 @@ public:
     : Expr(Expr::Constant, loc), Data(data) {}
 
   llvm::StringRef getData() const { return Data; }
-
-  llvm::APInt getValue() const { return Value; }
 
   const std::string &getKindSelector() const { return Kind; }
   void setKindSelector(llvm::StringRef K) { Kind = K; }
@@ -134,6 +131,7 @@ class BOZConstantExpr : public ConstantExpr {
 public:
   enum BOZKind { Hexadecimal, Octal, Binary };
 private:
+  APInt Val;
   BOZKind Kind;
   BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
 public:
@@ -153,14 +151,14 @@ public:
 };
 
 class LogicalConstantExpr : public ConstantExpr {
-  bool Kind;
+  bool Val;
   LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
 public:
   static LogicalConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
                                      llvm::StringRef Data);
 
-  bool isTrue() const { return Kind; }
-  bool isFalse() const { return !Kind; }
+  bool isTrue() const { return Val; }
+  bool isFalse() const { return !Val; }
 
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::LogicalConstant;

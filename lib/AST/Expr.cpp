@@ -66,7 +66,7 @@ BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
   size_t LastQuote = StrPair.first.rfind(StrPair.first[1]);
   assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
   llvm::StringRef Num = StrPair.first.slice(2, LastQuote);
-  Value = APInt(APInt::getBitsNeeded(Num, Radix), Num, Radix);
+  Val = APInt(APInt::getBitsNeeded(Num, Radix), Num, Radix);
 }
 
 BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
@@ -80,7 +80,7 @@ LogicalConstantExpr::LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
   if (!StrPair.second.empty())
     setKindSelector(StrPair.second);
 
-  Kind = (StrPair.first.compare_upper(".TRUE.") == 0);
+  Val = (StrPair.first.compare_upper(".TRUE.") == 0);
 }
 
 LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,

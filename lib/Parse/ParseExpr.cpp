@@ -426,29 +426,21 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     E = LogicalConstantExpr::Create(Context, Loc, NameStr);
     Lex();
     break;
+  case tok::binary_boz_constant:
+  case tok::octal_boz_constant:
+  case tok::hex_boz_constant:
+    E = BOZConstantExpr::Create(Context, Loc, NameStr);
+    Lex();
+    break;
   case tok::char_literal_constant:
     if (NextTok.is(tok::l_paren))
       // Possible substring.
       goto parse_designator;
-  case tok::binary_boz_constant:
-  case tok::octal_boz_constant:
-  case tok::hex_boz_constant:
-  case tok::numeric_constant: {
-    switch (Tok.getKind()) {
-    default:
-      E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
-                                                Tok.getLength()));
-      break;
-    case tok::binary_boz_constant:
-    case tok::octal_boz_constant:
-    case tok::hex_boz_constant:
-      E = BOZConstantExpr::Create(Context, Loc, NameStr);
-      break;
-    }
-
+  case tok::numeric_constant:
+    E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
+                                              Tok.getLength()));
     Lex();
     break;
-  }
   case tok::identifier:
     parse_designator:
     E = Parser::ParseDesignator();
