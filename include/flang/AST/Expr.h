@@ -98,8 +98,8 @@ public:
   static bool classof(const ConstantExpr *) { return true; }
 };
 
-/// \brief Used by IntegerConstantExpr/FloatingConstantExpr to store the numeric
-/// without leaking memory.
+/// \brief Used by {Integer,Real,BOZ}ConstantExpr to store the numeric without
+/// leaking memory.
 ///
 /// For large floats/integers, APFloat/APInt will allocate memory from the heap
 /// to represent these numbers. Unfortunately, when we use a BumpPtrAllocator

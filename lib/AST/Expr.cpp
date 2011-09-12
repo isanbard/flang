@@ -70,7 +70,7 @@ BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   switch (StrPair.first[0]) {
   case 'B':
     Kind = Binary;
-    Radix = 1;
+    Radix = 2;
     break;
   case 'O':
     Kind = Octal;
