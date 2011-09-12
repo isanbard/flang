@@ -60,7 +60,7 @@ RealConstantExpr *RealConstantExpr::Create(ASTContext &C, SMLoc Loc,
   return new (C) RealConstantExpr(C, Loc, Data);
 }
 
-BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(BOZConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
@@ -84,13 +84,14 @@ BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
 
   size_t LastQuote = StrPair.first.rfind(StrPair.first[1]);
   assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
-  llvm::StringRef Num = StrPair.first.slice(2, LastQuote);
-  Val = APInt(APInt::getBitsNeeded(Num, Radix), Num, Radix);
+  llvm::StringRef NumStr = StrPair.first.slice(2, LastQuote);
+  APInt Val(APInt::getBitsNeeded(NumStr, Radix), NumStr, Radix);
+  Num.setValue(C, Val);
 }
 
 BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
                                          llvm::StringRef Data) {
-  return new (C) BOZConstantExpr(Loc, Data);
+  return new (C) BOZConstantExpr(C, Loc, Data);
 }
 
 LogicalConstantExpr::LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)

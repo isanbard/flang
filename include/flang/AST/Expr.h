@@ -73,6 +73,7 @@ public:
 /// ConstantExpr -
 class ConstantExpr : public Expr {
   StringRef Data;
+  // FIXME: This leaks memory.
   std::string Kind;         // Optional Kind Selector
 protected:
   ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
@@ -177,12 +178,14 @@ class BOZConstantExpr : public ConstantExpr {
 public:
   enum BOZKind { Hexadecimal, Octal, Binary };
 private:
-  APInt Val;
+  APIntStorage Num;
   BOZKind Kind;
-  BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+  BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data);
 public:
-  static BOZConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
-                                 llvm::StringRef Data);
+  static BOZConstantExpr *Create(ASTContext &C, SMLoc Loc,
+                                 StringRef Data);
+
+  APInt getValue() const { return Num.getValue(); }
 
   BOZKind getBOZKind() const { return Kind; }
 
