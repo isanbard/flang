@@ -21,6 +21,8 @@
 
 namespace llvm {
   // ADT's.
+  class APInt;
+  class APFloat;
   class StringRef;
   class Twine;
   template<typename T> class ArrayRef;
@@ -41,6 +43,8 @@ namespace flang {
   using llvm::cast_or_null;
   
   // ADT's.
+  using llvm::APInt;
+  using llvm::APFloat;
   using llvm::StringRef;
   using llvm::Twine;
   using llvm::ArrayRef;

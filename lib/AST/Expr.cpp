@@ -14,27 +14,45 @@
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
+IntegerConstantExpr::IntegerConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+  : ConstantExpr(IntegerConstant, Loc) {
+  std::pair<StringRef, StringRef> StrPair = Data.split('_');
+  if (!StrPair.second.empty())
+    setKindSelector(StrPair.second);
+  Val = APInt(APInt::getBitsNeeded(StrPair.first, 10), StrPair.first, 10);
+}
+
+IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
+                                                 llvm::StringRef Data) {
+  return new (C) IntegerConstantExpr(Loc, Data);
+}
+
 BOZConstantExpr::BOZConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
   : ConstantExpr(BOZConstant, Loc) {
-  switch (Data[0]) {
-  case 'B': Kind = Binary; break;
-  case 'O': Kind = Octal; break;
-  case 'Z': case 'X': Kind = Hexadecimal; break;
+  std::pair<StringRef, StringRef> StrPair = Data.split('_');
+  if (!StrPair.second.empty())
+    setKindSelector(StrPair.second);
+
+  unsigned Radix = 0;
+  switch (StrPair.first[0]) {
+  case 'B':
+    Kind = Binary;
+    Radix = 1;
+    break;
+  case 'O':
+    Kind = Octal;
+    Radix = 8;
+    break;
+  case 'Z': case 'X':
+    Kind = Hexadecimal;
+    Radix = 16;
+    break;
   }
 
-  size_t LastQuote = Data.rfind(Data[1]);
+  size_t LastQuote = StrPair.first.rfind(StrPair.first[1]);
   assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
-  llvm::StringRef Num = Data.slice(2, LastQuote);
-  unsigned NumBits = (LastQuote - 2) *
-    (Kind == Binary ? 1 : (Kind == Octal ? 3 : 4));
-  Value = llvm::APInt(NumBits, Num,
-                      (Kind == Binary ? 1 : (Kind == Octal ? 8 : 16)));
-
-  // See if there's a "kind" associated with the BOZ constant.
-  size_t Under = Data.find('_');
-  if (Under == StringRef::npos)
-    return;
-  setKindSelector(Data.slice(Under + 1, StringRef::npos));
+  llvm::StringRef Num = StrPair.first.slice(2, LastQuote);
+  Value = APInt(APInt::getBitsNeeded(Num, Radix), Num, Radix);
 }
 
 BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
@@ -44,7 +62,11 @@ BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
 
 LogicalConstantExpr::LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
   : ConstantExpr(LogicalConstant, Loc) {
-  Kind = (Data.compare_upper(".TRUE.") == 0);
+  std::pair<StringRef, StringRef> StrPair = Data.split('_');
+  if (!StrPair.second.empty())
+    setKindSelector(StrPair.second);
+
+  Kind = (StrPair.first.compare_upper(".TRUE.") == 0);
 }
 
 LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,

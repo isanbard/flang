@@ -38,8 +38,11 @@ protected:
 
     // Unary Expressions
     Constant,
+    IntegerConstant,
+    RealConstant,
     BOZConstant,
     LogicalConstant,
+
     Variable,
     Unary,
     DefinedUnaryOperator,
@@ -88,9 +91,26 @@ public:
   virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
-    return E->getExpressionID() == Expr::Constant;
+    ExprType ETy = E->getExpressionID();
+    return ETy == Expr::Constant ||
+      ETy == Expr::IntegerConstant || ETy == Expr::RealConstant ||
+      ETy == Expr::BOZConstant || ETy == Expr::LogicalConstant;
   }
   static bool classof(const ConstantExpr *) { return true; }
+};
+
+class IntegerConstantExpr : public ConstantExpr {
+  llvm::APInt Val;
+  IntegerConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+public:
+  static IntegerConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
+                                     llvm::StringRef Data);
+
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::IntegerConstant;
+  }
+  static bool classof(const IntegerConstantExpr *) { return true; }
 };
 
 class BOZConstantExpr : public ConstantExpr {
