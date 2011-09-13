@@ -90,7 +90,7 @@ public:
 
   static bool classof(const Expr *E) {
     ExprType ETy = E->getExpressionID();
-    return ETy == Expr::Constant ||
+    return ETy == Expr::Constant || ETy == Expr::CharacterConstant ||
       ETy == Expr::IntegerConstant || ETy == Expr::RealConstant ||
       ETy == Expr::BOZConstant || ETy == Expr::LogicalConstant;
   }
