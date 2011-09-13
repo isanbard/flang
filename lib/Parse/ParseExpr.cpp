@@ -414,8 +414,8 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     StringRef Num(Tok.getLiteralData(), Tok.getLength());
     bool IsInteger = true;
     for (unsigned I = 0, E = Num.size(); I != E; ++I) {
-      if (Num[I] == '_') break;
-      if (Num[I] < '0' || Num[I] > '9') {
+      char C = std::toupper(Num[I]);
+      if (C == '.' || C == 'E' || C == 'D') {
         IsInteger = false;
         break;
       }
