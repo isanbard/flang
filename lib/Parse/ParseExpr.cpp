@@ -350,7 +350,7 @@ Parser::ExprResult Parser::ParseLevel1Expr() {
 
 // ParsePrimaryExpr - Parse a primary expression.
 //
-//   R701:
+//   [R701]:
 //     primary :=
 //         constant
 //      or designator
@@ -405,6 +405,11 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     if (NextTok.is(tok::l_paren))
       // Possible substring.
       goto parse_designator;
+    E = CharacterConstantExpr::Create(Context, Loc,
+                                      StringRef(Tok.getLiteralData(),
+                                                Tok.getLength()));
+    Lex();
+    break;
   case tok::numeric_constant:
     E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
                                               Tok.getLength()));
