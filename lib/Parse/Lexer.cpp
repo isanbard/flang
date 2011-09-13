@@ -438,7 +438,7 @@ void Lexer::LexIdentifier(Token &Result) {
 void Lexer::LexStatementLabel(Token &Result) {
   char C = LineBuf[CurPtr];
 
-  while (isNumberBody(C))
+  while (isDecimalNumberBody(C))
     C = LineBuf[++CurPtr];
 
   // Update the location of token as well as CurPtr.
