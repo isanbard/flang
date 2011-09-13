@@ -410,11 +410,24 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
                                                 Tok.getLength()));
     Lex();
     break;
-  case tok::numeric_constant:
-    E = new ConstantExpr(Loc, llvm::StringRef(Tok.getLiteralData(),
-                                              Tok.getLength()));
+  case tok::numeric_constant: {
+    StringRef Num(Tok.getLiteralData(), Tok.getLength());
+    bool IsInteger = true;
+    for (unsigned I = 0, E = Num.size(); I != E; ++I) {
+      if (Num[I] == '_') break;
+      if (Num[I] < '0' || Num[I] > '9') {
+        IsInteger = false;
+        break;
+      }
+    }
+
+    if (IsInteger)
+      E = IntegerConstantExpr::Create(Context, Loc, Num);
+    else
+      E = RealConstantExpr::Create(Context, Loc, Num);
     Lex();
     break;
+  }
   case tok::identifier:
     parse_designator:
     E = Parser::ParseDesignator();

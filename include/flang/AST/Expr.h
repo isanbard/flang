@@ -56,13 +56,13 @@ protected:
   };
 private:
   ExprType ExprID;
-  llvm::SMLoc Loc;
+  SMLoc Loc;
   friend class ASTContext;
 protected:
-  Expr(ExprType ET, llvm::SMLoc L) : ExprID(ET), Loc(L) {}
+  Expr(ExprType ET, SMLoc L) : ExprID(ET), Loc(L) {}
 public:
   ExprType getExpressionID() const { return ExprID; }
-  llvm::SMLoc getLocation() const { return Loc; }
+  SMLoc getLocation() const { return Loc; }
 
   virtual void print(raw_ostream&);
   void dump();
@@ -80,10 +80,6 @@ protected:
   
   void setKindSelector(ASTContext &C, StringRef K);
 public:
-  // FIXME: Remove this c'tor.
-  ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
-    : Expr(Expr::Constant, loc) {}
-
   const char *getKindSelector() const { return Kind; }
 
   virtual void print(llvm::raw_ostream&);
