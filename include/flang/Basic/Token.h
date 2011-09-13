@@ -16,8 +16,10 @@
 
 #include "flang/Basic/TokenKinds.h"
 #include "llvm/Support/SMLoc.h"
+#include "flang/Basic/LLVM.h"
 #include <cassert>
 #include <cstdlib>
+#include <string>
 
 namespace llvm {
   class Twine;
@@ -150,6 +152,9 @@ public:
     else
       clearFlag(Flag);
   }
+
+  /// CleanLiteral - Return the literal cleaned up of any line continuations.
+  std::string CleanLiteral(SmallVectorImpl<StringRef> &Spelling) const;
 
   /// CleanCharContext - Return the string from a character context that was
   /// continued over many lines.

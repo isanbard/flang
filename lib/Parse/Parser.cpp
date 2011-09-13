@@ -25,14 +25,6 @@
 #include "llvm/ADT/SmallString.h"
 using namespace flang;
 
-static void VectorToString(const llvm::SmallVectorImpl<llvm::StringRef> &Vec,
-                           llvm::SmallVectorImpl<char> &Str) {
-  llvm::raw_svector_ostream OS(Str);
-  for (llvm::SmallVectorImpl<llvm::StringRef>::const_iterator
-         I = Vec.begin(), E = Vec.end(); I != E; ++I)
-    OS << *I;
-}
-
 /// print - If a crash happens while the parser is active, print out a line
 /// indicating what the current token is.
 void PrettyStackTraceParserEntry::print(llvm::raw_ostream &OS) const {
@@ -49,11 +41,10 @@ void PrettyStackTraceParserEntry::print(llvm::raw_ostream &OS) const {
 
   llvm::SmallVector<llvm::StringRef, 2> Spelling;
   FP.getLexer().getSpelling(Tok, Spelling);
-  llvm::SmallString<256> Name;
-  VectorToString(Spelling, Name);
+  std::string Name = Tok.CleanLiteral(Spelling);
   FP.getLexer().getSourceManager()
     .PrintMessage(Tok.getLocation(),
-                  "current parser token '" + Name.str() + "'", "error");
+                  "current parser token '" + Name + "'", "error");
 }
 
 //===----------------------------------------------------------------------===//
@@ -175,9 +166,7 @@ void Parser::ClassifyToken(Token &T) {
   // Set the identifier info for this token.
   llvm::SmallVector<llvm::StringRef, 2> Spelling;
   TheLexer.getSpelling(T, Spelling);
-  llvm::SmallString<256> Name;
-  VectorToString(Spelling, Name);
-  std::string NameStr = Name.str();
+  std::string NameStr = Tok.CleanLiteral(Spelling);
 
   // We assume that the "common case" is that if an identifier is also a
   // keyword, it will most likely be used as a keyword. I.e., most programs are

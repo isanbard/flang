@@ -72,18 +72,18 @@ public:
 //===----------------------------------------------------------------------===//
 /// ConstantExpr -
 class ConstantExpr : public Expr {
-  // FIXME: This leaks memory.
-  std::string Kind;         // Optional Kind Selector
+  char *Kind;                   // Optional Kind Selector
 protected:
-  ConstantExpr(ExprType Ty, llvm::SMLoc Loc)
-    : Expr(Ty, Loc) {}
+  ConstantExpr(ExprType Ty, SMLoc Loc)
+    : Expr(Ty, Loc), Kind(0) {}
+  
+  void setKindSelector(ASTContext &C, StringRef K);
 public:
   // FIXME: Remove this c'tor.
   ConstantExpr(llvm::SMLoc loc, llvm::StringRef data)
     : Expr(Expr::Constant, loc) {}
 
-  const std::string &getKindSelector() const { return Kind; }
-  void setKindSelector(llvm::StringRef K) { Kind = K; }
+  const char *getKindSelector() const { return Kind; }
 
   virtual void print(llvm::raw_ostream&);
 
@@ -199,10 +199,10 @@ public:
 
 class LogicalConstantExpr : public ConstantExpr {
   bool Val;
-  LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data);
+  LogicalConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data);
 public:
-  static LogicalConstantExpr *Create(ASTContext &C, llvm::SMLoc Loc,
-                                     llvm::StringRef Data);
+  static LogicalConstantExpr *Create(ASTContext &C, SMLoc Loc,
+                                     StringRef Data);
 
   bool isTrue() const { return Val; }
   bool isFalse() const { return !Val; }

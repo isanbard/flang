@@ -14,7 +14,13 @@
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
-void APNumericStorage::setIntValue(ASTContext &C, const llvm::APInt &Val) {
+void ConstantExpr::setKindSelector(ASTContext &C, StringRef K) {
+  Kind = new (C) char[K.size() + 1];
+  std::strncpy(Kind, K.data(), K.size());
+  Kind[K.size()] = '\0';
+}
+
+void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
   if (hasAllocation())
     C.Deallocate(pVal);
 
@@ -35,13 +41,13 @@ IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
   : ConstantExpr(IntegerConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
-    setKindSelector(StrPair.second);
+    setKindSelector(C, StrPair.second);
   APInt Val(APInt::getBitsNeeded(StrPair.first, 10), StrPair.first, 10);
   Num.setValue(C, Val);
 }
 
-IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
-                                                 llvm::StringRef Data) {
+IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, SMLoc Loc,
+                                                 StringRef Data) {
   return new (C) IntegerConstantExpr(C, Loc, Data);
 }
 
@@ -49,7 +55,7 @@ RealConstantExpr::RealConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(RealConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
-    setKindSelector(StrPair.second);
+    setKindSelector(C, StrPair.second);
   // FIXME: IEEEdouble?
   APFloat Val(APFloat::IEEEsingle, StrPair.first);
   Num.setValue(C, Val);
@@ -64,7 +70,7 @@ BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(BOZConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
-    setKindSelector(StrPair.second);
+    setKindSelector(C, StrPair.second);
 
   unsigned Radix = 0;
   switch (StrPair.first[0]) {
@@ -89,23 +95,23 @@ BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   Num.setValue(C, Val);
 }
 
-BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
-                                         llvm::StringRef Data) {
+BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, SMLoc Loc,
+                                         StringRef Data) {
   return new (C) BOZConstantExpr(C, Loc, Data);
 }
 
-LogicalConstantExpr::LogicalConstantExpr(llvm::SMLoc Loc, llvm::StringRef Data)
+LogicalConstantExpr::LogicalConstantExpr(ASTContext &C, SMLoc Loc,
+                                         StringRef Data)
   : ConstantExpr(LogicalConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
-    setKindSelector(StrPair.second);
-
+    setKindSelector(C, StrPair.second);
   Val = (StrPair.first.compare_upper(".TRUE.") == 0);
 }
 
-LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, llvm::SMLoc Loc,
-                                                 llvm::StringRef Data) {
-  return new (C) LogicalConstantExpr(Loc, Data);
+LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, SMLoc Loc,
+                                                 StringRef Data) {
+  return new (C) LogicalConstantExpr(C, Loc, Data);
 }
 
 UnaryExpr *UnaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,

@@ -372,14 +372,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     } else {
       llvm::SmallVector<llvm::StringRef, 2> Spelling;
       TheLexer.getSpelling(Tok, Spelling);
-
-      llvm::SmallString<256> Name;
-      llvm::raw_svector_ostream OS(Name);
-      for (llvm::SmallVectorImpl<llvm::StringRef>::const_iterator
-             I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
-        OS << *I;
-
-      NameStr = Name.str();
+      NameStr = Tok.CleanLiteral(Spelling);
     }
   }
 

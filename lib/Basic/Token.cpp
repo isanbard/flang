@@ -12,12 +12,29 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Basic/Token.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/Twine.h"
+#include "flang/Basic/LLVM.h"
 using namespace flang;
 
 static inline bool isHorizontalWhitespace(char C) {
   return C == ' ' || C == '\t' || C == '\f' || C == '\v';
+}
+
+/// CleanLiteral - Return the literal cleaned up of any line continuations.
+std::string Token::CleanLiteral(SmallVectorImpl<StringRef> &Spelling) const {
+  if (!needsCleaning())
+    return Spelling[0].str();
+
+  llvm::SmallString<256> Name;
+  llvm::raw_svector_ostream OS(Name);
+  for (llvm::SmallVectorImpl<StringRef>::const_iterator
+         I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
+    OS << *I;
+
+  return Name.str();
 }
 
 /// CleanCharContext - Clean up a character context which is "dirty" (has
