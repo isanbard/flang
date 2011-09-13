@@ -66,6 +66,20 @@ RealConstantExpr *RealConstantExpr::Create(ASTContext &C, SMLoc Loc,
   return new (C) RealConstantExpr(C, Loc, Data);
 }
 
+CharacterConstantExpr::CharacterConstantExpr(ASTContext &C, SMLoc Loc,
+                                             StringRef data)
+  : ConstantExpr(CharacterConstant, Loc) {
+  // TODO: A 'kind' on a character literal constant.
+  Data = new (C) char[data.size() + 1];
+  std::strncpy(Data, data.data(), data.size());
+  Data[data.size()] = '\0';
+}
+
+CharacterConstantExpr *CharacterConstantExpr::Create(ASTContext &C, SMLoc Loc,
+                                                     StringRef Data) {
+  return new (C) CharacterConstantExpr(C, Loc, Data);
+}
+
 BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(BOZConstant, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');

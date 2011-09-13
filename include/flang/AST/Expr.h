@@ -42,6 +42,7 @@ protected:
     Constant,
     IntegerConstant,
     RealConstant,
+    CharacterConstant,
     BOZConstant,
     LogicalConstant,
 
@@ -170,6 +171,21 @@ public:
     return E->getExpressionID() == Expr::RealConstant;
   }
   static bool classof(const RealConstantExpr *) { return true; }
+};
+
+class CharacterConstantExpr : public ConstantExpr {
+  char *Data;
+  CharacterConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data);
+public:
+  static CharacterConstantExpr *Create(ASTContext &C, SMLoc Loc,
+                                       StringRef Data);
+
+  const char *getValue() const { return Data; }
+
+  static bool classof(const Expr *E) {
+    return E->getExpressionID() == Expr::CharacterConstant;
+  }
+  static bool classof(const CharacterConstantExpr *) { return true; }
 };
 
 class BOZConstantExpr : public ConstantExpr {
