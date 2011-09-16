@@ -16,6 +16,7 @@
 #define FLANG_SEMA_SEMA_H__
 
 #include "flang/Basic/Token.h"
+#include "flang/AST/FormatSpec.h"
 #include "flang/AST/Stmt.h"
 #include "flang/AST/Type.h"
 #include "flang/Sema/Ownership.h"
@@ -32,6 +33,7 @@ class DeclSpec;
 class DeclarationNameInfo;
 class Diagnostic;
 class Expr;
+class FormatSpec;
 class IdentifierInfo;
 class Token;
 class VarDecl;
@@ -65,15 +67,15 @@ public:
   void ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo);
 
   QualType ActOnTypeName(ASTContext &C, DeclSpec &DS);
-  Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
+  Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, SMLoc IDLoc,
                         const IdentifierInfo *IDInfo);
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
-                          llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                          SMLoc Loc, SMLoc NameLoc,
                           Token StmtLabelTok);
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
-                             llvm::SMLoc Loc, llvm::SMLoc NameLoc,
+                             SMLoc Loc, SMLoc NameLoc,
                              Token StmtLabel);
 
   StmtResult ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
@@ -82,6 +84,13 @@ public:
   QualType ActOnArraySpec(ASTContext &C, QualType ElemTy,
                           ArrayRef<ExprResult> Dims);
 
+  // FIXME: Support more than just '*' format spec.
+  FormatSpec *ActOnFormatSpec(ASTContext &C, FormatSpec::FormatType Ty,
+                              SMLoc Loc);
+
+  StmtResult ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,
+                            ArrayRef<ExprResult> OutputItemList,
+                            Token StmtLabel);
 
   // FIXME: TODO:
 

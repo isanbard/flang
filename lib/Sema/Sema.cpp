@@ -164,3 +164,14 @@ QualType Sema::ActOnArraySpec(ASTContext &C, QualType ElemTy,
                               ArrayRef<ExprResult> Dims) {
   return QualType(ArrayType::Create(C, ElemTy, Dims), 0);
 }
+
+FormatSpec *Sema::ActOnFormatSpec(ASTContext &C, FormatSpec::FormatType Ty,
+                                  SMLoc Loc) {
+  return FormatSpec::Create(C, Ty, Loc);
+}
+
+StmtResult Sema::ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,
+                                ArrayRef<ExprResult> OutputItemList,
+                                Token StmtLabel) {
+  return PrintStmt::Create(C, Loc, FS, OutputItemList, StmtLabel);
+}

@@ -323,16 +323,16 @@ bool Parser::ParseMainProgram() {
 
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
 
-  const IdentifierInfo *IDInfo = 0;
-  llvm::SMLoc NameLoc;
-
-  if (EndProgStmt.isUsable()) {
-    EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
-    IDInfo = EPS->getProgramName();
-    NameLoc = EPS->getNameLocation();
-  }
-
   {
+    const IdentifierInfo *IDInfo = 0;
+    llvm::SMLoc NameLoc;
+
+    if (EndProgStmt.isUsable()) {
+      EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
+      IDInfo = EPS->getProgramName();
+      NameLoc = EPS->getNameLocation();
+    }
+
     DeclarationName DN(IDInfo);
     DeclarationNameInfo DNI(DN, NameLoc);
     Actions.ActOnEndMainProgram(DNI);
@@ -479,13 +479,19 @@ bool Parser::ParseImplicitPart() {
 ///         executable-construct
 ///           [ execution-part-construct ] ...
 bool Parser::ParseExecutionPart(std::vector<StmtResult> &Stmts) {
+  bool HadError = false;
   while (true) {
     StmtResult SR = ParseExecutableConstruct();
-    if (SR.isUsable()) return true;
+    if (SR.isInvalid()) {
+      LexToEndOfStatement();
+      HadError = true;
+    } else if (!SR.isUsable()) {
+      break;
+    }
     Stmts.push_back(SR);
   }
 
-  return false;
+  return HadError;
 }
 
 /// ParseDeclarationConstructList - Parse a (possibly empty) list of declaration

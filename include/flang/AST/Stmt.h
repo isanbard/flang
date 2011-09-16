@@ -26,6 +26,7 @@ namespace llvm {
 
 namespace flang {
 
+class FormatSpec;
 class IdentifierInfo;
 
 //===----------------------------------------------------------------------===//
@@ -39,7 +40,8 @@ public:
     Import,
     Asynchronous,
     EndProgram,
-    Assignment
+    Assignment,
+    Print
   };
 private:
   StmtTy StmtID;
@@ -248,6 +250,22 @@ public:
   }
 };
 
+/// PrintStmt
+class PrintStmt : public Stmt {
+  FormatSpec *FS;
+  SmallVector<ExprResult, 4> OutputItemList;
+
+  PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
+            Token StmtLabelTok);
+public:
+  static PrintStmt *Create(ASTContext &C, SMLoc L, FormatSpec *fs,
+                           ArrayRef<ExprResult> OutList, Token StmtLabelTok);
+
+  static bool classof(const AssignmentStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Print;
+  }
+};
 
 } // end flang namespace
 

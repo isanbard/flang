@@ -28,13 +28,13 @@ std::string Token::CleanLiteral(SmallVectorImpl<StringRef> &Spelling) const {
   if (!needsCleaning())
     return Spelling[0].str();
 
-  llvm::SmallString<256> Name;
-  llvm::raw_svector_ostream OS(Name);
+  std::string Name;
+  Name.reserve(256);
   for (llvm::SmallVectorImpl<StringRef>::const_iterator
          I = Spelling.begin(), E = Spelling.end(); I != E; ++I)
-    OS << *I;
+    Name += *I;
 
-  return Name.str();
+  return Name;
 }
 
 /// CleanCharContext - Clean up a character context which is "dirty" (has

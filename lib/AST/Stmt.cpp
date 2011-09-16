@@ -112,3 +112,18 @@ AssignmentStmt *AssignmentStmt::Create(ASTContext &C, ExprResult lhs,
                                        ExprResult rhs, Token StmtLabelTok) {
   return new (C) AssignmentStmt(lhs, rhs, StmtLabelTok);
 }
+
+//===----------------------------------------------------------------------===//
+// Print Statement
+//===----------------------------------------------------------------------===//
+
+PrintStmt::PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
+                     Token StmtLabelTok)
+  : Stmt(Print, L, StmtLabelTok), FS(fs) {
+  OutputItemList.append(OutList.begin(), OutList.end());
+}
+
+PrintStmt *PrintStmt::Create(ASTContext &C, SMLoc L, FormatSpec *fs,
+                             ArrayRef<ExprResult> OutList, Token StmtLabelTok) {
+  return new (C) PrintStmt(L, fs, OutList, StmtLabelTok);
+}

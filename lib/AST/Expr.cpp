@@ -7,9 +7,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
-#include "flang/AST/Expr.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/StringRef.h"
 using namespace flang;

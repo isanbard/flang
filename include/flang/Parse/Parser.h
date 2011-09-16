@@ -231,6 +231,7 @@ private:
 
   //
   StmtResult ParseAssignmentStmt();
+  StmtResult ParsePrintStmt();
 
   // Helper functions.
   ExprResult ParseLevel5Expr();

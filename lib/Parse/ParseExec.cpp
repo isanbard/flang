@@ -38,9 +38,9 @@ using namespace flang;
 ///      or where-construct
 StmtResult Parser::ParseExecutableConstruct() {
   StmtResult SR = ParseActionStmt();
-  if (SR.isUsable()) return SR;
+  if (!SR.isUsable()) return StmtResult();
 
-  return StmtResult();
+  return SR;
 }
 
 /// ParseActionStmt - Parse an action statement.
@@ -98,6 +98,9 @@ Parser::StmtResult Parser::ParseActionStmt() {
   case tok::kw_ALLOCATE:
     Lex();
     break;
+  case tok::kw_PRINT:
+    return ParsePrintStmt();
+
   case tok::kw_END:
     // TODO: All of the end-* stmts.
     break;
@@ -112,8 +115,8 @@ Parser::StmtResult Parser::ParseActionStmt() {
   return SR;
 }
 
-/// Assignment Statement.
-///   R732:
+/// ParseAssignmentStmt
+///   [R732]:
 ///     assignment-stmt :=
 ///         variable = expr
 Parser::StmtResult Parser::ParseAssignmentStmt() {
@@ -126,17 +129,51 @@ Parser::StmtResult Parser::ParseAssignmentStmt() {
   return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabelTok);
 }
 
+/// ParsePrintStatement
+///   [R912]:
+///     print-stmt :=
+///         PRINT format [, output-item-list]
+///   [R915]:
+///     format :=
+///         default-char-expr
+///      or label
+///      or *
+Parser::StmtResult Parser::ParsePrintStmt() {
+  SMLoc Loc = Tok.getLocation();
+  Lex();
+
+  SMLoc FormatLoc = Tok.getLocation();
+  FormatSpec *FS = 0;
+  if (EatIfPresent(tok::star)) {
+    FS = Actions.ActOnFormatSpec(Context, FormatSpec::Star, FormatLoc);
+  }
+
+  // TODO: Parse the FORMAT default-char-expr & label.
+
+  if (!EatIfPresent(tok::comma)) {
+    Diag.ReportError(Tok.getLocation(),
+                     "expected a ',' after format spec in PRINT statement");
+    return StmtResult(true);
+  }
+
+  SmallVector<ExprResult, 4> OutputItemList;
+  while (!Tok.isAtStartOfStatement()) {
+    OutputItemList.push_back(ParseExpression());
+    if (!EatIfPresent(tok::comma))
+      break;
+  }
+
+  return Actions.ActOnPrintStmt(Context, Loc, FS, OutputItemList, StmtLabelTok);
+}
+
 /// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.
 ///
 ///   [R1103]:
 ///     end-program-stmt :=
 ///         END [ PROGRAM [ program-name ] ]
 Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
-  bool sawEnd = Tok.is(tok::kw_END);
-  bool sawEndProgram = Tok.is(tok::kw_ENDPROGRAM);
   llvm::SMLoc Loc = Tok.getLocation();
-
-  if (!sawEnd && !sawEndProgram) {
+  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected 'END PROGRAM' statement");
     return StmtResult();
