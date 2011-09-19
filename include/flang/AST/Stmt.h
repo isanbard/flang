@@ -247,6 +247,9 @@ public:
   static AssignmentStmt *Create(ASTContext &C, ExprResult LHS,
                                 ExprResult RHS, Token StmtLabelTok);
 
+  Expr *getLHS() const { return LHS.get(); }
+  Expr *getRHS() const { return RHS.get(); }
+
   static bool classof(const AssignmentStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Assignment;
@@ -264,7 +267,7 @@ public:
   static PrintStmt *Create(ASTContext &C, SMLoc L, FormatSpec *fs,
                            ArrayRef<ExprResult> OutList, Token StmtLabelTok);
 
-  static bool classof(const AssignmentStmt*) { return true; }
+  static bool classof(const PrintStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Print;
   }
