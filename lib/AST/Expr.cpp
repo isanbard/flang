@@ -38,7 +38,7 @@ void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
 
 IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
-  : ConstantExpr(IntegerConstant, Loc) {
+  : ConstantExpr(IntegerConstant, C.IntegerTy,  Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
@@ -52,7 +52,7 @@ IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, SMLoc Loc,
 }
 
 RealConstantExpr::RealConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
-  : ConstantExpr(RealConstant, Loc) {
+  : ConstantExpr(RealConstant, C.RealTy /*FIXME: Double?*/, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
@@ -68,7 +68,7 @@ RealConstantExpr *RealConstantExpr::Create(ASTContext &C, SMLoc Loc,
 
 CharacterConstantExpr::CharacterConstantExpr(ASTContext &C, SMLoc Loc,
                                              StringRef data)
-  : ConstantExpr(CharacterConstant, Loc) {
+  : ConstantExpr(CharacterConstant, C.CharacterTy, Loc) {
   // TODO: A 'kind' on a character literal constant.
   Data = new (C) char[data.size() + 1];
   std::strncpy(Data, data.data(), data.size());
@@ -81,7 +81,7 @@ CharacterConstantExpr *CharacterConstantExpr::Create(ASTContext &C, SMLoc Loc,
 }
 
 BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
-  : ConstantExpr(BOZConstant, Loc) {
+  : ConstantExpr(BOZConstant, C.IntegerTy, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
@@ -116,7 +116,7 @@ BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, SMLoc Loc,
 
 LogicalConstantExpr::LogicalConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
-  : ConstantExpr(LogicalConstant, Loc) {
+  : ConstantExpr(LogicalConstant, C.LogicalTy, Loc) {
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
@@ -128,10 +128,21 @@ LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, SMLoc Loc,
   return new (C) LogicalConstantExpr(C, Loc, Data);
 }
 
+VarExpr::VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
+  : DesignatorExpr(Loc, Var->getType(), DesignatorExpr::ObjectName),
+    Variable(Var) {}
+
 UnaryExpr *UnaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
                              ExprResult e) {
-  return new (C) UnaryExpr(Expr::Unary, loc, op, e);
+  return new (C) UnaryExpr(Expr::Unary,
+                           (op != Not) ? e.get()->getType() : C.LogicalTy,
+                           loc, op, e);
 }
+
+DefinedOperatorUnaryExpr::DefinedOperatorUnaryExpr(SMLoc loc, ExprResult e,
+                                                   IdentifierInfo *ii)
+  : UnaryExpr(Expr::DefinedUnaryOperator, e.get()->getType(), loc, Defined, e),
+    II(ii) {}
 
 DefinedOperatorUnaryExpr *DefinedOperatorUnaryExpr::Create(ASTContext &C,
                                                            SMLoc loc,
@@ -142,7 +153,25 @@ DefinedOperatorUnaryExpr *DefinedOperatorUnaryExpr::Create(ASTContext &C,
 
 BinaryExpr *BinaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
                                ExprResult lhs, ExprResult rhs) {
-  return new (C) BinaryExpr(Expr::Binary, loc, op, lhs, rhs);
+  QualType Ty;
+
+  switch (op) {
+  default: {
+    // FIXME: Combine two types.
+    Ty = lhs.get()->getType();
+    break;
+  }
+  case Eqv: case Neqv: case Or: case And:
+  case Equal: case NotEqual: case LessThan: case LessThanEqual:
+  case GreaterThan: case GreaterThanEqual:
+    Ty = C.LogicalTy;
+    break;
+  case Concat:
+    Ty = C.CharacterTy;
+    break;
+  }
+
+  return new (C) BinaryExpr(Expr::Binary, Ty, loc, op, lhs, rhs);
 }
 
 DefinedOperatorBinaryExpr *

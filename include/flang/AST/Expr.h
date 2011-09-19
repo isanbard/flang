@@ -55,12 +55,18 @@ protected:
     DefinedBinaryOperator
   };
 private:
+  QualType Ty;
   ExprType ExprID;
   SMLoc Loc;
   friend class ASTContext;
 protected:
-  Expr(ExprType ET, SMLoc L) : ExprID(ET), Loc(L) {}
+  Expr(ExprType ET, QualType T, SMLoc L) : ExprID(ET), Loc(L) {
+    setType(T);
+  }
 public:
+  QualType getType() const { return Ty; }
+  void setType(QualType T) { Ty = T; }
+
   ExprType getExpressionID() const { return ExprID; }
   SMLoc getLocation() const { return Loc; }
 
@@ -75,8 +81,8 @@ public:
 class ConstantExpr : public Expr {
   char *Kind;                   // Optional Kind Selector
 protected:
-  ConstantExpr(ExprType Ty, SMLoc Loc)
-    : Expr(Ty, Loc), Kind(0) {}
+  ConstantExpr(ExprType Ty, QualType T, SMLoc Loc)
+    : Expr(Ty, T, Loc), Kind(0) {}
   
   void setKindSelector(ASTContext &C, StringRef K);
 public:
@@ -241,8 +247,8 @@ public:
 private:
   DesignatorTy Ty;
 protected:
-  DesignatorExpr(llvm::SMLoc loc, DesignatorTy ty)
-    : Expr(Expr::Designator, loc), Ty(ty) {}
+  DesignatorExpr(SMLoc loc, QualType T, DesignatorTy ty)
+    : Expr(Expr::Designator, T, loc), Ty(ty) {}
 public:
   DesignatorTy getDesignatorType() const { return Ty; }
 
@@ -309,8 +315,7 @@ public:
 class VarExpr : public DesignatorExpr {
   const VarDecl *Variable;
 public:
-  VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
-    : DesignatorExpr(Loc, DesignatorExpr::ObjectName), Variable(Var) {}
+  VarExpr(llvm::SMLoc Loc, const VarDecl *Var);
 
   const VarDecl *getVarDecl() const { return Variable; }
 
@@ -346,8 +351,8 @@ public:
 protected:
   Operator Op;
   ExprResult E;
-  UnaryExpr(ExprType ET, SMLoc loc, Operator op, ExprResult e)
-    : Expr(ET, loc), Op(op), E(e) {}
+  UnaryExpr(ExprType ET, QualType T, SMLoc loc, Operator op, ExprResult e)
+    : Expr(ET, T, loc), Op(op), E(e) {}
 public:
   static UnaryExpr *Create(ASTContext &C, SMLoc loc, Operator op, ExprResult e);
 
@@ -368,8 +373,7 @@ public:
 /// DefinedOperatorUnaryExpr -
 class DefinedOperatorUnaryExpr : public UnaryExpr {
   IdentifierInfo *II;
-  DefinedOperatorUnaryExpr(SMLoc loc, ExprResult e, IdentifierInfo *ii)
-    : UnaryExpr(Expr::DefinedUnaryOperator, loc, Defined, e), II(ii) {}
+  DefinedOperatorUnaryExpr(SMLoc loc, ExprResult e, IdentifierInfo *ii);
 public:
   static DefinedOperatorUnaryExpr *Create(ASTContext &C, SMLoc loc,
                                           ExprResult e, IdentifierInfo *ii);
@@ -421,9 +425,9 @@ protected:
   Operator Op;
   ExprResult LHS;
   ExprResult RHS;
-  BinaryExpr(ExprType ET, llvm::SMLoc loc, Operator op,
+  BinaryExpr(ExprType ET, QualType T, SMLoc loc, Operator op,
              ExprResult lhs, ExprResult rhs)
-    : Expr(ET, loc), Op(op), LHS(lhs), RHS(rhs) {}
+    : Expr(ET, T, loc), Op(op), LHS(lhs), RHS(rhs) {}
 public:
   static BinaryExpr *Create(ASTContext &C, SMLoc loc, Operator op,
                             ExprResult lhs, ExprResult rhs);
@@ -449,7 +453,9 @@ class DefinedOperatorBinaryExpr : public BinaryExpr {
   IdentifierInfo *II;
   DefinedOperatorBinaryExpr(SMLoc loc, ExprResult lhs, ExprResult rhs,
                             IdentifierInfo *ii)
-    : BinaryExpr(Expr::DefinedBinaryOperator, loc, Defined, lhs, rhs), II(ii) {}
+    // FIXME: The type here needs to be calculated.
+    : BinaryExpr(Expr::DefinedBinaryOperator, QualType(), loc, Defined,
+                 lhs, rhs), II(ii) {}
 public:
   static DefinedOperatorBinaryExpr *Create(ASTContext &C, SMLoc loc,
                                            ExprResult lhs, ExprResult rhs,
