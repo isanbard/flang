@@ -218,11 +218,11 @@ void Parser::ParseStatementLabel() {
 
 // Assumed syntax rules
 //
-//   R101 xyz-list        :=  xyz [, xyz] ...
-//   R102 xyz-name        :=  name
-//   R103 scalar-xyz      :=  xyz
+//   [R101] xyz-list        :=  xyz [, xyz] ...
+//   [R102] xyz-name        :=  name
+//   [R103] scalar-xyz      :=  xyz
 //
-//   C101 (R103) scalar-xyz shall be scalar.
+//   [C101] (R103) scalar-xyz shall be scalar.
 
 /// ParseProgramUnits - Main entry point to the parser. Parses the current
 /// source.
@@ -241,7 +241,7 @@ bool Parser::ParseProgramUnits() {
 
 /// ParseProgramUnit - Parse a program unit.
 ///
-///   R202:
+///   [R202]:
 ///     program-unit :=
 ///         main-program
 ///      or external-subprogram

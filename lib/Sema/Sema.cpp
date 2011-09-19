@@ -165,9 +165,19 @@ QualType Sema::ActOnArraySpec(ASTContext &C, QualType ElemTy,
   return QualType(ArrayType::Create(C, ElemTy, Dims), 0);
 }
 
-FormatSpec *Sema::ActOnFormatSpec(ASTContext &C, FormatSpec::FormatType Ty,
-                                  SMLoc Loc) {
-  return FormatSpec::Create(C, Ty, Loc);
+StarFormatSpec *Sema::ActOnStarFormatSpec(ASTContext &C, SMLoc Loc) {
+  return StarFormatSpec::Create(C, Loc);
+}
+
+DefaultCharFormatSpec *Sema::ActOnDefaultCharFormatSpec(ASTContext &C,
+                                                        SMLoc Loc,
+                                                        ExprResult Fmt) {
+  return DefaultCharFormatSpec::Create(C, Loc, Fmt);
+}
+
+LabelFormatSpec *ActOnLabelFormatSpec(ASTContext &C, SMLoc Loc,
+                                      ExprResult Label) {
+  return LabelFormatSpec::Create(C, Loc, Label);
 }
 
 StmtResult Sema::ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,

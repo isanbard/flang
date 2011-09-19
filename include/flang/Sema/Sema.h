@@ -84,9 +84,12 @@ public:
   QualType ActOnArraySpec(ASTContext &C, QualType ElemTy,
                           ArrayRef<ExprResult> Dims);
 
-  // FIXME: Support more than just '*' format spec.
-  FormatSpec *ActOnFormatSpec(ASTContext &C, FormatSpec::FormatType Ty,
-                              SMLoc Loc);
+  StarFormatSpec *ActOnStarFormatSpec(ASTContext &C, SMLoc Loc);
+  DefaultCharFormatSpec *ActOnDefaultCharFormatSpec(ASTContext &C,
+                                                    SMLoc Loc,
+                                                    ExprResult Fmt);
+  LabelFormatSpec *ActOnLabelFormatSpec(ASTContext &C, SMLoc Loc,
+                                        ExprResult Label);
 
   StmtResult ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,
                             ArrayRef<ExprResult> OutputItemList,

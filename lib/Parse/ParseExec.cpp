@@ -145,7 +145,7 @@ Parser::StmtResult Parser::ParsePrintStmt() {
   SMLoc FormatLoc = Tok.getLocation();
   FormatSpec *FS = 0;
   if (EatIfPresent(tok::star)) {
-    FS = Actions.ActOnFormatSpec(Context, FormatSpec::Star, FormatLoc);
+    FS = Actions.ActOnStarFormatSpec(Context, FormatLoc);
   }
 
   // TODO: Parse the FORMAT default-char-expr & label.
