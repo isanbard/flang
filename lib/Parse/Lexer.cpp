@@ -260,8 +260,22 @@ void Lexer::getSpelling(const Token &Tok,
   unsigned Len = 0;
 
   while (true) {
-    while (Len != TokLen && *CurPtr != '&')
-      ++CurPtr, ++Len;
+    while (Len != TokLen) {
+      if (*CurPtr != '&') {
+        ++CurPtr, ++Len;
+        continue;
+      }
+      if (Tok.isNot(tok::char_literal_constant))
+        break;
+      const char *TmpPtr = CurPtr + 1;
+      unsigned TmpLen = Len + 1;
+      while (TmpLen != TokLen && isHorizontalWhitespace(*TmpPtr))
+        ++TmpPtr, ++TmpLen;
+      if (*TmpPtr == '\n' || *TmpPtr == '\r')
+        break;
+      CurPtr = TmpPtr;
+      Len = TmpLen;
+    }
 
     Spelling.push_back(llvm::StringRef(Start, CurPtr - Start));
 
@@ -380,7 +394,7 @@ void Lexer::LexBlankLinesAndComments() {
 
 /// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
 /// the character is correct for the given token being lexed.
-static bool isPartOfToken(Lexer::AmpLexType ALT, char C) {
+bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
   switch (ALT) {
   case Lexer::Ident:
     return isIdentifierBody(C);
@@ -392,6 +406,31 @@ static bool isPartOfToken(Lexer::AmpLexType ALT, char C) {
     return isOctalNumberBody(C);
   case Lexer::Binary:
     return isBinaryNumberBody(C);
+  case Lexer::CharSingleQuote:
+  case Lexer::CharDoubleQuote:
+    // A character context may be split by an '&'. If so, it must be the last
+    // non-whitespace character in the line.
+    if (ALT == Lexer::CharDoubleQuote) {
+      if (C == '"') {
+        if (LineBuf[CurPtr + 1] != '"')
+          return false;
+        C = LineBuf[++CurPtr];
+      }
+    } else {
+      if (C == '\'') {
+        if (LineBuf[CurPtr + 1] != '\'')
+          return false;
+        C = LineBuf[++CurPtr];
+      }
+    }
+
+    if (C != '&') return true;
+
+    do {
+      C = LineBuf[CurPtr++];
+    } while (isHorizontalWhitespace(C));
+
+    return C != '\0';
   }
 }
 
@@ -497,10 +536,8 @@ void Lexer::LexNumericConstant(Token &Result) {
 /// constant (string).
 void Lexer::LexCharacterLiteralConstant(Token &Result,
                                         bool DoubleQuotes) {
-  bool IsDirty = false;
+  char C = LineBuf[CurPtr];
   while (true) {
-    char C = LineBuf[CurPtr++];
-
     if (DoubleQuotes) {
       if (C == '"') {
         if (LineBuf[CurPtr] != '"')
@@ -515,42 +552,25 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
       }
     }
 
-    if (C != '&')
-      continue;
+    if (C == '&')
+      break;
 
-    while (isHorizontalWhitespace(C))
-      C = LineBuf[++CurPtr];
+    C = LineBuf[++CurPtr];
+  }
 
-    // Otherwise if we have something other than whitespace.
-    if (C != '\n' && C != '\r')
-      continue;
-
-    while (isWhitespace(C))
-      C = LineBuf[++CurPtr];
-
-    // A line with just a comment, eat the comment.
-    while (C == '!') {
-      Token Tmp;
-      LexComment(Tmp);
-
-      while (isWhitespace(C))
-        C = LineBuf[++CurPtr];
-    }
-
-    if (C != '&') {
-      //[TODO]: Issue diagnostic.
-      FormTokenWithChars(Result, tok::error);
-      return;
-    }
-
-    IsDirty = true;
+  if (LineBuf[CurPtr] == '&') {
+    LexAmpersandContext(DoubleQuotes ? CharDoubleQuote : CharSingleQuote);
+    // FIXME: Make this an error message.
+    assert((DoubleQuotes && LineBuf[CurPtr] == '"') ||
+           (!DoubleQuotes && LineBuf[CurPtr] == '\'') &&
+           "Unbalanced character context!");
+    ++CurPtr;
+    Result.setFlag(Token::NeedsCleaning);
   }
 
   // Update the location of token as well as CurPtr.
   FormTokenWithChars(Result, tok::char_literal_constant);
   Result.setLiteralData(TokStart);
-  if (IsDirty)
-    Result.setFlag(Token::NeedsCleaning);
 }
 
 /// LexComment - Lex a comment and return it, why not?

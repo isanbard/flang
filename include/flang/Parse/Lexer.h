@@ -86,9 +86,15 @@ public:
     Num,
     Hex,
     Binary,
-    Octal
+    Octal,
+    CharSingleQuote,
+    CharDoubleQuote
   };
 private:
+  /// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
+  /// the character is correct for the given token being lexed.
+  bool isPartOfToken(Lexer::AmpLexType ALT, char C);
+
   /// LexAmpersandContext - Lex the continuation within a given context.
   void LexAmpersandContext(AmpLexType ALT);
 
