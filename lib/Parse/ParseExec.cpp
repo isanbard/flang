@@ -95,9 +95,6 @@ Parser::StmtResult Parser::ParseActionStmt() {
   StmtResult SR;
   switch (Tok.getKind()) {
   default: assert(false && "Unknown statement type!"); break;
-  case tok::kw_ALLOCATE:
-    Lex();
-    break;
   case tok::kw_PRINT:
     return ParsePrintStmt();
 
@@ -152,7 +149,7 @@ Parser::StmtResult Parser::ParsePrintStmt() {
 
   if (!EatIfPresent(tok::comma)) {
     Diag.ReportError(Tok.getLocation(),
-                     "expected a ',' after format spec in PRINT statement");
+                     "expected ',' after format specifier in PRINT statement");
     return StmtResult(true);
   }
 
