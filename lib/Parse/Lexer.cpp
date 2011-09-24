@@ -492,10 +492,12 @@ void Lexer::LexIdentifier(Token &Result) {
 /// LexStatementLabel - Lex the remainder of a statement label -- a 5-digit
 /// number.
 void Lexer::LexStatementLabel(Token &Result) {
-  char C = LineBuf[CurPtr];
+  char C = GetNextCharacter();
 
-  while (isDecimalNumberBody(C))
-    C = LineBuf[++CurPtr];
+  while (isDecimalNumberBody(C)) {
+    ++CurPtr;
+    C = GetNextCharacter();
+  }
 
   // Update the location of token as well as CurPtr.
   FormTokenWithChars(Result, tok::statement_label);
