@@ -395,7 +395,7 @@ void Lexer::LexBlankLinesAndComments() {
 /// GetNextCharacter - Get the next character from the buffer ignoring
 /// continuation contexts.
 char Lexer::GetNextCharacter() {
-  if (LineBuf[++CurPtr] != '&')
+  if (LineBuf[CurPtr] != '&')
     return LineBuf[CurPtr];
 
   ++CurPtr;
@@ -427,12 +427,14 @@ bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
     // non-whitespace character in the line.
     if (ALT == Lexer::CharDoubleQuote) {
       if (C == '"') {
+        ++CurPtr;
         C = GetNextCharacter();
         if (C != '"')
           return false;
       }
     } else {
       if (C == '\'') {
+        ++CurPtr;
         C = GetNextCharacter();
         if (C != '\'')
           return false;
