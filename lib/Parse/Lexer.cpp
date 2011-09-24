@@ -860,7 +860,7 @@ LexIdentifier:
     Kind = tok::r_square;
     break;
   case '(':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '/') {
       // Beginning of array initialization.
       Kind = tok::l_parenslash;
@@ -882,7 +882,7 @@ LexIdentifier:
     Kind = tok::comma;
     break;
   case ':':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == ':') {
       Kind = tok::coloncolon;
       ++CurPtr;
@@ -928,7 +928,7 @@ LexIdentifier:
     Kind = tok::minus;
     break;
   case '*':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '*') {
       // Power operator.
       Kind = tok::starstar;
@@ -938,7 +938,7 @@ LexIdentifier:
     }
     break;
   case '/':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '=') {
       // Not equal operator.
       Kind = tok::slashequal;
@@ -957,7 +957,7 @@ LexIdentifier:
     break;
   // [TODO]: Logical Operators
   case '=':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '=') {
       Kind = tok::equalequal;
       ++CurPtr;
@@ -969,7 +969,7 @@ LexIdentifier:
     }
     break;
   case '<':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '=') {
       Kind = tok::lessequal;
       ++CurPtr;
@@ -978,7 +978,7 @@ LexIdentifier:
     }
     break;
   case '>':
-    Char = LineBuf[CurPtr];
+    Char = GetNextCharacter();
     if (Char == '=') {
       Kind = tok::greaterequal;
       ++CurPtr;
