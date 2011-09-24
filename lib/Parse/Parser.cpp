@@ -186,6 +186,22 @@ void Parser::ClassifyToken(Token &T) {
   }
 }
 
+/// CleanLiteral - Cleans up a literal if it needs cleaning. It removes the
+/// continuation contexts and comments. Cleaning a dirty literal is SLOW!
+void Parser::CleanLiteral(Token T, std::string &NameStr) {
+  assert(Tok.isLiteral() && "Trying to clean a non-literal!");
+  if (!Tok.needsCleaning()) {
+    // This should be the common case.
+    NameStr = llvm::StringRef(Tok.getLiteralData(),
+                              Tok.getLength()).str();
+    return;
+  }
+
+  llvm::SmallVector<llvm::StringRef, 2> Spelling;
+  TheLexer.getSpelling(Tok, Spelling);
+  NameStr = Tok.CleanLiteral(Spelling);
+}
+
 /// EatIfPresent - Eat the token if it's present. Return 'true' if it was
 /// delicious.
 bool Parser::EatIfPresent(tok::TokenKind Kind) {

@@ -116,6 +116,10 @@ private:
     return PrevTokLocation;
   }
 
+  /// CleanLiteral - Cleans up a literal if it needs cleaning. It removes the
+  /// continuation contexts and comments. Cleaning a dirty literal is SLOW!
+  void CleanLiteral(Token T, std::string &NameStr);
+
   bool EnterIncludeFile(const std::string &Filename);
 
   const Token &PeekAhead() const {
