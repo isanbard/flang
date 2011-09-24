@@ -77,13 +77,15 @@ void StmtVisitor::visit(const ImportStmt *S) {
 void StmtVisitor::visit(const AsynchronousStmt *S) {
 }
 void StmtVisitor::visit(const AssignmentStmt *S) {
-  OS << "(Assignment: ";
+  OS << "(ASSIGNMENT ";
   S->getLHS()->getType().print(OS);
   OS << "\n  (";
   S->getRHS()->getType().print(OS);
   OS << "))\n";
 }
 void StmtVisitor::visit(const PrintStmt *S) {
+  OS << "(PRINT [";
+  OS << ")\n";
 }
 
 void flang::dump(ArrayRef<Stmt*> S) {
