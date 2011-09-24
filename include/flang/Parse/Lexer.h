@@ -121,6 +121,10 @@ private:
   template <bool (*Compare)(unsigned char)>
   void LexBOZConstant(Token &Result, const char *CurPtr, tok::TokenKind Kind);
 
+  /// GetNextCharacter - Get the next character from the buffer ignoring
+  /// continuation contexts.
+  char GetNextCharacter();
+
   /// GetNextLine - Get the next line of the program to lex.
   void GetNextLine();
 

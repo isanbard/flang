@@ -392,6 +392,21 @@ void Lexer::LexBlankLinesAndComments() {
   }
 }
 
+/// GetNextCharacter - Get the next character from the buffer ignoring
+/// continuation contexts.
+char Lexer::GetNextCharacter() {
+  if (LineBuf[++CurPtr] != '&')
+    return LineBuf[CurPtr];
+
+  ++CurPtr;
+  LexBlankLinesAndComments();
+
+  if (LineBuf[CurPtr] != '&')
+    return '\0';
+
+  return LineBuf[++CurPtr];
+}
+
 /// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
 /// the character is correct for the given token being lexed.
 bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
@@ -412,15 +427,15 @@ bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
     // non-whitespace character in the line.
     if (ALT == Lexer::CharDoubleQuote) {
       if (C == '"') {
-        if (LineBuf[CurPtr + 1] != '"')
+        C = GetNextCharacter();
+        if (C != '"')
           return false;
-        C = LineBuf[++CurPtr];
       }
     } else {
       if (C == '\'') {
-        if (LineBuf[CurPtr + 1] != '\'')
+        C = GetNextCharacter();
+        if (C != '\'')
           return false;
-        C = LineBuf[++CurPtr];
       }
     }
 
@@ -496,6 +511,11 @@ void Lexer::LexNumericConstant(Token &Result) {
     C = LineBuf[++CurPtr];
   }
 
+  if (LineBuf[CurPtr] == '&') {
+    LexAmpersandContext(Num);
+    Result.setFlag(Token::NeedsCleaning);
+  }
+
   // Could be part of a defined operator. Form numeric constant from what we now
   // have.
   if (PrevCh == '.' && isLetter(LineBuf[CurPtr + 1])) {
@@ -560,11 +580,6 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
 
   if (LineBuf[CurPtr] == '&') {
     LexAmpersandContext(DoubleQuotes ? CharDoubleQuote : CharSingleQuote);
-    // FIXME: Make this an error message.
-    assert((DoubleQuotes && LineBuf[CurPtr] == '"') ||
-           (!DoubleQuotes && LineBuf[CurPtr] == '\'') &&
-           "Unbalanced character context!");
-    ++CurPtr;
     Result.setFlag(Token::NeedsCleaning);
   }
 
