@@ -410,6 +410,18 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
                                                 Tok.getLength()));
     Lex();
     break;
+  case tok::int_literal_constant: {
+    StringRef Num(Tok.getLiteralData(), Tok.getLength());
+    E = IntegerConstantExpr::Create(Context, Loc, Num);
+    Lex();
+    break;
+  }
+  case tok::real_literal_constant: {
+    StringRef Num(Tok.getLiteralData(), Tok.getLength());
+    E = RealConstantExpr::Create(Context, Loc, Num);
+    Lex();
+    break;
+  }
   case tok::numeric_constant: {
     StringRef Num(Tok.getLiteralData(), Tok.getLength());
     bool IsInteger = true;

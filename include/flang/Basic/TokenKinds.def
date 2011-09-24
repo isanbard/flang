@@ -40,11 +40,15 @@ TOK(comment)             // Comment (only in -E -C[C] mode)
 // [FIXME]: Identifiers.
 TOK(identifier)          // abcde123
 
-// [3.2.5] R312: Statement Labels
+// [R312]: Statement Labels
 TOK(statement_label)     // 12345
 
-// [FIXME]: Integer Constants
-// [FIXME]: Floating Constants
+// [R406]: Signed Integer Literal Constants
+TOK(int_literal_constant)  // -927
+
+// [R412]: Signed Real Literal Constants
+TOK(real_literal_constant) // +37.927e42
+
 TOK(numeric_constant)    // 123, 3.4e-5
 
 TOK(binary_boz_constant) // B"0100"

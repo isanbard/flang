@@ -267,6 +267,9 @@ public:
   static PrintStmt *Create(ASTContext &C, SMLoc L, FormatSpec *fs,
                            ArrayRef<ExprResult> OutList, Token StmtLabelTok);
 
+  FormatSpec *getFormatSpec() const { return FS; }
+  ArrayRef<ExprResult> getOutputItemList() const { return OutputItemList; }
+
   static bool classof(const PrintStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Print;
