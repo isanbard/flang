@@ -310,11 +310,15 @@ bool Parser::ParseMainProgram() {
     Actions.ActOnMainProgram(DNI);
   }
 
+  // FIXME: Check for the specific keywords and not just absence of END or
+  //        ENDPROGRAM.
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
     ParseSpecificationPart();
     ParseStatementLabel();
   }
 
+  // FIXME: Check for the specific keywords and not just absence of END or
+  //        ENDPROGRAM.
   std::vector<StmtResult> Stmts;
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
     ParseExecutionPart(Stmts);
