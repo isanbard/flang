@@ -381,7 +381,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     break;
   case tok::logical_literal_constant: {
     std::string NameStr;
-    CleanLiteral(Tok, Namestr);
+    CleanLiteral(Tok, NameStr);
     E = LogicalConstantExpr::Create(Context, Loc, NameStr);
     Lex();
     break;
@@ -390,7 +390,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   case tok::octal_boz_constant:
   case tok::hex_boz_constant: {
     std::string NameStr;
-    CleanLiteral(Tok, Namestr);
+    CleanLiteral(Tok, NameStr);
     E = BOZConstantExpr::Create(Context, Loc, NameStr);
     Lex();
     break;
