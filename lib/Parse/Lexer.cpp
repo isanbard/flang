@@ -395,7 +395,7 @@ void Lexer::LexBlankLinesAndComments() {
 /// GetNextCharacter - Get the next character from the buffer ignoring
 /// continuation contexts.
 char Lexer::GetNextCharacter() {
-  if (LineBuf[CurPtr] != '&')
+  if (LineBuf[++CurPtr] != '&')
     return LineBuf[CurPtr];
 
   ++CurPtr;
@@ -431,14 +431,12 @@ bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
     // non-whitespace character in the line.
     if (ALT == Lexer::CharDoubleQuote) {
       if (C == '"') {
-        ++CurPtr;
         C = GetNextCharacter();
         if (C != '"')
           return false;
       }
     } else {
       if (C == '\'') {
-        ++CurPtr;
         C = GetNextCharacter();
         if (C != '\'')
           return false;
@@ -498,10 +496,8 @@ void Lexer::LexIdentifier(Token &Result) {
 void Lexer::LexStatementLabel(Token &Result) {
   char C = GetNextCharacter();
 
-  while (isDecimalNumberBody(C)) {
-    ++CurPtr;
+  while (isDecimalNumberBody(C))
     C = GetNextCharacter();
-  }
 
   // Update the location of token as well as CurPtr.
   FormTokenWithChars(Result, tok::statement_label);
@@ -527,7 +523,6 @@ bool Lexer::LexIntegerLiteralConstant() {
 
   while (isDecimalNumberBody(C)) {
     IntPresent = true;
-    ++CurPtr;
     C = GetNextCharacter();
   }
 
@@ -562,7 +557,6 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
   // have.
   char C = LineBuf[CurPtr];
   if (PrevChar == '.' && isLetter(C)) {
-    ++CurPtr;
     C = GetNextCharacter();
     if (isLetter(C)) {
       std::swap(SaveLineBegin, BufPtr);
@@ -576,12 +570,9 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
 
   if (C == 'E' || C == 'e' || C == 'D' || C == 'd') {
     IsReal = true;
-    ++CurPtr;
     C = GetNextCharacter();
-    if (C == '-' || C == '+') {
-      ++CurPtr;
+    if (C == '-' || C == '+')
       C = GetNextCharacter();
-    }
     if (!isDecimalNumberBody(C)) {
       // [TODO]: Error: Invalid REAL literal.
       FormTokenWithChars(Result, tok::error);
@@ -592,7 +583,6 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
 
   if (C == '_')
     do {
-      ++CurPtr;
       C = GetNextCharacter();
     } while (isIdentifierBody(C) || isDecimalNumberBody(C));
 
@@ -741,10 +731,8 @@ void Lexer::LexTokenInternal(Token &Result) {
     if (isLetter(LineBuf[CurPtr])) {
       // Match [A-Za-z]*, we have already matched '.'.
       unsigned char C = LineBuf[CurPtr];
-      while (isLetter(C)) {
-        ++CurPtr;
+      while (isLetter(C))
         C = GetNextCharacter();
-      }
 
       if (C != '.') {
         // [TODO]: error.
@@ -752,12 +740,10 @@ void Lexer::LexTokenInternal(Token &Result) {
         return;
       }
 
-      ++CurPtr;
       C = GetNextCharacter();
       if (C == '_') {
         // Parse the kind.
         do {
-          ++CurPtr;
           C = GetNextCharacter();
         } while (isIdentifierBody(C) || isDecimalNumberBody(C));
       }
