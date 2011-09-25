@@ -534,12 +534,6 @@ bool Lexer::LexIntegerLiteralConstant() {
   return IntPresent;
 }
 
-/// LexRealLiteralConstant - Lex a real literal constant.
-bool Lexer::LexRealLiteralConstant() {
-  LexIntegerLiteralConstant();
-  return false;
-}
-
 /// LexNumericConstant - Lex the remainder of an integer or floating point
 /// constant.
 void Lexer::LexNumericConstant(Token &Result, char PrevChar) {

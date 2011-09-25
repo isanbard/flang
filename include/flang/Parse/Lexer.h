@@ -111,9 +111,6 @@ private:
   /// LexIntegerLiteralConstant - Lex an integer literal constant.
   bool LexIntegerLiteralConstant();
 
-  /// LexRealLiteralConstant - Lex a real literal constant.
-  bool LexRealLiteralConstant();
-
   /// LexNumericConstant - Lex the remainder of an integer or floating point
   /// constant. From[-1] is the first character lexed.
   void LexNumericConstant(Token &Result, char PrevChar);
