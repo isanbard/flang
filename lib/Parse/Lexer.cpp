@@ -12,7 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "flang/Parse/Lexer.h"
+#include "flang/Basic/Diagnostic.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/ADT/Twine.h"
@@ -22,7 +24,8 @@ static void InitCharacterInfo();
 
 Lexer::Lexer(llvm::SourceMgr &SM, const LangOptions &features, Diagnostic &D)
   : Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
-    LastTokenWasSemicolon(false), LastTokenWasAmpersand(false) {
+    SaveLineBegin(0), SaveCurPtr(0), LastTokenWasSemicolon(false),
+    LastTokenWasAmpersand(false) {
   InitCharacterInfo();
 }
 
@@ -37,6 +40,150 @@ void Lexer::setBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
 llvm::SMLoc Lexer::getLoc() const {
   return llvm::SMLoc::getFromPointer(TokStart);
 }
+
+static bool isWhitespace(unsigned char c);
+static bool isHorizontalWhitespace(unsigned char c);
+static bool isVerticalWhitespace(unsigned char c);
+
+namespace {
+
+/// LineOfText - This represents a line of text in the program where
+/// continuation contexts are concatenated.
+class LineOfText {
+  Diagnostic &Diags;
+
+  /// Atoms - A vector of atoms which make up one continuation context free line
+  /// in the program. E.g.
+  ///
+  ///   'hello &
+  ///   ! comment
+  ///   &world'
+  ///
+  /// becomes two 'atoms' which can be treated as one contiguous line. I.e.
+  ///
+  ///   'hello world'
+  SmallVector<StringRef, 4> Atoms;
+
+  /// BufPtr - This is the next line to be lexed.
+  const char *BufPtr;
+
+  /// LineBegin - A pointer to the start of a line in the memory buffer.
+  const char *LineBegin;
+
+  /// CurAtom - The current atom.
+  unsigned CurAtom;
+
+  /// CurPtr - Current index into the buffer. This is the next character to be
+  /// lexed.
+  uint64_t CurPtr;
+
+  /// GetNextLine - Get the next line of the program to lex.
+  void GetNextLine() {
+    // Save a pointer to the beginning of the line.
+    LineBegin = BufPtr;
+
+    // Fill the line buffer with the current line.
+    const char *AmpersandPos = 0;
+    unsigned I = 0;
+
+    // Skip blank lines and lines with only comments.
+    while (isVerticalWhitespace(*BufPtr) && *BufPtr != '\0')
+      ++BufPtr;
+
+    while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr != '\0')
+      ++I, ++BufPtr;
+
+    if (I != 132 && *BufPtr == '!') {
+      do {
+        ++BufPtr;
+      } while (!isVerticalWhitespace(*BufPtr));
+
+      while (isVerticalWhitespace(*BufPtr))
+        ++BufPtr;
+
+      return GetNextLine();
+    }
+
+    // If we have a continuation character at the beginning of the line, and
+    // we've had a previous continuation character at the end of the line, then
+    // readjust the LineBegin.
+    if (I != 132 && *BufPtr == '&') {
+      ++I, ++BufPtr;
+      if (!Atoms.empty())
+        LineBegin = BufPtr;
+      else
+        Diags.ReportError(SMLoc::getFromPointer(BufPtr - 1),
+                          "continuation character used out of context");
+    }
+
+    while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
+      if (*BufPtr == '&') {
+        AmpersandPos = BufPtr;
+        do {
+          ++I, ++BufPtr;
+        } while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr!='\0');
+
+        if (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '!') {
+          Diags.ReportError(SMLoc::getFromPointer(AmpersandPos),
+                            "continuation character not at end of line");
+          AmpersandPos = 0;     // Pretend nothing's wrong.
+        }
+
+        if (I == 132 || *BufPtr == '!' || isVerticalWhitespace(*BufPtr))
+          break;
+      }
+
+      ++BufPtr;
+      ++I;
+    }
+
+    if (!AmpersandPos) {
+      Atoms.push_back(StringRef(LineBegin, BufPtr - LineBegin));
+    } else {
+      Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
+    }
+
+    // Increment the buffer pointer to the start of the next line.
+    while (*BufPtr != '\0' && !isVerticalWhitespace(*BufPtr))
+      ++BufPtr;
+    while (*BufPtr != '\0' && isVerticalWhitespace(*BufPtr))
+      ++BufPtr;
+
+    if (AmpersandPos)
+      GetNextLine();
+  }
+public:
+  explicit LineOfText(Diagnostic &D, const char *Ptr)
+    : Diags(D), BufPtr(Ptr), LineBegin(0), CurAtom(0), CurPtr(0) {
+    while (*BufPtr != '\0') {
+      Atoms.clear();
+      GetNextLine();
+      dump();
+    }
+  }
+
+  char GetNextChar() {
+    StringRef Atom = Atoms[CurAtom];
+    if (++CurPtr == Atom.size()) {
+      if (++CurAtom == Atoms.size())
+        return '\0';
+      Atom = Atoms[CurAtom];
+      CurPtr = 0;
+    }
+    assert(!Atom.empty() && "Atom has no contents!");
+    return Atom.data()[CurPtr];
+  }
+
+  void dump() const {
+    llvm::errs() << "->";
+    for (SmallVectorImpl<StringRef>::const_iterator
+           I = Atoms.begin(), E = Atoms.end(); I != E; ++I)
+      llvm::errs() << *I;
+    llvm::errs() << "<-\n";
+  }
+};
+
+} // end anonymous namespace
 
 //===----------------------------------------------------------------------===//
 // Character information.
@@ -924,7 +1071,7 @@ LexIdentifier:
     SaveState();
     Char = GetNextCharacter(false);
     if (Char == '/') {
-      // Beginning of array initialization.
+      // beginning of array initialization.
       Kind = tok::l_parenslash;
       ++CurPtr;
     } else {
