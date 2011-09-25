@@ -403,8 +403,10 @@ void Lexer::SaveState() {
 /// SaveState was called. It is undefined what will happen if you call
 /// RestoreState without calling SaveState first.
 void Lexer::RestoreState() {
-  std::swap(SaveLineBegin, BufPtr);
-  GetNextLine();
+  if (SaveLineBegin != BufPtr) {
+    std::swap(SaveLineBegin, BufPtr);
+    GetNextLine();
+  }
   std::swap(SaveCurPtr, CurPtr);
 }
 
