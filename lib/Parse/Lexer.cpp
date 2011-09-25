@@ -590,6 +590,12 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
     LexIntegerLiteralConstant();
   }
 
+  if (C == '_')
+    do {
+      ++CurPtr;
+      C = GetNextCharacter();
+    } while (isIdentifierBody(C) || isDecimalNumberBody(C));
+
   // Update the location of token as well as CurPtr.
  make_literal:
   if (!IsReal)
@@ -601,55 +607,6 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
   if (NumStr.find('&'))
     Result.setFlag(Token::NeedsCleaning);
   return;
-#if 0
-  char C = LineBuf[CurPtr];
-  char PrevCh = '\0';
-
-  while (isDecimalNumberBody(C)) {
-    PrevCh = C;
-    C = LineBuf[++CurPtr];
-  }
-
-  if (LineBuf[CurPtr] == '&') {
-    LexAmpersandContext(Num);
-    Result.setFlag(Token::NeedsCleaning);
-  }
-
-  // Could be part of a defined operator. Form numeric constant from what we now
-  // have.
-  if (PrevCh == '.' && isLetter(LineBuf[CurPtr + 1])) {
-    --CurPtr;
-    C = LineBuf[CurPtr];
-    PrevCh = LineBuf[CurPtr - 1];
-  }
-
-  // If we fell out, check for a sign, due to 1e+12.  If we have one, continue.
-  if (C == 'E' || C == 'e' || C == 'D' || C == 'd') {
-    if (LineBuf[CurPtr + 1] == '-' || LineBuf[CurPtr + 1] == '+')
-      ++CurPtr;
-
-    return LexNumericConstant(Result, PrevCh);
-  }
-
-  if (PrevCh == '_') {
-    // [TODO]: Number constant kind.
-    while (isIdentifierBody(C))
-      C = LineBuf[++CurPtr];
-
-    --CurPtr;   // Back up over the skipped character.
-  }
-
-  if (isIdentifierBody(LineBuf[CurPtr])) {
-    while (isIdentifierBody(C))
-      C = LineBuf[++CurPtr];
-
-    return FormTokenWithChars(Result, tok::error);
-  }
-
-  // Update the location of token as well as CurPtr.
-  FormTokenWithChars(Result, tok::numeric_constant);
-  Result.setLiteralData(TokStart);
-#endif
 }
 
 /// LexCharacterLiteralConstant - Lex the remainder of a character literal

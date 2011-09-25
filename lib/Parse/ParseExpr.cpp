@@ -418,24 +418,6 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     break;
   }
-  case tok::numeric_constant: {
-    StringRef Num(Tok.getLiteralData(), Tok.getLength());
-    bool IsInteger = true;
-    for (unsigned I = 0, E = Num.size(); I != E; ++I) {
-      char C = std::toupper(Num[I]);
-      if (C == '.' || C == 'E' || C == 'D') {
-        IsInteger = false;
-        break;
-      }
-    }
-
-    if (IsInteger)
-      E = IntegerConstantExpr::Create(Context, Loc, Num);
-    else
-      E = RealConstantExpr::Create(Context, Loc, Num);
-    Lex();
-    break;
-  }
   case tok::identifier:
     parse_designator:
     E = Parser::ParseDesignator();
