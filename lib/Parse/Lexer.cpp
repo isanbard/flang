@@ -537,9 +537,7 @@ bool Lexer::LexIntegerLiteralConstant() {
 /// LexNumericConstant - Lex the remainder of an integer or floating point
 /// constant.
 void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
-  bool IsReal = false;
-  if (PrevChar == '.')
-    IsReal = true;
+  bool BeginsWithDot = (PrevChar == '.');
 
   bool IntPresent = LexIntegerLiteralConstant();
   if (!IntPresent && PrevChar == '.') {
@@ -548,13 +546,34 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
     return;
   }
 
-  if (LineBuf[CurPtr] == '.') {
+  const char *SaveLineBegin = LineBegin;
+  uint64_t SaveCurPtr = CurPtr;
+  bool IsReal = false;
+
+  PrevChar = LineBuf[CurPtr];
+  if (PrevChar == '.') {
     IsReal = true;
     ++CurPtr;
-    LexIntegerLiteralConstant();
+    if (LexIntegerLiteralConstant()) 
+      PrevChar = '\0';
   }
 
+  // Could be part of a defined operator. Form numeric constant from what we now
+  // have.
   char C = LineBuf[CurPtr];
+  if (PrevChar == '.' && isLetter(C)) {
+    ++CurPtr;
+    C = GetNextCharacter();
+    if (isLetter(C)) {
+      std::swap(SaveLineBegin, BufPtr);
+      GetNextLine();
+      std::swap(SaveCurPtr, CurPtr);
+      if (!BeginsWithDot)
+        IsReal = false;
+      goto make_literal;
+    }
+  }
+
   if (C == 'E' || C == 'e' || C == 'D' || C == 'd') {
     IsReal = true;
     ++CurPtr;
@@ -572,6 +591,7 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
   }
 
   // Update the location of token as well as CurPtr.
+ make_literal:
   if (!IsReal)
     FormTokenWithChars(Result, tok::int_literal_constant);
   else
@@ -764,8 +784,10 @@ void Lexer::LexTokenInternal(Token &Result) {
     if (isLetter(LineBuf[CurPtr])) {
       // Match [A-Za-z]*, we have already matched '.'.
       unsigned char C = LineBuf[CurPtr];
-      while (isLetter(C))
-        C = LineBuf[++CurPtr];
+      while (isLetter(C)) {
+        ++CurPtr;
+        C = GetNextCharacter();
+      }
 
       if (C != '.') {
         // [TODO]: error.
@@ -773,12 +795,14 @@ void Lexer::LexTokenInternal(Token &Result) {
         return;
       }
 
-      C = LineBuf[++CurPtr];
+      ++CurPtr;
+      C = GetNextCharacter();
       if (C == '_') {
         // Parse the kind.
         do {
-          C = LineBuf[++CurPtr];
-        } while (isIdentifierBody(C));
+          ++CurPtr;
+          C = GetNextCharacter();
+        } while (isIdentifierBody(C) || isDecimalNumberBody(C));
       }
 
       return FormDefinedOperatorTokenWithChars(Result);
