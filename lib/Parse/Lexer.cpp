@@ -392,6 +392,22 @@ void Lexer::LexBlankLinesAndComments() {
   }
 }
 
+/// SaveState - Save the current state of the lexer. We may have to go back to
+/// this state depending upon the lexical state.
+void Lexer::SaveState() {
+  SaveLineBegin = LineBegin;
+  SaveCurPtr = CurPtr;
+}
+
+/// RestoreState - Restore the state of the lexer to the state it was in when
+/// SaveState was called. It is undefined what will happen if you call
+/// RestoreState without calling SaveState first.
+void Lexer::RestoreState() {
+  std::swap(SaveLineBegin, BufPtr);
+  GetNextLine();
+  std::swap(SaveCurPtr, CurPtr);
+}
+
 /// GetNextCharacter - Get the next character from the buffer ignoring
 /// continuation contexts.
 char Lexer::GetNextCharacter() {
@@ -541,8 +557,7 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
     return;
   }
 
-  const char *SaveLineBegin = LineBegin;
-  uint64_t SaveCurPtr = CurPtr;
+  SaveState();
   bool IsReal = false;
 
   PrevChar = LineBuf[CurPtr];
@@ -559,9 +574,7 @@ void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
   if (PrevChar == '.' && isLetter(C)) {
     C = GetNextCharacter();
     if (isLetter(C)) {
-      std::swap(SaveLineBegin, BufPtr);
-      GetNextLine();
-      std::swap(SaveCurPtr, CurPtr);
+      RestoreState();
       if (!BeginsWithDot)
         IsReal = false;
       goto make_literal;

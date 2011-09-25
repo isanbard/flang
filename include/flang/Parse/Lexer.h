@@ -64,6 +64,10 @@ class Lexer {
   /// CurKind - The current "kind" of token.
   tok::TokenKind CurKind;
 
+  /// Used to save the current lexer state.
+  const char *SaveLineBegin;
+  uint64_t SaveCurPtr;
+
   /// LastTokenWasSemicolon - True if the last token we returned was a
   /// semicolon.
   bool LastTokenWasSemicolon;
@@ -123,6 +127,15 @@ private:
   /// first character lexed.  Return the end of the constant.
   template <bool (*Compare)(unsigned char)>
   void LexBOZConstant(Token &Result, const char *CurPtr, tok::TokenKind Kind);
+
+  /// SaveState - Save the current state of the lexer. We may have to go back to
+  /// this state depending upon the lexical state.
+  void SaveState();
+
+  /// RestoreState - Restore the state of the lexer to the state it was in when
+  /// SaveState was called. It is undefined what will happen if you call
+  /// RestoreState without calling SaveState first.
+  void RestoreState();
 
   /// GetNextCharacter - Get the next character from the buffer ignoring
   /// continuation contexts.
