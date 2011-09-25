@@ -1,6 +1,6 @@
 FLANG_LEVEL := ../../..
 BUILT_SOURCES = \
-	DiagnosticParseKinds.inc
+	DiagnosticCommonKinds.inc DiagnosticParseKinds.inc
 
 TABLEGEN_INC_FILES_COMMON = 1
 

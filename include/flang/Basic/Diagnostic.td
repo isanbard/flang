@@ -82,4 +82,5 @@ class FullExplanation<string brief, string full> {
 }
 
 // Definitions for Diagnostics.
+include "DiagnosticCommonKinds.td"
 include "DiagnosticParseKinds.td"
