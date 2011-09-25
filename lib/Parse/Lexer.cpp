@@ -404,7 +404,11 @@ char Lexer::GetNextCharacter() {
   if (LineBuf[CurPtr] != '&')
     return '\0';
 
-  return LineBuf[++CurPtr];
+  if (LineBuf[++CurPtr] == '&')
+    // FIXME: Issue a warning.
+    return GetNextCharacter();
+
+  return LineBuf[CurPtr];
 }
 
 /// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
@@ -414,7 +418,7 @@ bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
   case Lexer::Ident:
     return isIdentifierBody(C);
   case Lexer::Num:
-    return isNumberBody(C);
+    return isDecimalNumberBody(C);
   case Lexer::Hex:
     return isHexNumberBody(C);
   case Lexer::Octal:
@@ -504,13 +508,90 @@ void Lexer::LexStatementLabel(Token &Result) {
   Result.setLiteralData(TokStart);
 }
 
+/// LexIntegerLiteralConstant - Lex an integer literal constant.
+///
+///   [R406]:
+///     signed-int-literal-constant :=
+///         [ sign ] int-literal-constant
+///   [R407]:
+///     int-literal-constant :=
+///         digit-string [ _kind-param ]
+///   [R410]:
+///     digit-string :=
+///         digit [ digit ] ...
+bool Lexer::LexIntegerLiteralConstant() {
+  bool IntPresent = false;
+  char C = LineBuf[CurPtr];
+  if (C == '-' || C == '+')
+    C = GetNextCharacter();
+
+  while (isDecimalNumberBody(C)) {
+    IntPresent = true;
+    ++CurPtr;
+    C = GetNextCharacter();
+  }
+
+  return IntPresent;
+}
+
+/// LexRealLiteralConstant - Lex a real literal constant.
+bool Lexer::LexRealLiteralConstant() {
+  LexIntegerLiteralConstant();
+  return false;
+}
+
 /// LexNumericConstant - Lex the remainder of an integer or floating point
 /// constant.
-void Lexer::LexNumericConstant(Token &Result) {
+void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
+  bool IsReal = false;
+  if (PrevChar == '.')
+    IsReal = true;
+
+  bool IntPresent = LexIntegerLiteralConstant();
+  if (!IntPresent && PrevChar == '.') {
+    // [TODO]: Error: Invalid REAL literal.
+    FormTokenWithChars(Result, tok::error);
+    return;
+  }
+
+  if (LineBuf[CurPtr] == '.') {
+    IsReal = true;
+    ++CurPtr;
+    LexIntegerLiteralConstant();
+  }
+
+  char C = LineBuf[CurPtr];
+  if (C == 'E' || C == 'e' || C == 'D' || C == 'd') {
+    IsReal = true;
+    ++CurPtr;
+    C = GetNextCharacter();
+    if (C == '-' || C == '+') {
+      ++CurPtr;
+      C = GetNextCharacter();
+    }
+    if (!isDecimalNumberBody(C)) {
+      // [TODO]: Error: Invalid REAL literal.
+      FormTokenWithChars(Result, tok::error);
+      return;
+    }
+    LexIntegerLiteralConstant();
+  }
+
+  // Update the location of token as well as CurPtr.
+  if (!IsReal)
+    FormTokenWithChars(Result, tok::int_literal_constant);
+  else
+    FormTokenWithChars(Result, tok::real_literal_constant);
+  Result.setLiteralData(TokStart);
+  StringRef NumStr(Result.getLiteralData(), Result.getLength());
+  if (NumStr.find('&'))
+    Result.setFlag(Token::NeedsCleaning);
+  return;
+#if 0
   char C = LineBuf[CurPtr];
   char PrevCh = '\0';
 
-  while (isNumberBody(C)) {
+  while (isDecimalNumberBody(C)) {
     PrevCh = C;
     C = LineBuf[++CurPtr];
   }
@@ -533,7 +614,7 @@ void Lexer::LexNumericConstant(Token &Result) {
     if (LineBuf[CurPtr + 1] == '-' || LineBuf[CurPtr + 1] == '+')
       ++CurPtr;
 
-    return LexNumericConstant(Result);
+    return LexNumericConstant(Result, PrevCh);
   }
 
   if (PrevCh == '_') {
@@ -554,6 +635,7 @@ void Lexer::LexNumericConstant(Token &Result) {
   // Update the location of token as well as CurPtr.
   FormTokenWithChars(Result, tok::numeric_constant);
   Result.setLiteralData(TokStart);
+#endif
 }
 
 /// LexCharacterLiteralConstant - Lex the remainder of a character literal
@@ -713,7 +795,7 @@ void Lexer::LexTokenInternal(Token &Result) {
     // [TODO]: Kinds on literals.
     if (Result.isAtStartOfStatement())
       return LexStatementLabel(Result);
-    return LexNumericConstant(Result);
+    return LexNumericConstant(Result, Char);
 
   case '"':
   case '\'':

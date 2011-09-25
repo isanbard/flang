@@ -405,14 +405,16 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     break;
   case tok::int_literal_constant: {
-    StringRef Num(Tok.getLiteralData(), Tok.getLength());
-    E = IntegerConstantExpr::Create(Context, Loc, Num);
+    std::string NumStr;
+    CleanLiteral(Tok, NumStr);
+    E = IntegerConstantExpr::Create(Context, Loc, NumStr);
     Lex();
     break;
   }
   case tok::real_literal_constant: {
-    StringRef Num(Tok.getLiteralData(), Tok.getLength());
-    E = RealConstantExpr::Create(Context, Loc, Num);
+    std::string NumStr;
+    CleanLiteral(Tok, NumStr);
+    E = RealConstantExpr::Create(Context, Loc, NumStr);
     Lex();
     break;
   }
