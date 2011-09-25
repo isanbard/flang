@@ -139,7 +139,7 @@ private:
 
   /// GetNextCharacter - Get the next character from the buffer ignoring
   /// continuation contexts.
-  char GetNextCharacter();
+  char GetNextCharacter(bool IncPtr = true);
 
   /// GetNextLine - Get the next line of the program to lex.
   void GetNextLine();

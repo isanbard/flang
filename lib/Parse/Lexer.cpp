@@ -410,8 +410,9 @@ void Lexer::RestoreState() {
 
 /// GetNextCharacter - Get the next character from the buffer ignoring
 /// continuation contexts.
-char Lexer::GetNextCharacter() {
-  if (LineBuf[++CurPtr] != '&')
+char Lexer::GetNextCharacter(bool IncPtr) {
+  if (IncPtr) ++CurPtr;
+  if (LineBuf[CurPtr] != '&')
     return LineBuf[CurPtr];
 
   ++CurPtr;
@@ -918,12 +919,14 @@ LexIdentifier:
     Kind = tok::r_square;
     break;
   case '(':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '/') {
       // Beginning of array initialization.
       Kind = tok::l_parenslash;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::l_paren;
     }
     break;
@@ -940,11 +943,13 @@ LexIdentifier:
     Kind = tok::comma;
     break;
   case ':':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == ':') {
       Kind = tok::coloncolon;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::colon;
     }
     break;
@@ -986,17 +991,20 @@ LexIdentifier:
     Kind = tok::minus;
     break;
   case '*':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '*') {
       // Power operator.
       Kind = tok::starstar;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::star;
     }
     break;
   case '/':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '=') {
       // Not equal operator.
       Kind = tok::slashequal;
@@ -1010,12 +1018,14 @@ LexIdentifier:
       Kind = tok::slashslash;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::slash;
     }
     break;
   // [TODO]: Logical Operators
   case '=':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '=') {
       Kind = tok::equalequal;
       ++CurPtr;
@@ -1023,24 +1033,29 @@ LexIdentifier:
       Kind = tok::equalgreater;
       ++CurPtr;
     } else {      
+      RestoreState();
       Kind = tok::equal;
     }
     break;
   case '<':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '=') {
       Kind = tok::lessequal;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::less;
     }
     break;
   case '>':
-    Char = GetNextCharacter();
+    SaveState();
+    Char = GetNextCharacter(false);
     if (Char == '=') {
       Kind = tok::greaterequal;
       ++CurPtr;
     } else {
+      RestoreState();
       Kind = tok::greater;
     }
     break;
