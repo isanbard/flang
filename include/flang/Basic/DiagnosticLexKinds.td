@@ -1,0 +1,16 @@
+//==--- DiagnosticLexKinds.td - Lexer Diagnostics -------------------------===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
+// Lexer Diagnostics
+//===----------------------------------------------------------------------===//
+
+let Component = "Lex", CategoryName = "Lexical Issue" in {
+
+}
