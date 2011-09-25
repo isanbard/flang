@@ -85,10 +85,11 @@ public:
   /// isLiteral - Return true if this is a "literal", like a numeric constant,
   /// string, etc.
   bool isLiteral() const {
-    return is(tok::numeric_constant)    || is(tok::statement_label)
-      || is(tok::char_literal_constant) || is(tok::binary_boz_constant)
-      || is(tok::octal_boz_constant)    || is(tok::hex_boz_constant)
-      || is(tok::defined_operator)      || is(tok::comment);
+    return is(tok::int_literal_constant)|| is(tok::real_literal_constant)
+      || is(tok::statement_label)       || is(tok::char_literal_constant)
+      || is(tok::binary_boz_constant)   || is(tok::octal_boz_constant)
+      || is(tok::hex_boz_constant)      || is(tok::defined_operator)
+      || is(tok::comment);
   }
 
   /// getLocation - Return a source location identifier for the specified offset
