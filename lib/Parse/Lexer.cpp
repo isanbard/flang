@@ -812,15 +812,7 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
       }
     }
 
-    if (C == '&')
-      break;
-
     C = LineBuf[++CurPtr];
-  }
-
-  if (LineBuf[CurPtr] == '&') {
-    LexAmpersandContext(DoubleQuotes ? CharDoubleQuote : CharSingleQuote);
-    Result.setFlag(Token::NeedsCleaning);
   }
 
   // Update the location of token as well as CurPtr.
@@ -832,10 +824,9 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
 void Lexer::LexComment(Token &Result) {
   char Char;
   do {
-    Char = LineBuf[CurPtr++];
+    Char = getNextChar();
   } while (Char != '\0');
 
-  --CurPtr;
   FormTokenWithChars(Result, tok::comment);
   Result.setLiteralData(TokStart);
 }
@@ -868,7 +859,7 @@ void Lexer::GetNextLine() {
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
   // Check to see if there is still more of the line to lex.
-  if (Text.empty())
+  if (Text.empty() || peekNextChar() == '\0')
     Text.GetNextLine();
 
   // Check to see if we're at the start of a line.
@@ -1059,10 +1050,6 @@ LexIdentifier:
     LexComment(Result);
     if (Features.ReturnComments)
       return;
-    return LexTokenInternal(Result);
-
-  case '&':
-    LexBlankLinesAndComments();
     return LexTokenInternal(Result);
 
   // [TODO]: Special Characters.
