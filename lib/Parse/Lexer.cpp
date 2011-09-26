@@ -23,13 +23,15 @@ using namespace flang;
 static void InitCharacterInfo();
 
 Lexer::Lexer(llvm::SourceMgr &SM, const LangOptions &features, Diagnostic &D)
-  : Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
+  : Text(D), Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
     SaveLineBegin(0), SaveCurPtr(0), LastTokenWasSemicolon(false),
     LastTokenWasAmpersand(false) {
   InitCharacterInfo();
 }
 
 void Lexer::setBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
+  Text.SetBuffer(Buf, Ptr);
+
   CurBuf = Buf;
   LineBegin = BufPtr = (Ptr ? Ptr : CurBuf->getBufferStart());
   CurPtr = 0;
@@ -44,6 +46,13 @@ llvm::SMLoc Lexer::getLoc() const {
 static bool isWhitespace(unsigned char c);
 static bool isHorizontalWhitespace(unsigned char c);
 static bool isVerticalWhitespace(unsigned char c);
+
+void Lexer::LineOfText::
+SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
+  BufPtr = (Ptr ? Ptr : Buf->getBufferStart());
+  CurAtom = CurPtr = 0;
+  Atoms.clear();
+}
 
 /// SkipBlankLinesAndComments - Helper function that skips blank lines and lines
 /// with only comments.
@@ -199,8 +208,12 @@ void Lexer::LineOfText::GetNextLine() {
 char Lexer::LineOfText::GetNextChar() {
   StringRef Atom = Atoms[CurAtom];
   if (++CurPtr == Atom.size()) {
-    if (++CurAtom == Atoms.size())
-      return '\0';
+    if (++CurAtom == Atoms.size()) {
+      Atoms.clear();
+      CurPtr = CurAtom = 0;
+      GetNextLine();
+      return GetNextChar();
+    }
     Atom = Atoms[CurAtom];
     CurPtr = 0;
   }
@@ -871,8 +884,6 @@ void Lexer::GetNextLine() {
 /// has a null character at the end of the file. It assumes that the Flags of
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
-  LineOfText LoT(Diags, CurBuf->getBufferStart());
-
   // Check to see if there is still more of the line to lex.
   if (LineBuf[CurPtr] == '\0') {
     GetNextLine();

@@ -70,15 +70,25 @@ class Lexer {
 
     /// GetNextLine - Get the next line of the program to lex.
     void GetNextLine();
+
+    friend class Lexer;
   public:
-    explicit LineOfText(Diagnostic &D, const char *Ptr)
-      : Diags(D), BufPtr(Ptr), CurAtom(0), CurPtr(0) {}
+    explicit LineOfText(Diagnostic &D)
+      : Diags(D), BufPtr(0), CurAtom(0), CurPtr(0) {}
+
+    void SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr);
 
     char GetNextChar();
 
     void dump() const;
     void dump(raw_ostream &OS) const;
   };
+
+  /// Text - The text of the program.
+  LineOfText Text;
+
+  /// getNextChar - Get the next character from the buffer.
+  char getNextChar() { return Text.GetNextChar(); }
 
   Diagnostic &Diags;
   llvm::SourceMgr &SrcMgr;
