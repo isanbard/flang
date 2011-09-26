@@ -575,47 +575,6 @@ void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
   return FormTokenWithChars(Result, Kind);
 }
 
-/// LexBlankLinesAndComments - Lex blank lines and lines with only
-/// comments. Used after we've parsed an ampersand.
-void Lexer::LexBlankLinesAndComments() {
-  while (true) {
-    // Skip blank lines...
-    while (isWhitespace(LineBuf[CurPtr]))
-      ++CurPtr;
-
-    if (LineBuf[CurPtr] != '\0') {
-      if (LineBuf[CurPtr] != '!')
-        break;
-
-      // ...and lines with only comments.
-      while (LineBuf[CurPtr] != '\0')
-        ++CurPtr;
-    }
-
-    GetNextLine();
-  }
-}
-
-/// GetNextCharacter - Get the next character from the buffer ignoring
-/// continuation contexts.
-char Lexer::GetNextCharacter(bool IncPtr) {
-  if (IncPtr) ++CurPtr;
-  if (LineBuf[CurPtr] != '&')
-    return LineBuf[CurPtr];
-
-  ++CurPtr;
-  LexBlankLinesAndComments();
-
-  if (LineBuf[CurPtr] != '&')
-    return '\0';
-
-  if (LineBuf[++CurPtr] == '&')
-    // FIXME: Issue a warning.
-    return GetNextCharacter();
-
-  return LineBuf[CurPtr];
-}
-
 /// LexIdentifier - Lex the remainder of an identifier.
 void Lexer::LexIdentifier(Token &Result) {
   // Match [_A-Za-z0-9]*, we have already matched [A-Za-z$]
@@ -701,9 +660,9 @@ void Lexer::LexNumericConstant(Token &Result) {
 
   if (C == 'E' || C == 'e' || C == 'D' || C == 'd') {
     IsReal = true;
-    C = GetNextCharacter();
+    C = getNextChar();
     if (C == '-' || C == '+')
-      C = GetNextCharacter();
+      C = getNextChar();
     if (!isDecimalNumberBody(C)) {
       // [TODO]: Error: Invalid REAL literal.
       FormTokenWithChars(Result, tok::error);
@@ -714,7 +673,7 @@ void Lexer::LexNumericConstant(Token &Result) {
 
   if (C == '_')
     do {
-      C = GetNextCharacter();
+      C = getNextChar();
     } while (isIdentifierBody(C) || isDecimalNumberBody(C));
 
   // Update the location of token as well as CurPtr.
