@@ -27,8 +27,7 @@ static bool isVerticalWhitespace(unsigned char c);
 
 Lexer::Lexer(llvm::SourceMgr &SM, const LangOptions &features, Diagnostic &D)
   : Text(D), Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
-    SaveLineBegin(0), SaveCurPtr(0), LastTokenWasSemicolon(false),
-    LastTokenWasAmpersand(false) {
+    SaveLineBegin(0), SaveCurPtr(0), LastTokenWasSemicolon(false) {
   InitCharacterInfo();
 }
 
@@ -51,6 +50,7 @@ SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
   BufPtr = (Ptr ? Ptr : Buf->getBufferStart());
   CurAtom = CurPtr = 0;
   Atoms.clear();
+  GetNextLine();
 }
 
 /// SkipBlankLinesAndComments - Helper function that skips blank lines and lines
@@ -509,7 +509,7 @@ void Lexer::getSpelling(const Token &Tok,
 /// range and assigns it to the token as its location and size. In addition,
 /// since tokens cannot overlap, this also updates CurPtr to be TokEnd.
 void Lexer::FormTokenWithChars(Token &Result, tok::TokenKind Kind) {
-  uint64_t TokLen = (LineBegin + CurPtr) - TokStart;
+  uint64_t TokLen = getCurrentPtr() - TokStart;
   CurKind = Kind;
   Result.setLocation(llvm::SMLoc::getFromPointer(TokStart));
   Result.setLength(TokLen);
@@ -706,10 +706,10 @@ void Lexer::LexIdentifier(Token &Result) {
 /// LexStatementLabel - Lex the remainder of a statement label -- a 5-digit
 /// number.
 void Lexer::LexStatementLabel(Token &Result) {
-  char C = GetNextCharacter();
+  char C = getNextChar();
 
   while (isDecimalNumberBody(C))
-    C = GetNextCharacter();
+    C = getNextChar();
 
   // Update the location of token as well as CurPtr.
   FormTokenWithChars(Result, tok::statement_label);
@@ -729,48 +729,44 @@ void Lexer::LexStatementLabel(Token &Result) {
 ///         digit [ digit ] ...
 bool Lexer::LexIntegerLiteralConstant() {
   bool IntPresent = false;
-  char C = LineBuf[CurPtr];
+  char C = getNextChar();
   if (C == '-' || C == '+')
-    C = GetNextCharacter();
+    C = getNextChar();
 
   while (isDecimalNumberBody(C)) {
     IntPresent = true;
-    C = GetNextCharacter();
+    C = getNextChar();
   }
 
   return IntPresent;
 }
 
-/// LexNumericConstant - Lex the remainder of an integer or floating point
-/// constant.
-void Lexer::LexNumericConstant(Token &Result, char PrevChar) {
-  bool BeginsWithDot = (PrevChar == '.');
-
-  bool IntPresent = LexIntegerLiteralConstant();
-  if (!IntPresent && PrevChar == '.') {
-    // [TODO]: Error: Invalid REAL literal.
+/// LexNumericConstant - Lex an integer or floating point constant.
+void Lexer::LexNumericConstant(Token &Result) {
+  const char *NumBegin = getCurrentPtr();
+  bool BeginsWithDot = (*NumBegin == '.');
+  if (!LexIntegerLiteralConstant() && BeginsWithDot) {
+    Diags.ReportError(SMLoc::getFromPointer(NumBegin),
+                      "invalid REAL literal");
     FormTokenWithChars(Result, tok::error);
     return;
   }
 
-  SaveState();
   bool IsReal = false;
-
-  PrevChar = LineBuf[CurPtr];
+  char PrevChar = getCurrentChar();
   if (PrevChar == '.') {
     IsReal = true;
-    ++CurPtr;
-    if (LexIntegerLiteralConstant()) 
+    getNextChar();
+    if (LexIntegerLiteralConstant())
       PrevChar = '\0';
   }
 
   // Could be part of a defined operator. Form numeric constant from what we now
   // have.
-  char C = LineBuf[CurPtr];
+  char C = getCurrentChar();
   if (PrevChar == '.' && isLetter(C)) {
-    C = GetNextCharacter();
+    C = getCurrentChar();
     if (isLetter(C)) {
-      RestoreState();
       if (!BeginsWithDot)
         IsReal = false;
       goto make_literal;
@@ -883,48 +879,34 @@ void Lexer::GetNextLine() {
 /// has a null character at the end of the file. It assumes that the Flags of
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
-  // Check to see if there is still more of the line to lex.
-  if (LineBuf[CurPtr] == '\0') {
-    GetNextLine();
-
+  // Check to see if we're at the start of a line.
+  if (getLineBegin() == getCurrentPtr())
     // The returned token is at the start of the line.
     Result.setFlag(Token::StartOfStatement);
-  }
 
-  // Check these flags in this order. We could have a horrid situation like:
-  //
-  //    a = 1 + 2 ; &
-  //    b = 3 + 4
-  //
-  // And we want 'b' to be marked as StartOfStatement.
-  if (LastTokenWasAmpersand) {
-    LastTokenWasAmpersand = false;
-    Result.clearFlag(Token::StartOfStatement);
-  }
-
+  // If we saw a semicolon, then we're at the start of a new statement.
   if (LastTokenWasSemicolon) {
     LastTokenWasSemicolon = false;
     Result.setFlag(Token::StartOfStatement);
   }
 
   // Small amounts of horizontal whitespace is very common between tokens.
-  while (isHorizontalWhitespace(LineBuf[CurPtr]))
-    ++CurPtr;
+  char Char = getCurrentChar();
+  while (isHorizontalWhitespace(Char))
+    Char = getNextChar();
 
-  // Read a character, advancing over it.
-  TokStart = LineBegin + CurPtr;
-  char Char = LineBuf[CurPtr++];
+  TokStart = getCurrentPtr();
   tok::TokenKind Kind;
 
   switch (Char) {
   case 0:  // Null.
     // Found end of file?
-    if (LineBegin + CurPtr >= CurBuf->getBufferEnd()) {
+    if (getCurrentPtr() >= CurBuf->getBufferEnd()) {
       Kind = tok::eof;
       break;
     }
 
-    ++CurPtr;
+    getNextChar();
     return LexTokenInternal(Result);
   case '\n':
   case '\r':
@@ -932,29 +914,32 @@ void Lexer::LexTokenInternal(Token &Result) {
   case '\t':
   case '\f':
   case '\v':
-    while (isHorizontalWhitespace(LineBuf[CurPtr]))
-      ++CurPtr;
+    do {
+      Char = getNextChar();
+    } while (isHorizontalWhitespace(Char));
     return LexTokenInternal(Result);
 
   case '.':
-    if (isLetter(LineBuf[CurPtr])) {
+    Char = getNextChar();
+    if (isLetter(Char)) {
       // Match [A-Za-z]*, we have already matched '.'.
-      unsigned char C = LineBuf[CurPtr];
-      while (isLetter(C))
-        C = GetNextCharacter();
+      while (isLetter(Char))
+        Char = getNextChar();
 
-      if (C != '.') {
+      if (Char != '.') {
         // [TODO]: error.
+        Diags.ReportError(SMLoc::getFromPointer(TokStart),
+                          "invalid defined operator missing end '.'");
         FormTokenWithChars(Result, tok::unknown);
         return;
       }
 
-      C = GetNextCharacter();
-      if (C == '_') {
+      Char = getNextChar();
+      if (Char == '_') {
         // Parse the kind.
         do {
-          C = GetNextCharacter();
-        } while (isIdentifierBody(C) || isDecimalNumberBody(C));
+          Char = getNextChar();
+        } while (isIdentifierBody(Char) || isDecimalNumberBody(Char));
       }
 
       return FormDefinedOperatorTokenWithChars(Result);
@@ -965,7 +950,7 @@ void Lexer::LexTokenInternal(Token &Result) {
     // [TODO]: Kinds on literals.
     if (Result.isAtStartOfStatement())
       return LexStatementLabel(Result);
-    return LexNumericConstant(Result, Char);
+    return LexNumericConstant(Result);
 
   case '"':
   case '\'':
@@ -973,31 +958,26 @@ void Lexer::LexTokenInternal(Token &Result) {
     return LexCharacterLiteralConstant(Result, Char == '"'); 
 
   // [TODO]: BOZ literals.
-  case 'B': case 'b': {
-    char C = LineBuf[CurPtr];
-
-    if (C == '"' || C == '\'') { // No whitespace between B and quote.
+  case 'B': case 'b':
+    if (Char == '"' || Char == '\'') { // No whitespace between B and quote.
       // Possible binary constant: B'...', B"..."
-      bool DoubleQuote = (C == '"');
-      C = LineBuf[++CurPtr];
+      const char *BOZBegin = getCurrentPtr();
+      bool DoubleQuote = (Char == '"');
 
-      while (isBinaryNumberBody(C))
-        C = LineBuf[CurPtr++];
+      do {
+        Char = getNextChar();
+      } while (isBinaryNumberBody(Char));
 
-      if (C == '&') {
-        LexAmpersandContext(Binary);
-        Result.setFlag(Token::NeedsCleaning);
-        C = LineBuf[CurPtr++];
-      }
-
-      if ((LineBegin + CurPtr) - TokStart == 2) {
-        //[TODO]: Issue diagnostic. (Empty set of digits for BOZ constant.)
+      if (getCurrentPtr() - TokStart == 2) {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "no binary digits for BOZ constant");
         FormTokenWithChars(Result, tok::error);
         return;
       }
 
-      if ((DoubleQuote && C != '"') || C != '\'') {
-        //[TODO]: Issue diagnostic.
+      if ((DoubleQuote && Char != '"') || Char != '\'') {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "binary BOZ constant missing ending quote");
         FormTokenWithChars(Result, tok::error);
         return;
       }
@@ -1009,32 +989,26 @@ void Lexer::LexTokenInternal(Token &Result) {
     }
 
     goto LexIdentifier;
-  }
-  case 'O': case 'o': {
-    char C = LineBuf[CurPtr];
-
-    if (C == '"' || C == '\'') { // No whitespace between O and quote.
+  case 'O': case 'o':
+    if (Char == '"' || Char == '\'') { // No whitespace between O and quote.
       // Possible octal constant: O'...', O"..."
-      bool DoubleQuote = (C == '"');
-      C = LineBuf[++CurPtr];
+      const char *BOZBegin = getCurrentPtr();
+      bool DoubleQuote = (Char == '"');
 
-      while (isOctalNumberBody(C))
-        C = LineBuf[CurPtr++];
+      do {
+        Char = getNextChar();
+      } while (isOctalNumberBody(Char));
 
-      if (C == '&') {
-        LexAmpersandContext(Octal);
-        Result.setFlag(Token::NeedsCleaning);
-        C = LineBuf[CurPtr];
-      }
-
-      if ((LineBegin + CurPtr) - TokStart == 2) {
-        //[TODO]: Issue diagnostic. (Empty set of digits for BOZ constant.)
-        FormTokenWithChars(Result, tok::unknown);
+      if (getCurrentPtr() - TokStart == 2) {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "no octal digits for BOZ constant");
+        FormTokenWithChars(Result, tok::error);
         return;
       }
 
-      if ((DoubleQuote && C != '"') || C != '\'') {
-        //[TODO]: Issue diagnostic.
+      if ((DoubleQuote && Char != '"') || Char != '\'') {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "octal BOZ constant missing ending quote");
         FormTokenWithChars(Result, tok::unknown);
         return;
       }
@@ -1046,32 +1020,27 @@ void Lexer::LexTokenInternal(Token &Result) {
     }
 
     goto LexIdentifier;
-  }
-  case 'Z': case 'z': {
-    char C = LineBuf[CurPtr];
-
-    if (C == '"' || C == '\'') { // No whitespace between Z and quote.
+  case 'X': case 'x':
+  case 'Z': case 'z':
+    if (Char == '"' || Char == '\'') { // No whitespace between Z and quote.
       // Possible hexadecimal constant: Z'...', Z"..."
-      bool DoubleQuote = (C == '"');
-      C = LineBuf[++CurPtr];
+      const char *BOZBegin = getCurrentPtr();
+      bool DoubleQuote = (Char == '"');
 
-      while (isHexNumberBody(C))
-        C = LineBuf[CurPtr++];
+      do {
+        Char = getNextChar();
+      } while (isHexNumberBody(Char));
 
-      if (C == '&') {
-        LexAmpersandContext(Hex);
-        Result.setFlag(Token::NeedsCleaning);
-        C = LineBuf[CurPtr];
-      }
-
-      if ((LineBegin + CurPtr) - TokStart == 2) {
-        //[TODO]: Issue diagnostic. (Empty set of digits for BOZ constant.)
+      if (getCurrentPtr() - TokStart == 2) {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "no hex digits for BOZ constant");
         FormTokenWithChars(Result, tok::unknown);
         return;
       }
 
-      if ((DoubleQuote && C != '"') || C != '\'') {
-        //[TODO]: Issue diagnostic.
+      if ((DoubleQuote && Char != '"') || Char != '\'') {
+        Diags.ReportError(SMLoc::getFromPointer(BOZBegin),
+                          "hex BOZ constant missing ending quote");
         FormTokenWithChars(Result, tok::unknown);
         return;
       }
@@ -1083,15 +1052,14 @@ void Lexer::LexTokenInternal(Token &Result) {
     }
 
     goto LexIdentifier;
-  }
   case 'A': /* 'B' */ case 'C': case 'D': case 'E': case 'F': case 'G':
   case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
   /* 'O' */ case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U':
-  case 'V': case 'W': case 'X': case 'Y': /* 'Z' */
+  case 'V': case 'W': /* 'X' */ case 'Y': /* 'Z' */
   case 'a': /* 'b' */ case 'c': case 'd': case 'e': case 'f': case 'g':
   case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
   /* 'o' */ case 'p': case 'q': case 'r': case 's': case 't': case 'u':
-  case 'v': case 'w': case 'x': case 'y': /* 'z' */
+  case 'v': case 'w': /* 'x' */ case 'y': /* 'z' */
 LexIdentifier:
     return LexIdentifier(Result);
 
@@ -1102,7 +1070,6 @@ LexIdentifier:
     return LexTokenInternal(Result);
 
   case '&':
-    LastTokenWasAmpersand = true;
     LexBlankLinesAndComments();
     return LexTokenInternal(Result);
 

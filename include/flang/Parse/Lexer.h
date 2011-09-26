@@ -79,7 +79,7 @@ class Lexer {
     void SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr);
 
     char GetNextChar();
-    char GetCurrentChar() const { return *BufPtr; }
+    char GetCurrentChar() const { return Atoms[CurAtom][CurPtr]; }
 
     const char *GetLineBegin() const {
       assert(!Atoms.empty() && "Trying to get the start of an empty string!");
@@ -148,10 +148,6 @@ class Lexer {
   /// semicolon.
   bool LastTokenWasSemicolon;
 
-  /// LastTokenWasAmpersand - True if the last token we returned was an
-  /// ampersand.
-  bool LastTokenWasAmpersand;
-
   /// SkipWhitespace - Efficiently skip over a series of whitespace characters.
   /// Update CurPtr to point to the next non-whitespace character and return.
   bool SkipWhitespace(Token &Result, const char *CurPtr);
@@ -191,9 +187,8 @@ private:
   /// LexIntegerLiteralConstant - Lex an integer literal constant.
   bool LexIntegerLiteralConstant();
 
-  /// LexNumericConstant - Lex the remainder of an integer or floating point
-  /// constant. From[-1] is the first character lexed.
-  void LexNumericConstant(Token &Result, char PrevChar);
+  /// LexNumericConstant - Lex an integer or floating point constant.
+  void LexNumericConstant(Token &Result);
 
   /// LexCharacterLiteralConstant - Lex the remainder of a character literal
   /// constant (string).
