@@ -79,6 +79,16 @@ class Lexer {
     void SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr);
 
     char GetNextChar();
+    char GetCurrentChar() const { return *BufPtr; }
+
+    const char *GetLineBegin() const {
+      assert(!Atoms.empty() && "Trying to get the start of an empty string!");
+      return Atoms[0].data();
+    }
+    const char *GetCurrentPtr() const {
+      assert(!Atoms.empty() && "Trying to get data from an empty string!");
+      return &Atoms[CurAtom].data()[CurPtr];
+    }
 
     void dump() const;
     void dump(raw_ostream &OS) const;
@@ -89,6 +99,15 @@ class Lexer {
 
   /// getNextChar - Get the next character from the buffer.
   char getNextChar() { return Text.GetNextChar(); }
+
+  /// getCurrentChar - Get the current character the buffer's looking at.
+  char getCurrentChar() { return Text.GetCurrentChar(); }
+
+  /// getLineBegin - Get the start of the current line of text.
+  const char *getLineBegin() const { return Text.GetLineBegin(); }
+
+  /// getCurrentPtr - Get a pointer to the current character.
+  const char *getCurrentPtr() const { return Text.GetCurrentPtr(); }
 
   Diagnostic &Diags;
   llvm::SourceMgr &SrcMgr;

@@ -21,6 +21,9 @@
 using namespace flang;
 
 static void InitCharacterInfo();
+static bool isWhitespace(unsigned char c);
+static bool isHorizontalWhitespace(unsigned char c);
+static bool isVerticalWhitespace(unsigned char c);
 
 Lexer::Lexer(llvm::SourceMgr &SM, const LangOptions &features, Diagnostic &D)
   : Text(D), Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
@@ -42,10 +45,6 @@ void Lexer::setBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
 llvm::SMLoc Lexer::getLoc() const {
   return llvm::SMLoc::getFromPointer(TokStart);
 }
-
-static bool isWhitespace(unsigned char c);
-static bool isHorizontalWhitespace(unsigned char c);
-static bool isVerticalWhitespace(unsigned char c);
 
 void Lexer::LineOfText::
 SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
