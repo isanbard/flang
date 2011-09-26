@@ -182,7 +182,15 @@ void Lexer::LineOfText::GetNextLine() {
         AmpersandPos = 0;     // Pretend nothing's wrong.
       }
 
-      if (I == 132 || *BufPtr == '!' || isVerticalWhitespace(*BufPtr))
+      if (*BufPtr == '!') {
+        // Eat the comment after a continuation.
+        while (!isVerticalWhitespace(*BufPtr) && *BufPtr != '\0')
+          ++BufPtr;
+
+        break;
+      }
+
+      if (I == 132 || isVerticalWhitespace(*BufPtr))
         break;
     }
 
