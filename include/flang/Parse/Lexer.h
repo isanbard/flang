@@ -79,6 +79,7 @@ class Lexer {
     void SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr);
 
     char GetNextChar();
+    char PeekNextChar() const;
     char GetCurrentChar() const { return Atoms[CurAtom][CurPtr]; }
 
     const char *GetLineBegin() const {
@@ -99,6 +100,9 @@ class Lexer {
 
   /// getNextChar - Get the next character from the buffer.
   char getNextChar() { return Text.GetNextChar(); }
+
+  /// peekNextChar - Peek at the next character, but don't advance the buffer.
+  char peekNextChar() const { return Text.PeekNextChar(); }
 
   /// getCurrentChar - Get the current character the buffer's looking at.
   char getCurrentChar() { return Text.GetCurrentChar(); }

@@ -220,6 +220,17 @@ char Lexer::LineOfText::GetNextChar() {
   return Atom.data()[CurPtr];
 }
 
+char Lexer::LineOfText::PeekNextChar() const {
+  StringRef Atom = Atoms[CurAtom];
+  if (CurPtr + 1 == Atom.size()) {
+    if (CurAtom + 1 == Atoms.size())
+      return '\0';
+    return Atoms[CurAtom + 1][0];
+  }
+  assert(!Atom.empty() && "Atom has no contents!");
+  return Atom.data()[CurPtr];
+}
+
 void Lexer::LineOfText::dump() const {
   dump(llvm::errs());
 }
@@ -693,11 +704,6 @@ void Lexer::LexIdentifier(Token &Result) {
   while (isIdentifierBody(C))
     C = LineBuf[++CurPtr];
 
-  if (LineBuf[CurPtr] == '&') {
-    LexAmpersandContext(Ident);
-    Result.setFlag(Token::NeedsCleaning);
-  }
-
   // We let the parser determine what type of identifier this is: identifier,
   // keyword, or built-in function.
   FormTokenWithChars(Result, tok::identifier);
@@ -1082,13 +1088,11 @@ LexIdentifier:
     break;
   case '(':
     SaveState();
-    Char = GetNextCharacter(false);
+    Char = getNextChar();
     if (Char == '/') {
       // beginning of array initialization.
       Kind = tok::l_parenslash;
-      ++CurPtr;
     } else {
-      RestoreState();
       Kind = tok::l_paren;
     }
     break;
@@ -1105,13 +1109,11 @@ LexIdentifier:
     Kind = tok::comma;
     break;
   case ':':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == ':') {
       Kind = tok::coloncolon;
-      ++CurPtr;
+      Char = getNextChar();
     } else {
-      RestoreState();
       Kind = tok::colon;
     }
     break;
@@ -1153,71 +1155,61 @@ LexIdentifier:
     Kind = tok::minus;
     break;
   case '*':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == '*') {
       // Power operator.
       Kind = tok::starstar;
-      ++CurPtr;
+      Char = getNextChar();
     } else {
-      RestoreState();
       Kind = tok::star;
     }
     break;
   case '/':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == '=') {
       // Not equal operator.
       Kind = tok::slashequal;
-      ++CurPtr;
+      Char = getNextChar();
     } else if (Char == ')') {
       // End of array initialization list.
       Kind = tok::slashr_paren;
-      ++CurPtr;
+      Char = getNextChar();
     } else if (Char == '/') {
       // Concatenation operator.
       Kind = tok::slashslash;
-      ++CurPtr;
+      Char = getNextChar();
     } else {
-      RestoreState();
       Kind = tok::slash;
     }
     break;
   // [TODO]: Logical Operators
   case '=':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == '=') {
       Kind = tok::equalequal;
-      ++CurPtr;
+      Char = getNextChar();
     } else if (Char == '>') {
       Kind = tok::equalgreater;
-      ++CurPtr;
+      Char = getNextChar();
     } else {      
-      RestoreState();
       Kind = tok::equal;
     }
     break;
   case '<':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == '=') {
       Kind = tok::lessequal;
-      ++CurPtr;
+      Char = getNextChar();
     } else {
-      RestoreState();
       Kind = tok::less;
     }
     break;
   case '>':
-    SaveState();
-    Char = GetNextCharacter(false);
+    Char = peekNextChar();
     if (Char == '=') {
       Kind = tok::greaterequal;
-      ++CurPtr;
+      Char = getNextChar();
     } else {
-      RestoreState();
       Kind = tok::greater;
     }
     break;
