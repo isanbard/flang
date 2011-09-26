@@ -211,6 +211,7 @@ char Lexer::LineOfText::GetNextChar() {
       return '\0';
     Atom = Atoms[++CurAtom];
     CurPtr = 0;
+    return Atom.data()[CurPtr];
   }
   assert(!Atom.empty() && "Atom has no contents!");
   return Atom.data()[++CurPtr];
