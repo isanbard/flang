@@ -665,7 +665,8 @@ void Lexer::LexNumericConstant(Token &Result) {
     if (C == '-' || C == '+')
       C = getNextChar();
     if (!isDecimalNumberBody(C)) {
-      // [TODO]: Error: Invalid REAL literal.
+      Diags.ReportError(SMLoc::getFromPointer(NumBegin),
+                        "invalid REAL literal");
       FormTokenWithChars(Result, tok::error);
       return;
     }
@@ -684,10 +685,6 @@ void Lexer::LexNumericConstant(Token &Result) {
   else
     FormTokenWithChars(Result, tok::real_literal_constant);
   Result.setLiteralData(TokStart);
-  StringRef NumStr(Result.getLiteralData(), Result.getLength());
-  if (NumStr.find('&'))
-    Result.setFlag(Token::NeedsCleaning);
-  return;
 }
 
 /// LexCharacterLiteralConstant - Lex the remainder of a character literal
@@ -727,28 +724,6 @@ void Lexer::LexComment(Token &Result) {
 
   FormTokenWithChars(Result, tok::comment);
   Result.setLiteralData(TokStart);
-}
-
-/// GetNextLine - Get the next line of the program to lex. Return 'false' if
-/// there are still more tokens to lex in the current line.
-void Lexer::GetNextLine() {
-  // Save a pointer to the beginning of the line.
-  LineBegin = BufPtr;
-
-  // Fill the "line buffer" with the current line.
-  unsigned I = 0;
-  while (I != 132 && *BufPtr != '\n' && *BufPtr != '\r' && *BufPtr != '\0')
-    LineBuf[I++] = *BufPtr++;
-  LineBuf[I] = '\0';
-
-  // Increment the buffer pointer to the start of the next line.
-  while (*BufPtr != '\0' && *BufPtr != '\n' && *BufPtr != '\r')
-    ++BufPtr;
-  while (*BufPtr != '\0' && (*BufPtr == '\n' || *BufPtr == '\r'))
-    ++BufPtr;
-
-  // The CurPtr is now at the start of the line.
-  CurPtr = 0;
 }
 
 /// LexTokenInternal - This implements a simple Fortran family lexer. It is an

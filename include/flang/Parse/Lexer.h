@@ -191,9 +191,6 @@ class Lexer {
   /// continuation contexts.
   char GetNextCharacter(bool IncPtr = true);
 
-  /// GetNextLine - Get the next line of the program to lex.
-  void GetNextLine();
-
   /// LexTokenInternal - This implements a simple Fortran family lexer. It is an
   /// extremely performance critical piece of code. This assumes that the buffer
   /// has a null character at the end of the file. It assumes that the Flags of
