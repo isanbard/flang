@@ -62,7 +62,7 @@ class Lexer {
 
     /// SkipBlankLinesAndComments - Helper function that skips blank lines and
     /// lines with only comments.
-    void SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin);
+    bool SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin);
 
     /// GetCharacterLiteral - A character literal has to be treated specially
     /// because an ampersand may exist within it.

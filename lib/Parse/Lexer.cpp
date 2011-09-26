@@ -55,7 +55,7 @@ SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
 
 /// SkipBlankLinesAndComments - Helper function that skips blank lines and lines
 /// with only comments.
-void Lexer::LineOfText::
+bool Lexer::LineOfText::
 SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin) {
   // Skip blank lines and lines with only comments.
   while (isVerticalWhitespace(*BufPtr) && *BufPtr != '\0')
@@ -82,12 +82,15 @@ SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin) {
   // had a previous continuation character at the end of the line, then readjust
   // the LineBegin.
   if (I != 132 && *BufPtr == '&') {
-    if (Atoms.empty())
+    if (Atoms.empty()) // FIXME: This isn't sufficient.
       Diags.ReportError(SMLoc::getFromPointer(BufPtr),
                         "continuation character used out of context");
     ++I, ++BufPtr;
     LineBegin = BufPtr;
+    return true;
   }
+
+  return false;
 }
 
 /// GetCharacterLiteral - A character literal has to be treated specially
@@ -154,7 +157,7 @@ void Lexer::LineOfText::GetNextLine() {
   unsigned I = 0;
 
   // Skip blank lines and lines with only comments.
-  SkipBlankLinesAndComments(I, LineBegin);
+  bool BeginsWithAmp = SkipBlankLinesAndComments(I, LineBegin);
 
   const char *AmpersandPos = 0;
   bool InsertSpace = true;
@@ -189,7 +192,7 @@ void Lexer::LineOfText::GetNextLine() {
   if (AmpersandPos) {
     Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
   } else {
-    if (InsertSpace)
+    if (!BeginsWithAmp && InsertSpace)
       // This is a line that doesn't start with an '&'. The tokens are not
       // contiguous. Insert a space to indicate this.
       Atoms.push_back(StringRef(Padding));
