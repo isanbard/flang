@@ -1081,5 +1081,6 @@ LexIdentifier:
   }
 
   // Update the location of token as well as LexPtr.
+  Char = getNextChar();
   FormTokenWithChars(Result, Kind);
 }
