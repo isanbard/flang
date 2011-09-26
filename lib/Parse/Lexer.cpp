@@ -581,10 +581,10 @@ void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
 /// LexIdentifier - Lex the remainder of an identifier.
 void Lexer::LexIdentifier(Token &Result) {
   // Match [_A-Za-z0-9]*, we have already matched [A-Za-z$]
-  unsigned char C = LineBuf[CurPtr];
+  unsigned char C = getCurrentChar();
 
   while (isIdentifierBody(C))
-    C = LineBuf[++CurPtr];
+    C = getNextChar();
 
   // We let the parser determine what type of identifier this is: identifier,
   // keyword, or built-in function.
@@ -693,23 +693,23 @@ void Lexer::LexNumericConstant(Token &Result) {
 /// constant (string).
 void Lexer::LexCharacterLiteralConstant(Token &Result,
                                         bool DoubleQuotes) {
-  char C = LineBuf[CurPtr];
+  char C = getCurrentChar();
   while (true) {
     if (DoubleQuotes) {
       if (C == '"') {
-        if (LineBuf[CurPtr] != '"')
+        if (peekNextChar() != '"')
           break;
-        C = LineBuf[++CurPtr];
+        C = getNextChar();
       }
     } else {
       if (C == '\'') {
-        if (LineBuf[CurPtr] != '\'')
+        if (peekNextChar() != '\'')
           break;
-        C = LineBuf[++CurPtr];
+        C = getNextChar();
       }
     }
 
-    C = LineBuf[++CurPtr];
+    C = getNextChar();
   }
 
   // Update the location of token as well as CurPtr.
@@ -719,10 +719,10 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
 
 /// LexComment - Lex a comment and return it, why not?
 void Lexer::LexComment(Token &Result) {
-  char Char;
+  char C;
   do {
-    Char = getNextChar();
-  } while (Char != '\0');
+    C = getNextChar();
+  } while (C != '\0');
 
   FormTokenWithChars(Result, tok::comment);
   Result.setLiteralData(TokStart);
@@ -734,8 +734,10 @@ void Lexer::LexComment(Token &Result) {
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
   // Check to see if there is still more of the line to lex.
-  if (Text.empty() || peekNextChar() == '\0')
+  if (Text.empty() || peekNextChar() == '\0') {
+    Text.Reset();
     Text.GetNextLine();
+  }
 
   // Check to see if we're at the start of a line.
   if (getLineBegin() == getCurrentPtr())
