@@ -525,13 +525,17 @@ void Lexer::FormTokenWithChars(Token &Result, tok::TokenKind Kind) {
   Result.setLocation(llvm::SMLoc::getFromPointer(TokStart));
   Result.setLength(TokLen);
   Result.setKind(Kind);
+
+  StringRef TokStr(TokStart, TokLen);
+  if (TokStr.find('&'))
+    Result.setFlag(Token::NeedsCleaning);
 }
 
 /// FormDefinedOperatorTokenWithChars - A special form of FormTokenWithChars. It
 /// will see if the defined operator is an intrinsic operator. If so, it will
 /// set the token's kind to that value.
 void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
-  unsigned TokLen = (LineBegin + CurPtr) - TokStart;
+  unsigned TokLen = getCurrentPtr() - TokStart;
   assert(TokLen >= 2 && "Malformed defined operator!");
 
   if (TokLen - 2 > 63)
@@ -594,24 +598,6 @@ void Lexer::LexBlankLinesAndComments() {
 
     GetNextLine();
   }
-}
-
-/// SaveState - Save the current state of the lexer. We may have to go back to
-/// this state depending upon the lexical state.
-void Lexer::SaveState() {
-  SaveLineBegin = LineBegin;
-  SaveCurPtr = CurPtr;
-}
-
-/// RestoreState - Restore the state of the lexer to the state it was in when
-/// SaveState was called. It is undefined what will happen if you call
-/// RestoreState without calling SaveState first.
-void Lexer::RestoreState() {
-  if (SaveLineBegin != BufPtr) {
-    std::swap(SaveLineBegin, BufPtr);
-    GetNextLine();
-  }
-  std::swap(SaveCurPtr, CurPtr);
 }
 
 /// GetNextCharacter - Get the next character from the buffer ignoring
@@ -1087,11 +1073,11 @@ LexIdentifier:
     Kind = tok::r_square;
     break;
   case '(':
-    SaveState();
-    Char = getNextChar();
+    Char = peekNextChar();
     if (Char == '/') {
       // beginning of array initialization.
       Kind = tok::l_parenslash;
+      Char = getNextChar();
     } else {
       Kind = tok::l_paren;
     }
@@ -1214,7 +1200,7 @@ LexIdentifier:
     }
     break;
   default:
-    TokStart = LineBegin + CurPtr;
+    TokStart = getCurrentPtr();
     Kind = tok::error;
     break;
   }
