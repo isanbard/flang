@@ -143,6 +143,8 @@ GetCharacterLiteral(unsigned &I, const char *&LineBegin) {
   GetCharacterLiteral(I, LineBegin);
 }
 
+const char *Lexer::LineOfText::Padding = " ";
+
 /// GetNextLine - Get the next line of the program to lex.
 void Lexer::LineOfText::GetNextLine() {
   // Save a pointer to the beginning of the line.
@@ -190,7 +192,7 @@ void Lexer::LineOfText::GetNextLine() {
     if (InsertSpace)
       // This is a line that doesn't start with an '&'. The tokens are not
       // contiguous. Insert a space to indicate this.
-      Atoms.push_back(StringRef(" "));
+      Atoms.push_back(StringRef(Padding));
     Atoms.push_back(StringRef(LineBegin, BufPtr - LineBegin));
   }
 

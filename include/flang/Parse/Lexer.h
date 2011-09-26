@@ -68,6 +68,15 @@ class Lexer {
     /// because an ampersand may exist within it.
     void GetCharacterLiteral(unsigned &I, const char *&LineBegin);
 
+    /// Padding - This is an extra space that we insert between two
+    /// continuations which were merged. E.g.:
+    ///
+    ///   FOO&
+    ///   BAR
+    ///
+    /// is interpreted as "FOO BAR" instead of "FOOBAR".
+    static const char *Padding;
+
     friend class Lexer;
   public:
     explicit LineOfText(Diagnostic &D)
@@ -90,6 +99,8 @@ class Lexer {
     }
     const char *GetCurrentPtr() const {
       assert(!Atoms.empty() && "Trying to get data from an empty string!");
+      if (Atoms[CurAtom].data() == Padding)
+        return Atoms[CurAtom + 1].data();
       return &Atoms[CurAtom].data()[CurPtr];
     }
 
