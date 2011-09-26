@@ -95,6 +95,10 @@ class Lexer {
       Atoms.clear();
     }
 
+    bool AtEndOfLine() const {
+      return CurAtom == Atoms.size() - 1 && CurPtr >= Atoms[CurAtom].size();
+    }
+
     char GetNextChar();
     char PeekNextChar() const;
     char GetCurrentChar() const { return Atoms[CurAtom][CurPtr]; }

@@ -220,8 +220,10 @@ void Lexer::LineOfText::GetNextLine() {
 char Lexer::LineOfText::GetNextChar() {
   StringRef Atom = Atoms[CurAtom];
   if (CurPtr + 1 >= Atom.size()) {
-    if (CurAtom + 1 >= Atoms.size())
+    if (CurAtom + 1 >= Atoms.size()) {
+      if (CurPtr != Atom.size()) ++CurPtr;
       return '\0';
+    }
     Atom = Atoms[++CurAtom];
     CurPtr = 0;
     return Atom.data()[CurPtr];
@@ -537,7 +539,7 @@ void Lexer::FormTokenWithChars(Token &Result, tok::TokenKind Kind) {
   Result.setKind(Kind);
 
   StringRef TokStr(TokStart, TokLen);
-  if (TokStr.find('&'))
+  if (TokStr.find('&') != StringRef::npos)
     Result.setFlag(Token::NeedsCleaning);
 }
 
@@ -749,7 +751,7 @@ void Lexer::LexComment(Token &Result) {
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
   // Check to see if there is still more of the line to lex.
-  if (Text.empty() || peekNextChar() == '\0') {
+  if (Text.empty() || Text.AtEndOfLine()) {
     Text.Reset();
     Text.GetNextLine();
   }
