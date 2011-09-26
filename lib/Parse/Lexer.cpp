@@ -867,6 +867,10 @@ void Lexer::GetNextLine() {
 /// has a null character at the end of the file. It assumes that the Flags of
 /// Result have been cleared before calling this.
 void Lexer::LexTokenInternal(Token &Result) {
+  // Check to see if there is still more of the line to lex.
+  if (Text.empty())
+    Text.GetNextLine();
+
   // Check to see if we're at the start of a line.
   if (getLineBegin() == getCurrentPtr())
     // The returned token is at the start of the line.

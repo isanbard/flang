@@ -68,15 +68,17 @@ class Lexer {
     /// because an ampersand may exist within it.
     void GetCharacterLiteral(unsigned &I, const char *&LineBegin);
 
-    /// GetNextLine - Get the next line of the program to lex.
-    void GetNextLine();
-
     friend class Lexer;
   public:
     explicit LineOfText(Diagnostic &D)
       : Diags(D), BufPtr(0), CurAtom(0), CurPtr(0) {}
 
     void SetBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr);
+
+    bool empty() const { return Atoms.empty(); }
+
+    /// GetNextLine - Get the next line of the program to lex.
+    void GetNextLine();
 
     char GetNextChar();
     char PeekNextChar() const;
