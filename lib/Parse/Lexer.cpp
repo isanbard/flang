@@ -704,23 +704,27 @@ void Lexer::LexNumericConstant(Token &Result) {
 /// constant (string).
 void Lexer::LexCharacterLiteralConstant(Token &Result,
                                         bool DoubleQuotes) {
-  char C = getCurrentChar();
   while (true) {
+    char C = getNextChar();
+    if (C == '\0') break;
+
     if (DoubleQuotes) {
       if (C == '"') {
-        if (peekNextChar() != '"')
+        if (peekNextChar() != '"') {
+          getNextChar();
           break;
+        }
         C = getNextChar();
       }
     } else {
       if (C == '\'') {
-        if (peekNextChar() != '\'')
+        if (peekNextChar() != '\'') {
+          getNextChar();
           break;
+        }
         C = getNextChar();
       }
     }
-
-    C = getNextChar();
   }
 
   // Update the location of token as well as CurPtr.
