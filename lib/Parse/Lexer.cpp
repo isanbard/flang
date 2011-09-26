@@ -45,215 +45,179 @@ static bool isWhitespace(unsigned char c);
 static bool isHorizontalWhitespace(unsigned char c);
 static bool isVerticalWhitespace(unsigned char c);
 
-namespace {
+/// SkipBlankLinesAndComments - Helper function that skips blank lines and lines
+/// with only comments.
+void Lexer::LineOfText::
+SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin) {
+  // Skip blank lines and lines with only comments.
+  while (isVerticalWhitespace(*BufPtr) && *BufPtr != '\0')
+    ++BufPtr;
 
-/// LineOfText - This represents a line of text in the program where
-/// continuation contexts are concatenated.
-class LineOfText {
-  Diagnostic &Diags;
+  while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr != '\0')
+    ++I, ++BufPtr;
 
-  /// Atoms - A vector of atoms which make up one continuation context free line
-  /// in the program. E.g.
-  ///
-  ///   'hello &
-  ///   ! comment
-  ///   &world'
-  ///
-  /// becomes two 'atoms' which can be treated as one contiguous line. I.e.
-  ///
-  ///   'hello world'
-  SmallVector<StringRef, 4> Atoms;
+  if (I != 132 && *BufPtr == '!') {
+    do {
+      ++BufPtr;
+    } while (!isVerticalWhitespace(*BufPtr));
 
-  /// BufPtr - This is the next line to be lexed.
-  const char *BufPtr;
-
-  /// CurAtom - The current atom.
-  unsigned CurAtom;
-
-  /// CurPtr - Current index into the buffer. This is the next character to be
-  /// lexed.
-  uint64_t CurPtr;
-
-  /// SkipBlankLinesAndComments - Helper function that skips blank lines and
-  /// lines with only comments.
-  void SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin) {
-    // Skip blank lines and lines with only comments.
-    while (isVerticalWhitespace(*BufPtr) && *BufPtr != '\0')
+    while (isVerticalWhitespace(*BufPtr))
       ++BufPtr;
 
+    // Save a pointer to the beginning of the line.
+    LineBegin = BufPtr;
+    I = 0;
+    SkipBlankLinesAndComments(I, LineBegin);
+  }
+
+  // If we have a continuation character at the beginning of the line, and we've
+  // had a previous continuation character at the end of the line, then readjust
+  // the LineBegin.
+  if (I != 132 && *BufPtr == '&') {
+    if (Atoms.empty())
+      Diags.ReportError(SMLoc::getFromPointer(BufPtr),
+                        "continuation character used out of context");
+    ++I, ++BufPtr;
+    LineBegin = BufPtr;
+  }
+}
+
+/// GetCharacterLiteral - A character literal has to be treated specially
+/// because an ampersand may exist within it.
+void Lexer::LineOfText::
+GetCharacterLiteral(unsigned &I, const char *&LineBegin) {
+  // Skip blank lines and lines with only comments.
+  SkipBlankLinesAndComments(I, LineBegin);
+
+  const char *AmpersandPos = 0;
+  const char *QuoteStart = BufPtr;
+  bool DoubleQuotes = (*BufPtr == '"');
+  ++I, ++BufPtr;
+  while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
+    if (*BufPtr == '"' || *BufPtr == '\'') {
+      ++I, ++BufPtr;
+      if (DoubleQuotes) {
+        if (I != 132 && *BufPtr == '"')
+          continue;
+      } else {
+        if (I != 132 && *BufPtr == '\'')
+          continue;
+      }
+
+      return;
+    }
+
+    if (*BufPtr != '&') goto next_char;
+
+    AmpersandPos = BufPtr;
+    ++I, ++BufPtr;
+    if (I == 132)
+      break;
     while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr != '\0')
       ++I, ++BufPtr;
 
-    if (I != 132 && *BufPtr == '!') {
-      do {
-        ++BufPtr;
-      } while (!isVerticalWhitespace(*BufPtr));
+    if (I == 132 || isVerticalWhitespace(*BufPtr) || *BufPtr == '\0')
+      break;
+    AmpersandPos = 0;
 
-      while (isVerticalWhitespace(*BufPtr))
-        ++BufPtr;
-
-      // Save a pointer to the beginning of the line.
-      LineBegin = BufPtr;
-      I = 0;
-      SkipBlankLinesAndComments(I, LineBegin);
-    }
-
-    // If we have a continuation character at the beginning of the line, and
-    // we've had a previous continuation character at the end of the line, then
-    // readjust the LineBegin.
-    if (I != 132 && *BufPtr == '&') {
-      if (Atoms.empty())
-        Diags.ReportError(SMLoc::getFromPointer(BufPtr),
-                          "continuation character used out of context");
-      ++I, ++BufPtr;
-      LineBegin = BufPtr;
-    }
-  }
-
-  /// GetCharacterLiteral - A character literal has to be treated specially
-  /// because an ampersand may exist within it.
-  void GetCharacterLiteral(unsigned &I, const char *&LineBegin) {
-    // Skip blank lines and lines with only comments.
-    SkipBlankLinesAndComments(I, LineBegin);
-
-    const char *AmpersandPos = 0;
-    const char *QuoteStart = BufPtr;
-    bool DoubleQuotes = (*BufPtr == '"');
+  next_char:
     ++I, ++BufPtr;
-    while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
-      if (*BufPtr == '"' || *BufPtr == '\'') {
-        ++I, ++BufPtr;
-        if (DoubleQuotes) {
-          if (I != 132 && *BufPtr == '"')
-            continue;
-        } else {
-          if (I != 132 && *BufPtr == '\'')
-            continue;
-        }
+  }
 
-        return;
-      }
+  if (AmpersandPos)
+    Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
+  else
+    Diags.ReportError(SMLoc::getFromPointer(QuoteStart),
+                      "unterminated character literal");
 
-      if (*BufPtr != '&') goto next_char;
+  LineBegin = BufPtr;
+  I = 0;
+  GetCharacterLiteral(I, LineBegin);
+}
 
+/// GetNextLine - Get the next line of the program to lex.
+void Lexer::LineOfText::GetNextLine() {
+  // Save a pointer to the beginning of the line.
+  const char *LineBegin = BufPtr;
+
+  // Fill the line buffer with the current line.
+  unsigned I = 0;
+
+  // Skip blank lines and lines with only comments.
+  SkipBlankLinesAndComments(I, LineBegin);
+
+  const char *AmpersandPos = 0;
+  bool InsertSpace = true;
+  while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
+    if (*BufPtr == '\'' || *BufPtr == '"') {
+      GetCharacterLiteral(I, LineBegin);
+      InsertSpace = false;
+      if (I == 132 || isVerticalWhitespace(*BufPtr))
+        break;
+    } else if (*BufPtr == '&') {
       AmpersandPos = BufPtr;
-      ++I, ++BufPtr;
-      if (I == 132)
-        break;
-      while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr != '\0')
+      do {
         ++I, ++BufPtr;
+      } while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr!='\0');
 
-      if (I == 132 || isVerticalWhitespace(*BufPtr) || *BufPtr == '\0')
-        break;
-      AmpersandPos = 0;
-
-    next_char:
-      ++I, ++BufPtr;
-    }
-
-    if (AmpersandPos)
-      Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
-    else
-      Diags.ReportError(SMLoc::getFromPointer(QuoteStart),
-                        "unterminated character literal");
-
-    LineBegin = BufPtr;
-    I = 0;
-    GetCharacterLiteral(I, LineBegin);
-  }
-
-  /// GetNextLine - Get the next line of the program to lex.
-  void GetNextLine() {
-    // Save a pointer to the beginning of the line.
-    const char *LineBegin = BufPtr;
-
-    // Fill the line buffer with the current line.
-    unsigned I = 0;
-
-    // Skip blank lines and lines with only comments.
-    SkipBlankLinesAndComments(I, LineBegin);
-
-    const char *AmpersandPos = 0;
-    bool InsertSpace = true;
-    while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
-      if (*BufPtr == '\'' || *BufPtr == '"') {
-        GetCharacterLiteral(I, LineBegin);
-        InsertSpace = false;
-        if (I == 132 || isVerticalWhitespace(*BufPtr))
-          break;
-      } else if (*BufPtr == '&') {
-        AmpersandPos = BufPtr;
-        do {
-          ++I, ++BufPtr;
-        } while (I != 132 && isHorizontalWhitespace(*BufPtr) && *BufPtr!='\0');
-
-        // We should be either at the end of the line, at column 132, or at the
-        // beginning of a comment. If not, the '&' is invalid. Report and ignore
-        // it.
-        if (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '!') {
-          Diags.ReportError(SMLoc::getFromPointer(AmpersandPos),
-                            "continuation character not at end of line");
-          AmpersandPos = 0;     // Pretend nothing's wrong.
-        }
-
-        if (I == 132 || *BufPtr == '!' || isVerticalWhitespace(*BufPtr))
-          break;
+      // We should be either at the end of the line, at column 132, or at the
+      // beginning of a comment. If not, the '&' is invalid. Report and ignore
+      // it.
+      if (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '!') {
+        Diags.ReportError(SMLoc::getFromPointer(AmpersandPos),
+                          "continuation character not at end of line");
+        AmpersandPos = 0;     // Pretend nothing's wrong.
       }
 
-      ++I, ++BufPtr;
+      if (I == 132 || *BufPtr == '!' || isVerticalWhitespace(*BufPtr))
+        break;
     }
 
-    if (AmpersandPos) {
-      Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
-    } else {
-      if (InsertSpace)
-        // This is a line that doesn't start with an '&'. The tokens are not
-        // contiguous. Insert a space to indicate this.
-        Atoms.push_back(StringRef(" "));
-      Atoms.push_back(StringRef(LineBegin, BufPtr - LineBegin));
-    }
-
-    // Increment the buffer pointer to the start of the next line.
-    while (*BufPtr != '\0' && !isVerticalWhitespace(*BufPtr))
-      ++BufPtr;
-    while (*BufPtr != '\0' && isVerticalWhitespace(*BufPtr))
-      ++BufPtr;
-
-    if (AmpersandPos)
-      GetNextLine();
-  }
-public:
-  explicit LineOfText(Diagnostic &D, const char *Ptr)
-    : Diags(D), BufPtr(Ptr), CurAtom(0), CurPtr(0) {
-    while (*BufPtr != '\0') {
-      Atoms.clear();
-      GetNextLine();
-      dump();
-    }
+    ++I, ++BufPtr;
   }
 
-  char GetNextChar() {
-    StringRef Atom = Atoms[CurAtom];
-    if (++CurPtr == Atom.size()) {
-      if (++CurAtom == Atoms.size())
-        return '\0';
-      Atom = Atoms[CurAtom];
-      CurPtr = 0;
-    }
-    assert(!Atom.empty() && "Atom has no contents!");
-    return Atom.data()[CurPtr];
+  if (AmpersandPos) {
+    Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
+  } else {
+    if (InsertSpace)
+      // This is a line that doesn't start with an '&'. The tokens are not
+      // contiguous. Insert a space to indicate this.
+      Atoms.push_back(StringRef(" "));
+    Atoms.push_back(StringRef(LineBegin, BufPtr - LineBegin));
   }
 
-  void dump() const {
-    llvm::errs() << "->";
-    for (SmallVectorImpl<StringRef>::const_iterator
-           I = Atoms.begin(), E = Atoms.end(); I != E; ++I)
-      llvm::errs() << *I;
-    llvm::errs() << "<-\n";
-  }
-};
+  // Increment the buffer pointer to the start of the next line.
+  while (*BufPtr != '\0' && !isVerticalWhitespace(*BufPtr))
+    ++BufPtr;
+  while (*BufPtr != '\0' && isVerticalWhitespace(*BufPtr))
+    ++BufPtr;
 
-} // end anonymous namespace
+  if (AmpersandPos)
+    GetNextLine();
+}
+
+char Lexer::LineOfText::GetNextChar() {
+  StringRef Atom = Atoms[CurAtom];
+  if (++CurPtr == Atom.size()) {
+    if (++CurAtom == Atoms.size())
+      return '\0';
+    Atom = Atoms[CurAtom];
+    CurPtr = 0;
+  }
+  assert(!Atom.empty() && "Atom has no contents!");
+  return Atom.data()[CurPtr];
+}
+
+void Lexer::LineOfText::dump() const {
+  dump(llvm::errs());
+}
+
+void Lexer::LineOfText::dump(raw_ostream &OS) const {
+  for (SmallVectorImpl<StringRef>::const_iterator
+         I = Atoms.begin(), E = Atoms.end(); I != E; ++I)
+    OS << *I;
+  OS << '\n';
+}
 
 //===----------------------------------------------------------------------===//
 // Character information.

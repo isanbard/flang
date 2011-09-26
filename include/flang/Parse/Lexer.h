@@ -33,6 +33,53 @@ namespace flang {
 class Diagnostic;
 
 class Lexer {
+  /// LineOfText - This represents a line of text in the program where
+  /// continuation contexts are concatenated.
+  class LineOfText {
+    Diagnostic &Diags;
+
+    /// Atoms - A vector of atoms which make up one continuation context free
+    /// line in the program. E.g.
+    ///
+    ///   'hello &
+    ///   ! comment
+    ///   &world'
+    ///
+    /// becomes two 'atoms' which can be treated as one contiguous line. I.e.
+    ///
+    ///   'hello world'
+    SmallVector<StringRef, 8> Atoms;
+
+    /// BufPtr - This is the next line to be lexed.
+    const char *BufPtr;
+
+    /// CurAtom - The current atom.
+    unsigned CurAtom;
+
+    /// CurPtr - Current index into the buffer. This is the next character to be
+    /// lexed.
+    uint64_t CurPtr;
+
+    /// SkipBlankLinesAndComments - Helper function that skips blank lines and
+    /// lines with only comments.
+    void SkipBlankLinesAndComments(unsigned &I, const char *&LineBegin);
+
+    /// GetCharacterLiteral - A character literal has to be treated specially
+    /// because an ampersand may exist within it.
+    void GetCharacterLiteral(unsigned &I, const char *&LineBegin);
+
+    /// GetNextLine - Get the next line of the program to lex.
+    void GetNextLine();
+  public:
+    explicit LineOfText(Diagnostic &D, const char *Ptr)
+      : Diags(D), BufPtr(Ptr), CurAtom(0), CurPtr(0) {}
+
+    char GetNextChar();
+
+    void dump() const;
+    void dump(raw_ostream &OS) const;
+  };
+
   Diagnostic &Diags;
   llvm::SourceMgr &SrcMgr;
   LangOptions Features;
