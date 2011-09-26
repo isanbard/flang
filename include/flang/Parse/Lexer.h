@@ -89,6 +89,12 @@ class Lexer {
     /// GetNextLine - Get the next line of the program to lex.
     void GetNextLine();
 
+    /// Reset the internal state to make ready for a new line of text.
+    void Reset() {
+      CurPtr = CurAtom = 0;
+      Atoms.clear();
+    }
+
     char GetNextChar();
     char PeekNextChar() const;
     char GetCurrentChar() const { return Atoms[CurAtom][CurPtr]; }
