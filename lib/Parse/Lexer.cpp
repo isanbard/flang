@@ -238,7 +238,7 @@ char Lexer::LineOfText::PeekNextChar() const {
     return Atoms[CurAtom + 1][0];
   }
   assert(!Atom.empty() && "Atom has no contents!");
-  return Atom.data()[CurPtr];
+  return Atom.data()[CurPtr + 1];
 }
 
 void Lexer::LineOfText::dump() const {
