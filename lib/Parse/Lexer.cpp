@@ -26,19 +26,15 @@ static bool isHorizontalWhitespace(unsigned char c);
 static bool isVerticalWhitespace(unsigned char c);
 
 Lexer::Lexer(llvm::SourceMgr &SM, const LangOptions &features, Diagnostic &D)
-  : Text(D), Diags(D), SrcMgr(SM), Features(features), LineBegin(0), TokStart(0),
-    SaveLineBegin(0), SaveCurPtr(0), LastTokenWasSemicolon(false) {
+  : Text(D), Diags(D), SrcMgr(SM), Features(features), TokStart(0),
+    LastTokenWasSemicolon(false) {
   InitCharacterInfo();
 }
 
 void Lexer::setBuffer(const llvm::MemoryBuffer *Buf, const char *Ptr) {
   Text.SetBuffer(Buf, Ptr);
-
   CurBuf = Buf;
-  LineBegin = BufPtr = (Ptr ? Ptr : CurBuf->getBufferStart());
-  CurPtr = 0;
   TokStart = 0;
-  std::memset(LineBuf, 0, sizeof(LineBuf));
 }
 
 llvm::SMLoc Lexer::getLoc() const {
@@ -528,9 +524,9 @@ void Lexer::getSpelling(const Token &Tok,
 //===----------------------------------------------------------------------===//
 
 /// FormTokenWithChars - When we lex a token, we have identified a span starting
-/// at CurPtr, going to TokEnd that forms the token. This method takes that
-/// range and assigns it to the token as its location and size. In addition,
-/// since tokens cannot overlap, this also updates CurPtr to be TokEnd.
+/// at the current pointer, going to TokEnd that forms the token. This method
+/// takes that range and assigns it to the token as its location and size. In
+/// addition, since tokens cannot overlap.
 void Lexer::FormTokenWithChars(Token &Result, tok::TokenKind Kind) {
   uint64_t TokLen = getCurrentPtr() - TokStart;
   CurKind = Kind;
@@ -612,7 +608,7 @@ void Lexer::LexStatementLabel(Token &Result) {
   while (isDecimalNumberBody(C))
     C = getNextChar();
 
-  // Update the location of token as well as CurPtr.
+  // Update the location of token.
   FormTokenWithChars(Result, tok::statement_label);
   Result.setLiteralData(TokStart);
 }
@@ -693,7 +689,7 @@ void Lexer::LexNumericConstant(Token &Result) {
       C = getNextChar();
     } while (isIdentifierBody(C) || isDecimalNumberBody(C));
 
-  // Update the location of token as well as CurPtr.
+  // Update the location of token.
  make_literal:
   if (!IsReal)
     FormTokenWithChars(Result, tok::int_literal_constant);
@@ -729,7 +725,7 @@ void Lexer::LexCharacterLiteralConstant(Token &Result,
     }
   }
 
-  // Update the location of token as well as CurPtr.
+  // Update the location of token.
   FormTokenWithChars(Result, tok::char_literal_constant);
   Result.setLiteralData(TokStart);
 }
@@ -859,7 +855,7 @@ void Lexer::LexTokenInternal(Token &Result) {
         return;
       }
 
-      // Update the location of token as well as CurPtr.
+      // Update the location of token.
       FormTokenWithChars(Result, tok::binary_boz_constant);
       Result.setLiteralData(TokStart);
       return;
@@ -890,7 +886,7 @@ void Lexer::LexTokenInternal(Token &Result) {
         return;
       }
 
-      // Update the location of token as well as CurPtr.
+      // Update the location of token.
       FormTokenWithChars(Result, tok::octal_boz_constant);
       Result.setLiteralData(TokStart);
       return;
@@ -922,7 +918,7 @@ void Lexer::LexTokenInternal(Token &Result) {
         return;
       }
 
-      // Update the location of token as well as CurPtr.
+      // Update the location of token.
       FormTokenWithChars(Result, tok::hex_boz_constant);
       Result.setLiteralData(TokStart);
       return;

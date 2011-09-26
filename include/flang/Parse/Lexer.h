@@ -147,29 +147,11 @@ class Lexer {
   //===--------------------------------------------------------------------===//
   // Context that changes as the file is lexed.
 
-  /// BufPtr - Pointer into the CurBuf. This is the next line to be lexed.
-  const char *BufPtr;
-
-  /// LineBegin - A pointer to the start of a line in the memory buffer.
-  const char *LineBegin;
-
-  /// LineBuf - The current line being lexed. A line can contain at most 132
-  /// characters (plus a null terminator).
-  char LineBuf[133];
-
-  /// CurPtr - Current index into the LineBuf. This is the next character
-  /// to be lexed.
-  uint64_t CurPtr;
-
   /// TokStart - Start of the current token.
   const char *TokStart;
 
   /// CurKind - The current "kind" of token.
   tok::TokenKind CurKind;
-
-  /// Used to save the current lexer state.
-  const char *SaveLineBegin;
-  uint64_t SaveCurPtr;
 
   /// LastTokenWasSemicolon - True if the last token we returned was a
   /// semicolon.
