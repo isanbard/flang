@@ -102,12 +102,11 @@ class LineOfText {
     // we've had a previous continuation character at the end of the line, then
     // readjust the LineBegin.
     if (I != 132 && *BufPtr == '&') {
-      ++I, ++BufPtr;
-      if (!Atoms.empty())
-        LineBegin = BufPtr;
-      else
-        Diags.ReportError(SMLoc::getFromPointer(BufPtr - 1),
+      if (Atoms.empty())
+        Diags.ReportError(SMLoc::getFromPointer(BufPtr),
                           "continuation character used out of context");
+      ++I, ++BufPtr;
+      LineBegin = BufPtr;
     }
   }
 
@@ -118,6 +117,7 @@ class LineOfText {
     SkipBlankLinesAndComments(I, LineBegin);
 
     const char *AmpersandPos = 0;
+    const char *QuoteStart = BufPtr;
     bool DoubleQuotes = (*BufPtr == '"');
     ++I, ++BufPtr;
     while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
@@ -151,15 +151,15 @@ class LineOfText {
       ++I, ++BufPtr;
     }
 
-    Atoms.
-      push_back(StringRef(LineBegin,
-                          (!AmpersandPos ? BufPtr : AmpersandPos) - LineBegin));
+    if (AmpersandPos)
+      Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
+    else
+      Diags.ReportError(SMLoc::getFromPointer(QuoteStart),
+                        "unterminated character literal");
 
-    if (AmpersandPos) {
-      LineBegin = BufPtr;
-      I = 0;
-      GetCharacterLiteral(I, LineBegin);
-    }
+    LineBegin = BufPtr;
+    I = 0;
+    GetCharacterLiteral(I, LineBegin);
   }
 
   /// GetNextLine - Get the next line of the program to lex.
@@ -174,9 +174,11 @@ class LineOfText {
     SkipBlankLinesAndComments(I, LineBegin);
 
     const char *AmpersandPos = 0;
+    bool InsertSpace = true;
     while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
       if (*BufPtr == '\'' || *BufPtr == '"') {
         GetCharacterLiteral(I, LineBegin);
+        InsertSpace = false;
         if (I == 132 || isVerticalWhitespace(*BufPtr))
           break;
       } else if (*BufPtr == '&') {
@@ -201,9 +203,15 @@ class LineOfText {
       ++I, ++BufPtr;
     }
 
-    Atoms.
-      push_back(StringRef(LineBegin,
-                          (!AmpersandPos ? BufPtr : AmpersandPos) - LineBegin));
+    if (AmpersandPos) {
+      Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
+    } else {
+      if (InsertSpace)
+        // This is a line that doesn't start with an '&'. The tokens are not
+        // contiguous. Insert a space to indicate this.
+        Atoms.push_back(StringRef(" "));
+      Atoms.push_back(StringRef(LineBegin, BufPtr - LineBegin));
+    }
 
     // Increment the buffer pointer to the start of the next line.
     while (*BufPtr != '\0' && !isVerticalWhitespace(*BufPtr))
