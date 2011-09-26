@@ -161,24 +161,6 @@ class Lexer {
   /// LexBlankLinesAndComments - Lex blank lines and lines with only
   /// comments. Used after we've parsed an ampersand.
   void LexBlankLinesAndComments();
-public:
-  /// AmpLexType -
-  enum AmpLexType {
-    Ident,
-    Num,
-    Hex,
-    Binary,
-    Octal,
-    CharSingleQuote,
-    CharDoubleQuote
-  };
-private:
-  /// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
-  /// the character is correct for the given token being lexed.
-  bool isPartOfToken(Lexer::AmpLexType ALT, char C);
-
-  /// LexAmpersandContext - Lex the continuation within a given context.
-  void LexAmpersandContext(AmpLexType ALT);
 
   /// LexComment - Lex a comment. We sometimes want to return the comment.
   void LexComment(Token &Result);

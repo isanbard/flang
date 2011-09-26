@@ -616,68 +616,6 @@ char Lexer::GetNextCharacter(bool IncPtr) {
   return LineBuf[CurPtr];
 }
 
-/// isPartOfToken - Helper function for LexAmpersandContext. Returns 'true' if
-/// the character is correct for the given token being lexed.
-bool Lexer::isPartOfToken(Lexer::AmpLexType ALT, char C) {
-  switch (ALT) {
-  case Lexer::Ident:
-    return isIdentifierBody(C);
-  case Lexer::Num:
-    return isDecimalNumberBody(C);
-  case Lexer::Hex:
-    return isHexNumberBody(C);
-  case Lexer::Octal:
-    return isOctalNumberBody(C);
-  case Lexer::Binary:
-    return isBinaryNumberBody(C);
-  case Lexer::CharSingleQuote:
-  case Lexer::CharDoubleQuote:
-    // A character context may be split by an '&'. If so, it must be the last
-    // non-whitespace character in the line.
-    if (ALT == Lexer::CharDoubleQuote) {
-      if (C == '"') {
-        C = GetNextCharacter();
-        if (C != '"')
-          return false;
-      }
-    } else {
-      if (C == '\'') {
-        C = GetNextCharacter();
-        if (C != '\'')
-          return false;
-      }
-    }
-
-    if (C != '&') return true;
-
-    do {
-      C = LineBuf[CurPtr++];
-    } while (isHorizontalWhitespace(C));
-
-    return C != '\0';
-  }
-}
-
-/// LexAmpersandContext - Lex the continuation within a given context.
-void Lexer::LexAmpersandContext(AmpLexType ALT) {
-  ++CurPtr;
-  LexBlankLinesAndComments();
-
-  // Here we have either another '&' or the start of a different token.
-  if (LineBuf[CurPtr] != '&')
-    return;
-
-  do {
-    ++CurPtr;
-  } while (LineBuf[CurPtr] != '\0' && LineBuf[CurPtr] != '&' &&
-           isPartOfToken(ALT, LineBuf[CurPtr]));
-
-  if (LineBuf[CurPtr] != '&')
-    return;
-
-  LexAmpersandContext(ALT);
-}
-
 /// LexIdentifier - Lex the remainder of an identifier.
 void Lexer::LexIdentifier(Token &Result) {
   // Match [_A-Za-z0-9]*, we have already matched [A-Za-z$]
