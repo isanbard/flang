@@ -534,8 +534,7 @@ void Lexer::FormTokenWithChars(Token &Result, tok::TokenKind Kind) {
   Result.setLength(TokLen);
   Result.setKind(Kind);
 
-  StringRef TokStr(TokStart, TokLen);
-  if (TokStr.find('&') != StringRef::npos)
+  if (!Text.IsInCurrentAtom(TokStart))
     Result.setFlag(Token::NeedsCleaning);
 }
 

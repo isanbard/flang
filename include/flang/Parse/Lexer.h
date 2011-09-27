@@ -86,6 +86,13 @@ class Lexer {
 
     bool empty() const { return Atoms.empty(); }
 
+    /// IsInCurrentAtom - Return true if the pointer is within the current atom
+    /// and before the current pointer.
+    bool IsInCurrentAtom(const char *Ptr) const {
+      const char *Data = Atoms[CurAtom].data();
+      return Ptr >= Data && Ptr < &Data[CurPtr];
+    }
+
     /// GetNextLine - Get the next line of the program to lex.
     void GetNextLine();
 
