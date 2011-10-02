@@ -156,11 +156,9 @@ void Lexer::LineOfText::GetNextLine() {
   bool BeginsWithAmp = SkipBlankLinesAndComments(I, LineBegin);
 
   const char *AmpersandPos = 0;
-  bool InsertSpace = true;
   while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
     if (*BufPtr == '\'' || *BufPtr == '"') {
       GetCharacterLiteral(I, LineBegin);
-      InsertSpace = false;
       if (I == 132 || isVerticalWhitespace(*BufPtr))
         break;
     } else if (*BufPtr == '&') {
@@ -196,7 +194,7 @@ void Lexer::LineOfText::GetNextLine() {
   if (AmpersandPos) {
     Atoms.push_back(StringRef(LineBegin, AmpersandPos - LineBegin));
   } else {
-    if (!BeginsWithAmp && InsertSpace)
+    if (!BeginsWithAmp && !Atoms.empty())
       // This is a line that doesn't start with an '&'. The tokens are not
       // contiguous. Insert a space to indicate this.
       Atoms.push_back(StringRef(Padding));
