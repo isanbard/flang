@@ -42,7 +42,8 @@ IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
-  APInt Val(APInt::getBitsNeeded(StrPair.first, 10), StrPair.first, 10);
+  APInt Val;
+  StrPair.first.getAsInteger(10, Val);
   Num.setValue(C, Val);
 }
 
@@ -215,7 +216,12 @@ void DefinedOperatorUnaryExpr::print(llvm::raw_ostream &O) {
 }
 
 void ConstantExpr::print(llvm::raw_ostream &O) {
-  O << '_' << Kind; 
+  if (Kind)
+    O << '_' << Kind; 
+}
+
+void IntegerConstantExpr::print(llvm::raw_ostream &O) {
+  O << Num.getValue();
 }
 
 void VarExpr::print(llvm::raw_ostream &O) {

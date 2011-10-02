@@ -155,6 +155,8 @@ public:
 
   APInt getValue() const { return Num.getValue(); }
 
+  virtual void print(llvm::raw_ostream&);
+
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::IntegerConstant;
   }

@@ -85,7 +85,7 @@ QualType ASTContext::getExtQualType(const Type *BaseType, Qualifiers Quals,
   }
 
   ExtQuals *EQ = new (*this, TypeAlignment) ExtQuals(BaseType, Canon, Quals,
-                                                     KindSel);
+                                                     KindSel, LenSel);
   ExtQualNodes.InsertNode(EQ, InsertPos);
   return QualType(EQ, 0);
 }
