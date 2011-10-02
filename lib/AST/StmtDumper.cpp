@@ -60,14 +60,14 @@ void StmtVisitor::visit(Stmt *S) {
 
 void StmtVisitor::visit(const ProgramStmt *S) {
   const IdentifierInfo *Name = S->getProgramName();
-  OS << "(PROGRAM";
-  if (Name) OS << " '" << Name->getName() << "'";
+  OS << "(program";
+  if (Name) OS << ":  '" << Name->getName() << "'";
   OS << ")\n";
 }
 void StmtVisitor::visit(const EndProgramStmt *S) {
   const IdentifierInfo *Name = S->getProgramName();
-  OS << "(END PROGRAM";
-  if (Name) OS << " '" << Name->getName() << "'";
+  OS << "(end program";
+  if (Name) OS << ":  '" << Name->getName() << "'";
   OS << ")\n";
 }
 void StmtVisitor::visit(const UseStmt *S) {
@@ -77,14 +77,14 @@ void StmtVisitor::visit(const ImportStmt *S) {
 void StmtVisitor::visit(const AsynchronousStmt *S) {
 }
 void StmtVisitor::visit(const AssignmentStmt *S) {
-  OS << "(ASSIGNMENT ";
+  OS << "(assignment:\n  (";
   S->getLHS()->getType().print(OS);
-  OS << "\n  (";
+  OS << ")\n  (";
   S->getRHS()->getType().print(OS);
   OS << "))\n";
 }
 void StmtVisitor::visit(const PrintStmt *S) {
-  OS << "(PRINT [";
+  OS << "(print:\n  [";
   OS << ")\n";
 }
 

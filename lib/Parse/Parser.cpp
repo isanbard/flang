@@ -15,6 +15,7 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
+#include "flang/AST/StmtDumper.h"
 #include "flang/Basic/TokenKinds.h"
 #include "flang/Sema/DeclSpec.h"
 #include "flang/Sema/Sema.h"
@@ -324,6 +325,9 @@ bool Parser::ParseMainProgram() {
     DeclarationName DN(IDInfo);
     DeclarationNameInfo DNI(DN, NameLoc);
     Actions.ActOnMainProgram(DNI);
+
+    // FIXME: Debugging support.
+    dump(ProgStmt.get());
   }
 
   // FIXME: Check for the specific keywords and not just absence of END or
@@ -356,6 +360,9 @@ bool Parser::ParseMainProgram() {
     DeclarationName DN(IDInfo);
     DeclarationNameInfo DNI(DN, NameLoc);
     Actions.ActOnEndMainProgram(DNI);
+
+    // FIXME: Debugging support.
+    dump(EndProgStmt.get());
   }
 
   return EndProgStmt.isInvalid();
