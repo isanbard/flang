@@ -108,7 +108,7 @@ class Lexer {
 
     char GetNextChar();
     char PeekNextChar() const;
-    char GetCurrentChar() const { return Atoms[CurAtom][CurPtr]; }
+    char GetCurrentChar() const;
 
     const char *GetLineBegin() const {
       assert(!Atoms.empty() && "Trying to get the start of an empty string!");

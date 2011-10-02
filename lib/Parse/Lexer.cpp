@@ -228,6 +228,14 @@ char Lexer::LineOfText::GetNextChar() {
   return Atom.data()[++CurPtr];
 }
 
+char Lexer::LineOfText::GetCurrentChar() const {
+  StringRef Atom = Atoms[CurAtom];
+  if (CurPtr == Atom.size())
+    return '\0';
+  assert(!Atom.empty() && "Atom has no contents!");
+  return Atom.data()[CurPtr];
+}
+
 char Lexer::LineOfText::PeekNextChar() const {
   StringRef Atom = Atoms[CurAtom];
   if (CurPtr + 1 == Atom.size()) {
