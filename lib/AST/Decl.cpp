@@ -305,6 +305,7 @@ void StoredDeclsMap::DestroyAll(StoredDeclsMap *Map) {
 
 void Decl::dump() const {
   print(llvm::errs());
+  llvm::errs() << '\n';
 }
 
 void Decl::print(raw_ostream &) const {
@@ -319,7 +320,6 @@ void ValueDecl::print(raw_ostream &OS) const {
   DeclType.print(OS);
   OS << " :: ";
   NamedDecl::print(OS);
-  OS << "\n";
 }
 
 void DeclaratorDecl::print(raw_ostream &OS) const {

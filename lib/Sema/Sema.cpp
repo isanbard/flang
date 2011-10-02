@@ -18,6 +18,7 @@
 #include "flang/AST/Decl.h"
 #include "flang/AST/Stmt.h"
 #include "flang/Basic/Diagnostic.h"
+#include "llvm/Support/raw_ostream.h"
 using namespace flang;
 
 Sema::Sema(ASTContext &ctxt, Diagnostic &D)
@@ -139,6 +140,12 @@ Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
 
   // Store the Decl in the IdentifierInfo for easy access.
   const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
+
+  // FIXME: For debugging:
+  llvm::outs() << "(declaration\n  '";
+  VD->print(llvm::outs());
+  llvm::outs() << "')\n";
+
   return VD;
 }
 
