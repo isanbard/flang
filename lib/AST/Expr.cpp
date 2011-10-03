@@ -106,7 +106,8 @@ BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   size_t LastQuote = StrPair.first.rfind(StrPair.first[1]);
   assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
   llvm::StringRef NumStr = StrPair.first.slice(2, LastQuote);
-  APInt Val(APInt::getBitsNeeded(NumStr, Radix), NumStr, Radix);
+  APInt Val;
+  NumStr.getAsInteger(Radix, Val);
   Num.setValue(C, Val);
 }
 
