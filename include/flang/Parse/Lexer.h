@@ -108,6 +108,7 @@ class Lexer {
 
     char GetNextChar();
     char PeekNextChar() const;
+    char PeekPrevChar() const;
     char GetCurrentChar() const;
 
     const char *GetLineBegin() const {
@@ -133,6 +134,9 @@ class Lexer {
 
   /// peekNextChar - Peek at the next character, but don't advance the buffer.
   char peekNextChar() const { return Text.PeekNextChar(); }
+
+  /// peekPrevChar - Peek at the previous character.
+  char peekPrevChar() const { return Text.PeekPrevChar(); }
 
   /// getCurrentChar - Get the current character the buffer's looking at.
   char getCurrentChar() { return Text.GetCurrentChar(); }

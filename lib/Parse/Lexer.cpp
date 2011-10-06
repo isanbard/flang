@@ -158,6 +158,7 @@ void Lexer::LineOfText::GetNextLine() {
   const char *AmpersandPos = 0;
   while (I != 132 && !isVerticalWhitespace(*BufPtr) && *BufPtr != '\0') {
     if (*BufPtr == '\'' || *BufPtr == '"') {
+      // TODO: A BOZ constant doesn't get parsed like a character literal.
       GetCharacterLiteral(I, LineBegin);
       if (I == 132 || isVerticalWhitespace(*BufPtr))
         break;
@@ -243,6 +244,18 @@ char Lexer::LineOfText::PeekNextChar() const {
   }
   assert(!Atom.empty() && "Atom has no contents!");
   return Atom.data()[CurPtr + 1];
+}
+
+char Lexer::LineOfText::PeekPrevChar() const {
+  if (Atoms.empty()) return '\0';
+  StringRef Atom = Atoms[CurAtom];
+  if (CurPtr == 0) {
+    if (CurAtom == 0)
+      return '\0';
+    return Atoms[CurAtom - 1].back();
+  }
+  assert(!Atom.empty() && "Atom has no contents!");
+  return Atom.data()[CurPtr - 1];
 }
 
 void Lexer::LineOfText::dump() const {

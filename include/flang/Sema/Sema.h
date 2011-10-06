@@ -73,6 +73,11 @@ public:
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc,
                           Token StmtLabelTok);
+  StmtResult ActOnIMPLICIT(DeclSpec &DS,
+                        ArrayRef<std::pair<const IdentifierInfo*,
+                                           const IdentifierInfo*> > LetterSpecs,
+                           Token &StmtLabel);
+  StmtResult ActOnIMPLICIT(Token &StmtLabel);
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
                              SMLoc Loc, SMLoc NameLoc,
@@ -99,7 +104,6 @@ public:
 
   StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
                          Token &StmtLabel) { return StmtResult(); }
-  StmtResult ActOnIMPLICIT(Token &StmtLabel) { return StmtResult(); }
   StmtResult ActOnUSE(UseStmt::ModuleNature MN, llvm::StringRef Name,
                       bool OnlyList,
                       llvm::ArrayRef<const VarDecl*> LocalNames,

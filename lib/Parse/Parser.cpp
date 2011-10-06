@@ -824,8 +824,49 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
 
   if (Tok.is(tok::kw_NONE))
     return Actions.ActOnIMPLICIT(StmtLabelTok);
-  
-  return StmtResult();
+
+  DeclSpec DS;
+  if (ParseDeclarationTypeSpec(DS))
+    return true;
+
+  if (!EatIfPresent(tok::l_paren)) {
+    Diag.ReportError(Tok.getLocation(),
+                     "expected '(' in IMPLICIT statement");
+    return StmtResult();
+  }
+
+  SmallVector<std::pair<const IdentifierInfo*,
+    const IdentifierInfo*>, 4> LetterSpecs;
+  do {
+    if (Tok.isNot(tok::identifier)) {
+      Diag.ReportError(Tok.getLocation(),
+                       "expected a letter");
+      return StmtResult();
+    }
+
+    const IdentifierInfo *First = Tok.getIdentifierInfo();
+    Lex();
+
+    const IdentifierInfo *Second = 0;
+    if (EatIfPresent(tok::minus)) {
+      if (Tok.isNot(tok::identifier)) {
+        Diag.ReportError(Tok.getLocation(),
+                         "expected a letter");
+        return StmtResult();
+      }
+
+      Second = Tok.getIdentifierInfo();
+      Lex();
+    }
+
+    LetterSpecs.push_back(std::make_pair(First, Second));
+  } while (EatIfPresent(tok::comma));
+
+  if (!EatIfPresent(tok::r_paren))
+    Diag.ReportError(Tok.getLocation(),
+                     "expected ')' in IMPLICIT statement");
+
+  return Actions.ActOnIMPLICIT(DS, LetterSpecs, StmtLabelTok);
 }
 
 /// ParsePARAMETERStmt - Parse the PARAMETER statement.

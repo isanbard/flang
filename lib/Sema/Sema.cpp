@@ -155,6 +155,18 @@ StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
   return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
+StmtResult Sema::ActOnIMPLICIT(DeclSpec &DS,
+                               ArrayRef<std::pair<const IdentifierInfo*,
+                               const IdentifierInfo*> > LetterSpecs,
+                               Token &StmtLabel) {
+  return StmtResult();
+}
+
+StmtResult Sema::ActOnIMPLICIT(Token &StmtLabel) {
+  // IMPLICIT NONE
+  return StmtResult();
+}
+
 StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
                                  const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
