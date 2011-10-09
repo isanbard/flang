@@ -78,6 +78,9 @@ public:
                                            const IdentifierInfo*> > LetterSpecs,
                            Token &StmtLabel);
   StmtResult ActOnIMPLICIT(Token &StmtLabel);
+  StmtResult ActOnPARAMETER(llvm::ArrayRef<std::pair<const IdentifierInfo*,
+                                           ExprResult> > NamedConsts,
+                            Token &StmtLabel);
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
                              SMLoc Loc, SMLoc NameLoc,
@@ -109,10 +112,6 @@ public:
                       llvm::ArrayRef<const VarDecl*> LocalNames,
                       llvm::ArrayRef<const VarDecl*> UseNames,
                       Token &StmtLabel) { return StmtResult(); }
-  StmtResult
-  ActOnPARAMETER(llvm::ArrayRef<const IdentifierInfo*> NamedConsts,
-                 llvm::ArrayRef<ExprResult> ConstExprs,
-                 Token &StmtLabel) { return StmtResult(); }
   StmtResult
   ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
                     Token &StmtLabel) { return StmtResult(); }

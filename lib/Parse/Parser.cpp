@@ -894,8 +894,8 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  llvm::SmallVector<const IdentifierInfo *, 4> NamedConsts;
-  llvm::SmallVector<ExprResult, 4> ConstExprs;
+  llvm::SmallVector<std::pair<const IdentifierInfo *,
+                              ExprResult>, 4> NamedConsts;
   do {
     if (Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
@@ -903,7 +903,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
       return StmtResult();
     }
 
-    NamedConsts.push_back(Tok.getIdentifierInfo());
+    const IdentifierInfo *II = Tok.getIdentifierInfo();
     Lex();
 
     if (!EatIfPresent(tok::equal)) {
@@ -916,7 +916,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     if (ConstExpr.isInvalid())
       return StmtResult();
 
-    ConstExprs.push_back(ConstExpr);
+    NamedConsts.push_back(std::make_pair(II, ConstExpr));
   } while (EatIfPresent(tok::comma));
 
   if (!EatIfPresent(tok::r_paren)) {
@@ -925,7 +925,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  return Actions.ActOnPARAMETER(NamedConsts, ConstExprs, StmtLabelTok);
+  return Actions.ActOnPARAMETER(NamedConsts, StmtLabelTok);
 }
 
 /// ParseProcedureDeclStmt - Parse the procedure declaration statement.

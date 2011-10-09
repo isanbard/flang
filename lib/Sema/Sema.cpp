@@ -167,6 +167,12 @@ StmtResult Sema::ActOnIMPLICIT(Token &StmtLabel) {
   return StmtResult();
 }
 
+StmtResult Sema::ActOnPARAMETER(ArrayRef<std::pair<const IdentifierInfo *,
+                                ExprResult> > NamedConsts,
+                                Token &StmtLabel) {
+  return StmtResult();
+}
+
 StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
                                  const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
