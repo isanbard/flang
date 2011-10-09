@@ -480,6 +480,9 @@ bool Parser::ParseBlockData() {
 /// ParseImplicitPartList - Parse a (possibly empty) list of implicit part
 /// statements.
 bool Parser::ParseImplicitPartList() {
+  while (ParseImplicitPart())
+    /* Parse all of them */ ;
+
   return false;
 }
 
@@ -495,7 +498,16 @@ bool Parser::ParseImplicitPart() {
   //       implicit-stmt
   //    or parameter-stmt
   //    or format-stmt
-  //    or entry-stmt
+  //    or entry-stmt [obs]
+  StmtResult Result;
+  if (Tok.is(tok::kw_IMPLICIT)) {
+    Result = ParseIMPLICITStmt();
+  }
+
+  if (Tok.is(tok::kw_PARAMETER)) {
+    Result = ParsePARAMETERStmt();
+  }
+
   return false;
 }
 
@@ -836,7 +848,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   }
 
   SmallVector<std::pair<const IdentifierInfo*,
-    const IdentifierInfo*>, 4> LetterSpecs;
+                        const IdentifierInfo*>, 4> LetterSpecs;
   do {
     if (Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
@@ -884,34 +896,36 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
 
   llvm::SmallVector<const IdentifierInfo *, 4> NamedConsts;
   llvm::SmallVector<ExprResult, 4> ConstExprs;
-  while (Tok.is(tok::identifier)) {
+  do {
+    if (Tok.isNot(tok::identifier)) {
+      Diag.ReportError(Tok.getLocation(),
+                       "expected a named constant in PARAMETER statement");
+      return StmtResult();
+    }
+
     NamedConsts.push_back(Tok.getIdentifierInfo());
     Lex();
 
     if (!EatIfPresent(tok::equal)) {
       Diag.ReportError(Tok.getLocation(),
                        "expected '=' in PARAMETER statement");
-      goto error;
+      return StmtResult();
     }
 
     ExprResult ConstExpr = ParseExpression();
     if (ConstExpr.isInvalid())
-      goto error;
-    ConstExprs.push_back(ConstExpr);
+      return StmtResult();
 
-    EatIfPresent(tok::comma);
-  }
+    ConstExprs.push_back(ConstExpr);
+  } while (EatIfPresent(tok::comma));
 
   if (!EatIfPresent(tok::r_paren)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in PARAMETER statement");
-    goto error;
+    return StmtResult();
   }
 
   return Actions.ActOnPARAMETER(NamedConsts, ConstExprs, StmtLabelTok);
-
- error:
-  return StmtResult();
 }
 
 /// ParseProcedureDeclStmt - Parse the procedure declaration statement.
