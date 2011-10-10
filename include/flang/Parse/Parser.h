@@ -166,8 +166,8 @@ private:
   bool ParseBlockData();
 
   bool ParseSpecificationPart(std::vector<StmtResult> &Body);
-  bool ParseImplicitPartList();
-  bool ParseImplicitPart();
+  bool ParseImplicitPartList(std::vector<StmtResult> &Body);
+  StmtResult ParseImplicitPart();
   bool ParseExecutionPart(std::vector<StmtResult> &Body);
 
   bool ParseDeclarationConstructList();
@@ -198,6 +198,7 @@ private:
   StmtResult ParseIMPLICITStmt();
   StmtResult ParsePARAMETERStmt();
   StmtResult ParseFORMATStmt();
+  StmtResult ParseENTRYStmt();
   StmtResult ParseEND_PROGRAMStmt();
 
   // Specification statement's contents.

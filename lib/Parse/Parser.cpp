@@ -408,7 +408,7 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     ParseStatementLabel();
   }
 
-  if (ParseImplicitPartList()) {
+  if (ParseImplicitPartList(Body)) {
     LexToEndOfStatement();
     HasErrors = true;
   }
@@ -487,11 +487,22 @@ bool Parser::ParseBlockData() {
 
 /// ParseImplicitPartList - Parse a (possibly empty) list of implicit part
 /// statements.
-bool Parser::ParseImplicitPartList() {
-  while (ParseImplicitPart())
-    /* Parse all of them */ ;
+bool Parser::ParseImplicitPartList(std::vector<StmtResult> &Body) {
+  bool HasErrors = false;
+  while (true) {
+    StmtResult S = ParseImplicitPart();
+    if (S.isInvalid()) {
+      LexToEndOfStatement();
+      HasErrors = true;
+    } else if (!S.isUsable()) {
+      break;
+    }
 
-  return false;
+    Body.push_back(S);
+    ParseStatementLabel();
+  }
+
+  return HasErrors;
 }
 
 /// ParseImplicitPart - Parse the implicit part.
@@ -500,7 +511,7 @@ bool Parser::ParseImplicitPartList() {
 ///     implicit-part :=
 ///         [implicit-part-stmt] ...
 ///           implicit-stmt
-bool Parser::ParseImplicitPart() {
+StmtResult Parser::ParseImplicitPart() {
   // R206:
   //   implicit-part-stmt :=
   //       implicit-stmt
@@ -520,7 +531,11 @@ bool Parser::ParseImplicitPart() {
     Result = ParseFORMATStmt();
   }
 
-  return false;
+  if (Tok.is(tok::kw_ENTRY)) {
+    Result = ParseENTRYStmt();
+  }
+
+  return Result;
 }
 
 /// ParseExecutionPart - Parse the execution part.
@@ -958,6 +973,15 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
 ///         ( [ format-items ] )
 ///      or ( [ format-items, ] unlimited-format-item )
 StmtResult Parser::ParseFORMATStmt() {
+  return StmtResult();
+}
+
+/// ParseENTRYStmt - Parse the ENTRY statement.
+///
+///   [R1240]:
+///     entry-stmt :=
+///         ENTRY entry-name [ ( [ dummy-arg-list ] ) [ suffix ] ]
+StmtResult Parser::ParseENTRYStmt() {
   return StmtResult();
 }
 
