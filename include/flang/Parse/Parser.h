@@ -144,10 +144,6 @@ public:
     return Identifiers.isaBuiltin(BI);
   }
 
-#if 0
-  Parser(llvm::SourceMgr &SrcMgr, const LangOptions &Opts,
-         Diagnostic &D, Action &Acts);
-#endif
   Parser(llvm::SourceMgr &SrcMgr, const LangOptions &Opts,
          Diagnostic &D, Sema &actions);
 
@@ -162,14 +158,14 @@ public:
 private:
   // High-level parsing methods.
   bool ParseProgramUnit();
-  bool ParseMainProgram();
+  bool ParseMainProgram(std::vector<StmtResult> &Body);
   bool ParseExternalSubprogram();
   bool ParseFunctionSubprogram();
   bool ParseSubroutineSubprogram();
   bool ParseModule();
   bool ParseBlockData();
 
-  bool ParseSpecificationPart();
+  bool ParseSpecificationPart(std::vector<StmtResult> &Body);
   bool ParseImplicitPartList();
   bool ParseImplicitPart();
   bool ParseExecutionPart(std::vector<StmtResult> &Stmts);
@@ -201,6 +197,7 @@ private:
   StmtResult ParseIMPORTStmt();
   StmtResult ParseIMPLICITStmt();
   StmtResult ParsePARAMETERStmt();
+  StmtResult ParseFORMATStmt();
   StmtResult ParseEND_PROGRAMStmt();
 
   // Specification statement's contents.

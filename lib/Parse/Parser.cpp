@@ -214,10 +214,10 @@ bool Parser::EatIfPresent(tok::TokenKind Kind) {
   return false;
 }
 
-/// LexToEndOfStatement - Lext to the end of a statement. Done in an
+/// LexToEndOfStatement - Lex to the end of a statement. Done in an
 /// unrecoverable error situation.
 void Parser::LexToEndOfStatement() {
-  // Eat the rest of the line.
+  // Eat the rest of the statment.
   while (!Tok.isAtStartOfStatement())
     Lex();
 }
@@ -269,11 +269,15 @@ bool Parser::ParseProgramUnit() {
     return true;
 
   ParseStatementLabel();
+  std::vector<StmtResult> Body;
+
+  if (NextTok.is(tok::equal))
+    return ParseMainProgram(Body);
 
   // FIXME: These calls should return something proper.
   switch (Tok.getKind()) {
   default:
-    ParseMainProgram();
+    ParseMainProgram(Body);
     break;
 
   case tok::kw_FUNCTION:
@@ -302,12 +306,13 @@ bool Parser::ParseProgramUnit() {
 ///           [execution-part]
 ///           [internal-subprogram-part]
 ///           end-program-stmt
-bool Parser::ParseMainProgram() {
+bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   // If the PROGRAM statement didn't have an identifier, pretend like it did for
   // the time being.
   StmtResult ProgStmt;
   if (Tok.is(tok::kw_PROGRAM)) {
     ProgStmt = ParsePROGRAMStmt();
+    Body.push_back(ProgStmt);
     ParseStatementLabel();
   }
 
@@ -333,7 +338,7 @@ bool Parser::ParseMainProgram() {
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
-    ParseSpecificationPart();
+    ParseSpecificationPart(Body);
     ParseStatementLabel();
   }
 
@@ -376,13 +381,15 @@ bool Parser::ParseMainProgram() {
 ///          [import-stmt] ...
 ///          [implicit-part] ...
 ///          [declaration-construct] ...
-bool Parser::ParseSpecificationPart() {
+bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
   bool HasErrors = false;
   while (Tok.is(tok::kw_USE)) {
     StmtResult S = ParseUSEStmt();
     if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
+    } else {
+      Body.push_back(S);
     }
 
     ParseStatementLabel();
@@ -393,19 +400,19 @@ bool Parser::ParseSpecificationPart() {
     if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
+    } else {
+      Body.push_back(S);
     }
 
     ParseStatementLabel();
   }
 
-  while (Tok.is(tok::kw_IMPLICIT)) {
-    if (ParseImplicitPartList()) {
-      LexToEndOfStatement();
-      HasErrors = true;
-    }
-
-    ParseStatementLabel();
+  if (ParseImplicitPartList()) {
+    LexToEndOfStatement();
+    HasErrors = true;
   }
+
+  ParseStatementLabel();
 
   if (ParseDeclarationConstructList()) {
     LexToEndOfStatement();
@@ -506,6 +513,10 @@ bool Parser::ParseImplicitPart() {
 
   if (Tok.is(tok::kw_PARAMETER)) {
     Result = ParsePARAMETERStmt();
+  }
+
+  if (Tok.is(tok::kw_FORMAT)) {
+    Result = ParseFORMATStmt();
   }
 
   return false;
@@ -827,11 +838,15 @@ Parser::StmtResult Parser::ParseIMPORTStmt() {
 
 /// ParseIMPLICITStmt - Parse the IMPLICIT statement.
 ///
-///   [5.3] R549:
+///   [R560]:
 ///     implicit-stmt :=
 ///         IMPLICIT implicit-spec-list
 ///      or IMPLICIT NONE
 Parser::StmtResult Parser::ParseIMPLICITStmt() {
+  // Check if this is an assignment.
+  if (NextTok.is(tok::equal))
+    return StmtResult();
+
   Lex();
 
   if (Tok.is(tok::kw_NONE))
@@ -883,10 +898,14 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
 
 /// ParsePARAMETERStmt - Parse the PARAMETER statement.
 ///
-///   [5.4.11] R548:
+///   [R548]:
 ///     parameter-stmt :=
 ///         PARAMETER ( named-constant-def-list )
 Parser::StmtResult Parser::ParsePARAMETERStmt() {
+  // Check if this is an assignment.
+  if (NextTok.is(tok::equal))
+    return false;
+
   Lex();
   if (!EatIfPresent(tok::l_paren)) {
     Diag.ReportError(Tok.getLocation(),
@@ -926,6 +945,19 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
   }
 
   return Actions.ActOnPARAMETER(NamedConsts, StmtLabelTok);
+}
+
+/// ParseFORMATStmt - Parse the FORMAT statement.
+///
+///   [R1001]:
+///     format-stmt :=
+///         FORMAT format-specification
+///   [R1002]:
+///     format-specification :=
+///         ( [ format-items ] )
+///      or ( [ format-items, ] unlimited-format-item )
+StmtResult Parser::ParseFORMATStmt() {
+  return StmtResult();
 }
 
 /// ParseProcedureDeclStmt - Parse the procedure declaration statement.
