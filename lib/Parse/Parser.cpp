@@ -344,9 +344,8 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
 
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.
-  std::vector<StmtResult> Stmts;
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
-    ParseExecutionPart(Stmts);
+    ParseExecutionPart(Body);
     ParseStatementLabel();
   }
 
@@ -388,10 +387,11 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
-    } else {
-      Body.push_back(S);
+    } else if (!S.isUsable()) {
+      break;
     }
 
+    Body.push_back(S);
     ParseStatementLabel();
   }
 
@@ -400,10 +400,11 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
-    } else {
-      Body.push_back(S);
+    } else if (!S.isUsable()) {
+      break;
     }
 
+    Body.push_back(S);
     ParseStatementLabel();
   }
 
@@ -528,7 +529,7 @@ bool Parser::ParseImplicitPart() {
 ///     execution-part :=
 ///         executable-construct
 ///           [ execution-part-construct ] ...
-bool Parser::ParseExecutionPart(std::vector<StmtResult> &Stmts) {
+bool Parser::ParseExecutionPart(std::vector<StmtResult> &Body) {
   bool HadError = false;
   while (true) {
     StmtResult SR = ParseExecutableConstruct();
@@ -538,7 +539,7 @@ bool Parser::ParseExecutionPart(std::vector<StmtResult> &Stmts) {
     } else if (!SR.isUsable()) {
       break;
     }
-    Stmts.push_back(SR);
+    Body.push_back(SR);
   }
 
   return HadError;

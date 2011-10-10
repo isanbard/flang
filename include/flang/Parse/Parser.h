@@ -168,7 +168,7 @@ private:
   bool ParseSpecificationPart(std::vector<StmtResult> &Body);
   bool ParseImplicitPartList();
   bool ParseImplicitPart();
-  bool ParseExecutionPart(std::vector<StmtResult> &Stmts);
+  bool ParseExecutionPart(std::vector<StmtResult> &Body);
 
   bool ParseDeclarationConstructList();
   bool ParseDeclarationConstruct();
