@@ -10,7 +10,7 @@
 #include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
-#include "llvm/ADT/APInt.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
@@ -42,7 +42,7 @@ IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
   std::pair<StringRef, StringRef> StrPair = Data.split('_');
   if (!StrPair.second.empty())
     setKindSelector(C, StrPair.second);
-  APInt Val;
+  llvm::APSInt Val(64);
   StrPair.first.getAsInteger(10, Val);
   Num.setValue(C, Val);
 }

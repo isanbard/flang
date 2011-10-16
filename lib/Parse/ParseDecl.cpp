@@ -89,9 +89,6 @@ bool Parser::ParseTypeDeclarationList(DeclSpec &DS,
 ///     type-declaration-stmt :=
 ///         declaration-type-spec [ [ , attr-spec ] ... :: ] entity-decl-list
 bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
-  if (!Tok.isAtStartOfStatement())
-    return true;
-  
   DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
     return true;
