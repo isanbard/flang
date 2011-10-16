@@ -347,24 +347,19 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
 
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
 
-  {
-    const IdentifierInfo *IDInfo = 0;
-    llvm::SMLoc NameLoc;
+  // FIXME: Debugging support.
+  dump(EndProgStmt.get());
 
-    if (EndProgStmt.isUsable()) {
-      EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
-      IDInfo = EPS->getProgramName();
-      NameLoc = EPS->getNameLocation();
-    }
+  IDInfo = 0;
+  NameLoc = SMLoc();
 
-    DeclarationName DN(IDInfo);
-    DeclarationNameInfo DNI(DN, NameLoc);
-    Actions.ActOnEndMainProgram(DNI);
-
-    // FIXME: Debugging support.
-    dump(EndProgStmt.get());
+  if (EndProgStmt.isUsable()) {
+    EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
+    IDInfo = EPS->getProgramName();
+    NameLoc = EPS->getNameLocation();
   }
 
+  Actions.ActOnEndMainProgram(IDInfo, NameLoc);
   return EndProgStmt.isInvalid();
 }
 

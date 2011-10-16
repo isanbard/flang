@@ -64,7 +64,7 @@ public:
   void ActOnEndProgramUnit();
 
   void ActOnMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc);
-  void ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo);
+  void ActOnEndMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc);
 
   QualType ActOnTypeName(ASTContext &C, DeclSpec &DS);
   Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, SMLoc IDLoc,

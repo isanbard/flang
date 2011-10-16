@@ -61,8 +61,12 @@ void Sema::ActOnMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc) {
                                           NameInfo));
 }
 
-void Sema::ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo) {
+void Sema::ActOnEndMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc) {
   assert(CurContext && "DeclContext imbalance!");
+
+  DeclarationName DN(IDInfo);
+  DeclarationNameInfo EndNameInfo(DN, NameLoc);
+
   StringRef ProgName = cast<MainProgramDecl>(CurContext)->getName();
   if (ProgName.empty()) {
     PopDeclContext();
