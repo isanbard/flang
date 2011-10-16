@@ -63,7 +63,7 @@ public:
   void ActOnTranslationUnit();
   void ActOnEndProgramUnit();
 
-  void ActOnMainProgram(const DeclarationNameInfo &NameInfo);
+  void ActOnMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc);
   void ActOnEndMainProgram(const DeclarationNameInfo &EndNameInfo);
 
   QualType ActOnTypeName(ASTContext &C, DeclSpec &DS);

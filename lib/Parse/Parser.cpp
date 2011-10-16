@@ -316,24 +316,20 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
     ParseStatementLabel();
   }
 
-  // If the PROGRAM statement has an identifier, create a DeclarationNameInfo
-  // object for the main-program action.
-  {
-    const IdentifierInfo *IDInfo = 0;
-    llvm::SMLoc NameLoc;
-    if (ProgStmt.isUsable()) {
-      ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
-      IDInfo = PS->getProgramName();
-      NameLoc = PS->getNameLocation();
-    }
+  // FIXME: Debugging support.
+  dump(ProgStmt.get());
 
-    DeclarationName DN(IDInfo);
-    DeclarationNameInfo DNI(DN, NameLoc);
-    Actions.ActOnMainProgram(DNI);
-
-    // FIXME: Debugging support.
-    dump(ProgStmt.get());
+  // If the PROGRAM statement has an identifier, pass it on to the main program
+  // action.
+  const IdentifierInfo *IDInfo = 0;
+  SMLoc NameLoc;
+  if (ProgStmt.isUsable()) {
+    ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
+    IDInfo = PS->getProgramName();
+    NameLoc = PS->getNameLocation();
   }
+
+  Actions.ActOnMainProgram(IDInfo, NameLoc);
 
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.

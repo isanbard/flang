@@ -53,7 +53,9 @@ void Sema::ActOnEndProgramUnit() {
   PopDeclContext();
 }
 
-void Sema::ActOnMainProgram(const DeclarationNameInfo &NameInfo) {
+void Sema::ActOnMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc) {
+  DeclarationName DN(IDInfo);
+  DeclarationNameInfo NameInfo(DN, NameLoc);
   PushDeclContext(MainProgramDecl::Create(Context,
                                           Context.getTranslationUnitDecl(),
                                           NameInfo));
