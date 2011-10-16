@@ -443,7 +443,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
 /// ParseDesignator - Parse a designator. Return null if current token is not a
 /// designator.
 ///
-///   R601:
+///   [R601]:
 ///     designator :=
 ///         object-name
 ///      or array-element
@@ -460,16 +460,12 @@ ExprResult Parser::ParseDesignator() {
   ExprResult E;
   if (Tok.isNot(tok::identifier)) return E;
 
-  // R504:
+  // [R504]:
   //   object-name :=
   //       name
-
-  // FIXME: !!
-#if 0
-  const VarDecl *VD = Context.getVarDecl(Tok.getIdentifierInfo());
-  if (!VD) return ExprResult();
-  E = new VarExpr(Tok.getLocation(), VD);
-#endif
+  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
+  VarDecl *VD = IDInfo->getFETokenInfo<VarDecl>();
+  E = VarExpr::Create(Context, Tok.getLocation(), VD);
   Lex();
 
   return E;

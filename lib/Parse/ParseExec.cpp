@@ -88,6 +88,7 @@ StmtResult Parser::ParseExecutableConstruct() {
 Parser::StmtResult Parser::ParseActionStmt() {
   ParseStatementLabel();
 
+  // This is an assignment.
   if (Tok.getIdentifierInfo() && !NextTok.isAtStartOfStatement() &&
       NextTok.is(tok::equal))
     return ParseAssignmentStmt();

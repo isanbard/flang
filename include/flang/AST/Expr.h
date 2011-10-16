@@ -316,8 +316,9 @@ public:
 /// VarExpr -
 class VarExpr : public DesignatorExpr {
   const VarDecl *Variable;
-public:
   VarExpr(llvm::SMLoc Loc, const VarDecl *Var);
+public:
+  static VarExpr *Create(ASTContext &C, SMLoc L, const VarDecl *V);
 
   const VarDecl *getVarDecl() const { return Variable; }
 

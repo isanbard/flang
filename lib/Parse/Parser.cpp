@@ -226,9 +226,11 @@ void Parser::LexToEndOfStatement() {
 /// isn't a statement label, then set the StmtLabelTok's kind to "unknown".
 void Parser::ParseStatementLabel() {
   if (Tok.isNot(tok::statement_label)) {
-    StmtLabelTok.setKind(tok::unknown);
+    if (Tok.isAtStartOfStatement())
+      StmtLabelTok.setKind(tok::unknown);
     return;
   }
+
   StmtLabelTok = Tok;
   Lex();
 }
@@ -313,7 +315,6 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   if (Tok.is(tok::kw_PROGRAM)) {
     ProgStmt = ParsePROGRAMStmt();
     Body.push_back(ProgStmt);
-    ParseStatementLabel();
   }
 
   // FIXME: Debugging support.
@@ -333,19 +334,19 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
 
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.
-  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
+  ParseStatementLabel();
+  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM))
     ParseSpecificationPart(Body);
-    ParseStatementLabel();
-  }
 
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.
-  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM)) {
+  ParseStatementLabel();
+  if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM))
     ParseExecutionPart(Body);
-    ParseStatementLabel();
-  }
 
+  ParseStatementLabel();
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
+  Body.push_back(EndProgStmt);
 
   // FIXME: Debugging support.
   dump(EndProgStmt.get());
@@ -365,7 +366,7 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
 
 /// ParseSpecificationPart - Parse the specification part.
 ///
-///   R204:
+///   [R204]:
 ///     specification-part :=
 ///        [use-stmt] ...
 ///          [import-stmt] ...
@@ -375,27 +376,29 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
   bool HasErrors = false;
   while (Tok.is(tok::kw_USE)) {
     StmtResult S = ParseUSEStmt();
-    if (S.isInvalid()) {
+    if (S.isUsable()) {
+      Body.push_back(S);
+    } else if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
-    } else if (!S.isUsable()) {
+    } else {
       break;
     }
 
-    Body.push_back(S);
     ParseStatementLabel();
   }
 
   while (Tok.is(tok::kw_IMPORT)) {
     StmtResult S = ParseIMPORTStmt();
-    if (S.isInvalid()) {
+    if (S.isUsable()) {
+      Body.push_back(S);
+    } else if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
-    } else if (!S.isUsable()) {
+    } else {
       break;
     }
 
-    Body.push_back(S);
     ParseStatementLabel();
   }
 
@@ -403,8 +406,6 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     LexToEndOfStatement();
     HasErrors = true;
   }
-
-  ParseStatementLabel();
 
   if (ParseDeclarationConstructList()) {
     LexToEndOfStatement();
@@ -416,7 +417,7 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
 
 /// ParseExternalSubprogram - Parse an external subprogram.
 ///
-///   R203:
+///   [R203]:
 ///     external-subprogram :=
 ///         function-subprogram
 ///      or subroutine-subprogram
@@ -426,7 +427,7 @@ bool Parser::ParseExternalSubprogram() {
 
 /// ParseFunctionSubprogram - Parse a function subprogram.
 ///
-///   R1223:
+///   [R1223]:
 ///     function-subprogram :=
 ///         function-stmt
 ///           [specification-part]
@@ -439,7 +440,7 @@ bool Parser::ParseFunctionSubprogram() {
 
 /// ParseSubroutineSubprogram - Parse a subroutine subprogram.
 ///
-///   R1231:
+///   [R1231]:
 ///     subroutine-subprogram :=
 ///         subroutine-stmt
 ///           [specification-part]
@@ -452,7 +453,7 @@ bool Parser::ParseSubroutineSubprogram() {
 
 /// ParseModule - Parse a module.
 ///
-///   R1104:
+///   [R1104]:
 ///     module :=
 ///         module-stmt
 ///           [specification-part]
@@ -464,7 +465,7 @@ bool Parser::ParseModule() {
 
 /// ParseBlockData - Parse block data.
 ///
-///   R1116:
+///   [R1116]:
 ///     block-data :=
 ///         block-data-stmt
 ///           [specification-part]
@@ -482,15 +483,14 @@ bool Parser::ParseImplicitPartList(std::vector<StmtResult> &Body) {
   bool HasErrors = false;
   while (true) {
     StmtResult S = ParseImplicitPart();
-    if (S.isInvalid()) {
+    if (S.isUsable()) {
+      Body.push_back(S);
+    } else if (S.isInvalid()) {
       LexToEndOfStatement();
       HasErrors = true;
-    } else if (!S.isUsable()) {
+    } else {
       break;
     }
-
-    Body.push_back(S);
-    ParseStatementLabel();
   }
 
   return HasErrors;
@@ -498,32 +498,25 @@ bool Parser::ParseImplicitPartList(std::vector<StmtResult> &Body) {
 
 /// ParseImplicitPart - Parse the implicit part.
 ///
-///   R205:
+///   [R205]:
 ///     implicit-part :=
 ///         [implicit-part-stmt] ...
 ///           implicit-stmt
 StmtResult Parser::ParseImplicitPart() {
-  // R206:
+  // [R206]:
   //   implicit-part-stmt :=
   //       implicit-stmt
   //    or parameter-stmt
   //    or format-stmt
   //    or entry-stmt [obs]
+  ParseStatementLabel();
   StmtResult Result;
-  if (Tok.is(tok::kw_IMPLICIT)) {
-    Result = ParseIMPLICITStmt();
-  }
-
-  if (Tok.is(tok::kw_PARAMETER)) {
-    Result = ParsePARAMETERStmt();
-  }
-
-  if (Tok.is(tok::kw_FORMAT)) {
-    Result = ParseFORMATStmt();
-  }
-
-  if (Tok.is(tok::kw_ENTRY)) {
-    Result = ParseENTRYStmt();
+  switch (Tok.getKind()) {
+  default: break;
+  case tok::kw_IMPLICIT:  Result = ParseIMPLICITStmt();  break;
+  case tok::kw_PARAMETER: Result = ParsePARAMETERStmt(); break;
+  case tok::kw_FORMAT:    Result = ParseFORMATStmt();    break;
+  case tok::kw_ENTRY:     Result = ParseENTRYStmt();     break;
   }
 
   return Result;
@@ -531,7 +524,7 @@ StmtResult Parser::ParseImplicitPart() {
 
 /// ParseExecutionPart - Parse the execution part.
 ///
-///   R208:
+///   [R208]:
 ///     execution-part :=
 ///         executable-construct
 ///           [ execution-part-construct ] ...
@@ -562,7 +555,7 @@ bool Parser::ParseDeclarationConstructList() {
 
 /// ParseDeclarationConstruct - Parse a declaration construct.
 ///
-///   [2.1] R207:
+///   [R207]:
 ///     declaration-construct :=
 ///         derived-type-def
 ///      or entry-stmt
@@ -604,7 +597,7 @@ bool Parser::ParseDeclarationConstruct() {
 
 /// ParseForAllConstruct - Parse a forall construct.
 ///
-///   [7.4.4.1] R752:
+///   [R752]:
 ///     forall-construct :=
 ///         forall-construct-stmt
 ///           [forall-body-construct] ...
@@ -615,7 +608,7 @@ bool Parser::ParseForAllConstruct() {
 
 /// ParseArraySpec - Parse an array specification.
 ///
-///   [5.1.2.5] R510:
+///   [R510]:
 ///     array-spec :=
 ///         explicit-shape-spec-list
 ///      or assumed-shape-spec-list
@@ -626,7 +619,7 @@ bool Parser::ParseArraySpec(SmallVectorImpl<ExprResult> &Dims) {
     return Diag.ReportError(Tok.getLocation(),
                             "expected '(' in array spec");
 
-  // [5.1.2.5.1] R511, R512, R513
+  // [R511], [R512], [R513]:
   //   explicit-shape-spec :=
   //       [ lower-bound : ] upper-bound
   //   lower-bound :=
@@ -634,11 +627,11 @@ bool Parser::ParseArraySpec(SmallVectorImpl<ExprResult> &Dims) {
   //   upper-bound :=
   //       specification-expr
   //
-  // [7.1.6] R729
+  // [R729]:
   //   specification-expr :=
   //       scalar-int-expr
   //
-  // [7.1.4] R727
+  // [R727]:
   //   int-expr :=
   //       expr
   //
@@ -690,7 +683,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
 
 /// ParseUSEStmt - Parse the 'USE' statement.
 ///
-///   [11.2.2] R1109:
+///   [R1109]:
 ///     use-stmt :=
 ///         USE [ [ , module-nature ] :: ] module-name [ , rename-list ]
 ///      or USE [ [ , module-nature ] :: ] module-name , ONLY : [ only-list ]
@@ -826,7 +819,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
 
 /// ParseIMPORTStmt - Parse the IMPORT statement.
 ///
-///   [12.4.3.3] R1209:
+///   [R1209]:
 ///     import-stmt :=
 ///         IMPORT [[::] import-name-list]
 Parser::StmtResult Parser::ParseIMPORTStmt() {

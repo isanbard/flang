@@ -134,6 +134,10 @@ VarExpr::VarExpr(llvm::SMLoc Loc, const VarDecl *Var)
   : DesignatorExpr(Loc, Var->getType(), DesignatorExpr::ObjectName),
     Variable(Var) {}
 
+VarExpr *VarExpr::Create(ASTContext &C, SMLoc Loc, const VarDecl *VD) {
+  return new (C) VarExpr(Loc, VD);
+}
+
 UnaryExpr *UnaryExpr::Create(ASTContext &C, SMLoc loc, Operator op,
                              ExprResult e) {
   return new (C) UnaryExpr(Expr::Unary,
