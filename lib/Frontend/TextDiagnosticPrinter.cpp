@@ -44,14 +44,14 @@ void TextDiagnosticPrinter::HandleDiagnostic(Diagnostic::Level Level,
                                              const llvm::Twine &Msg) {
   // Default implementation (Warnings/errors count).
   DiagnosticClient::HandleDiagnostic(Level, L, Msg);
-  const char *MsgTy = 0;
+  llvm::SourceMgr::DiagKind MsgTy;
   switch (Level) {
   case Diagnostic::Ignored: return;
-  case Diagnostic::Note:    MsgTy = "note";    break;
-  case Diagnostic::Warning: MsgTy = "warning"; break;
-  case Diagnostic::Error:   MsgTy = "error";   break;
-  case Diagnostic::Fatal:   MsgTy = "fatal";   break;
+  case Diagnostic::Note:    MsgTy = llvm::SourceMgr::DK_Note;    break;
+  case Diagnostic::Warning: MsgTy = llvm::SourceMgr::DK_Warning; break;
+  case Diagnostic::Error:   MsgTy = llvm::SourceMgr::DK_Error;   break;
+  case Diagnostic::Fatal:   MsgTy = llvm::SourceMgr::DK_Error;   break;
   }
 
-  SrcMgr.PrintMessage(L, Msg, MsgTy);
+  SrcMgr.PrintMessage(L, MsgTy, Msg);
 }

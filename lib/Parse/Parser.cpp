@@ -44,8 +44,8 @@ void PrettyStackTraceParserEntry::print(llvm::raw_ostream &OS) const {
   FP.getLexer().getSpelling(Tok, Spelling);
   std::string Name = Tok.CleanLiteral(Spelling);
   FP.getLexer().getSourceManager()
-    .PrintMessage(Tok.getLocation(),
-                  "current parser token '" + Name + "'", "error");
+    .PrintMessage(Tok.getLocation(), llvm::SourceMgr::DK_Error,
+                  "current parser token '" + Name + "'");
 }
 
 //===----------------------------------------------------------------------===//
