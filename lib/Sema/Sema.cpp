@@ -127,6 +127,16 @@ QualType Sema::ActOnTypeName(ASTContext &C, DeclSpec &DS) {
   return ActOnArraySpec(C, EQs, DS.getDimensions());
 }
 
+VarDecl *Sema::ActOnKindSelector(ASTContext &C, SMLoc IDLoc,
+                                 const IdentifierInfo *IDInfo) {
+  VarDecl *VD = VarDecl::Create(C, CurContext, IDLoc, IDInfo, QualType());
+  CurContext->addDecl(VD);
+
+  // Store the Decl in the IdentifierInfo for easy access.
+  const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
+  return VD;
+}
+
 Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
                             const IdentifierInfo *IDInfo) {
   if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {

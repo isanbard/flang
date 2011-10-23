@@ -81,10 +81,9 @@ class ConstantExpr : public Expr {
 protected:
   ConstantExpr(ExprType Ty, QualType T, SMLoc Loc)
     : Expr(Ty, T, Loc), Kind(0) {}
-  
-  void setKindSelector(ASTContext &C, StringRef K);
 public:
   Expr *getKindSelector() const { return Kind; }
+  void setKindSelector(Expr *K) { Kind = K; }
 
   virtual void print(llvm::raw_ostream&);
 

@@ -67,6 +67,8 @@ public:
   void ActOnEndMainProgram(const IdentifierInfo *IDInfo, SMLoc NameLoc);
 
   QualType ActOnTypeName(ASTContext &C, DeclSpec &DS);
+  VarDecl *ActOnKindSelector(ASTContext &C, SMLoc IDLoc,
+                             const IdentifierInfo *IDInfo);
   Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, SMLoc IDLoc,
                         const IdentifierInfo *IDInfo);
 

@@ -14,13 +14,6 @@
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
-void ConstantExpr::setKindSelector(ASTContext &C, StringRef K) {
-  SMLoc L = SMLoc::getFromPointer(K.data());
-  if (::isdigit(K[0]))
-    Kind = IntegerConstantExpr::Create(C, L, K);
-  // FIXME: Do VarExpr.
-}
-
 void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
   if (hasAllocation())
     C.Deallocate(pVal);
@@ -40,11 +33,8 @@ void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
 IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
   : ConstantExpr(IntegerConstant, C.IntegerTy,  Loc) {
-  std::pair<StringRef, StringRef> StrPair = Data.split('_');
-  if (!StrPair.second.empty())
-    setKindSelector(C, StrPair.second);
   llvm::APSInt Val(64);
-  StrPair.first.getAsInteger(10, Val);
+  Data.getAsInteger(10, Val);
   Num.setValue(C, Val);
 }
 
@@ -55,11 +45,8 @@ IntegerConstantExpr *IntegerConstantExpr::Create(ASTContext &C, SMLoc Loc,
 
 RealConstantExpr::RealConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(RealConstant, C.RealTy /*FIXME: Double?*/, Loc) {
-  std::pair<StringRef, StringRef> StrPair = Data.split('_');
-  if (!StrPair.second.empty())
-    setKindSelector(C, StrPair.second);
   // FIXME: IEEEdouble?
-  APFloat Val(APFloat::IEEEsingle, StrPair.first);
+  APFloat Val(APFloat::IEEEsingle, Data);
   Num.setValue(C, Val);
 }
 
@@ -84,12 +71,8 @@ CharacterConstantExpr *CharacterConstantExpr::Create(ASTContext &C, SMLoc Loc,
 
 BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
   : ConstantExpr(BOZConstant, C.IntegerTy, Loc) {
-  std::pair<StringRef, StringRef> StrPair = Data.split('_');
-  if (!StrPair.second.empty())
-    setKindSelector(C, StrPair.second);
-
   unsigned Radix = 0;
-  switch (StrPair.first[0]) {
+  switch (Data[0]) {
   case 'B':
     Kind = Binary;
     Radix = 2;
@@ -104,9 +87,9 @@ BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
     break;
   }
 
-  size_t LastQuote = StrPair.first.rfind(StrPair.first[1]);
+  size_t LastQuote = Data.rfind(Data[1]);
   assert(LastQuote == StringRef::npos && "Invalid BOZ constant!");
-  llvm::StringRef NumStr = StrPair.first.slice(2, LastQuote);
+  llvm::StringRef NumStr = Data.slice(2, LastQuote);
   APInt Val;
   NumStr.getAsInteger(Radix, Val);
   Num.setValue(C, Val);
@@ -120,10 +103,7 @@ BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, SMLoc Loc,
 LogicalConstantExpr::LogicalConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
   : ConstantExpr(LogicalConstant, C.LogicalTy, Loc) {
-  std::pair<StringRef, StringRef> StrPair = Data.split('_');
-  if (!StrPair.second.empty())
-    setKindSelector(C, StrPair.second);
-  Val = (StrPair.first.compare_upper(".TRUE.") == 0);
+  Val = (Data.compare_upper(".TRUE.") == 0);
 }
 
 LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, SMLoc Loc,

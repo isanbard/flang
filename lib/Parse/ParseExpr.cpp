@@ -380,18 +380,58 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     Lex();
     break;
   case tok::logical_literal_constant: {
-    std::string NameStr;
-    CleanLiteral(Tok, NameStr);
-    E = LogicalConstantExpr::Create(Context, Loc, NameStr);
+    std::string NumStr;
+    CleanLiteral(Tok, NumStr);
+
+    StringRef Data(NumStr);
+    std::pair<StringRef, StringRef> StrPair = Data.split('_');
+    E = LogicalConstantExpr::Create(Context, Loc, StrPair.first);
+
+    if (!StrPair.second.empty()) {
+      std::string KindStr = StrPair.second;
+      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
+      Expr *KindExpr = 0;
+
+      if (::isdigit(KindStr[0])) {
+        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
+      } else {
+        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
+        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
+        KindExpr = VarExpr::Create(Context, Loc, VD);
+      }
+
+      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
+    }
+
     Lex();
     break;
   }
   case tok::binary_boz_constant:
   case tok::octal_boz_constant:
   case tok::hex_boz_constant: {
-    std::string NameStr;
-    CleanLiteral(Tok, NameStr);
-    E = BOZConstantExpr::Create(Context, Loc, NameStr);
+    std::string NumStr;
+    CleanLiteral(Tok, NumStr);
+
+    StringRef Data(NumStr);
+    std::pair<StringRef, StringRef> StrPair = Data.split('_');
+    E = BOZConstantExpr::Create(Context, Loc, StrPair.first);
+
+    if (!StrPair.second.empty()) {
+      std::string KindStr = StrPair.second;
+      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
+      Expr *KindExpr = 0;
+
+      if (::isdigit(KindStr[0])) {
+        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
+      } else {
+        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
+        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
+        KindExpr = VarExpr::Create(Context, Loc, VD);
+      }
+
+      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
+    }
+
     Lex();
     break;
   }
@@ -407,14 +447,54 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   case tok::int_literal_constant: {
     std::string NumStr;
     CleanLiteral(Tok, NumStr);
-    E = IntegerConstantExpr::Create(Context, Loc, NumStr);
+
+    StringRef Data(NumStr);
+    std::pair<StringRef, StringRef> StrPair = Data.split('_');
+    E = IntegerConstantExpr::Create(Context, Loc, StrPair.first);
+
+    if (!StrPair.second.empty()) {
+      std::string KindStr = StrPair.second;
+      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
+      Expr *KindExpr = 0;
+
+      if (::isdigit(KindStr[0])) {
+        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
+      } else {
+        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
+        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
+        KindExpr = VarExpr::Create(Context, Loc, VD);
+      }
+
+      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
+    }
+
     Lex();
     break;
   }
   case tok::real_literal_constant: {
     std::string NumStr;
     CleanLiteral(Tok, NumStr);
+
+    StringRef Data(NumStr);
+    std::pair<StringRef, StringRef> StrPair = Data.split('_');
     E = RealConstantExpr::Create(Context, Loc, NumStr);
+
+    if (!StrPair.second.empty()) {
+      std::string KindStr = StrPair.second;
+      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
+      Expr *KindExpr = 0;
+
+      if (::isdigit(KindStr[0])) {
+        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
+      } else {
+        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
+        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
+        KindExpr = VarExpr::Create(Context, Loc, VD);
+      }
+
+      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
+    }
+
     Lex();
     break;
   }
