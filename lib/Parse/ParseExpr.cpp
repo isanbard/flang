@@ -348,11 +348,11 @@ Parser::ExprResult Parser::ParseLevel1Expr() {
   return E;
 }
 
-// SetKindSelector - Set the constant expression's kind selector (if present).
+/// SetKindSelector - Set the constant expression's kind selector (if present).
 void Parser::SetKindSelector(ConstantExpr *E, StringRef Kind) {
   if (Kind.empty()) return;
 
-  SMLoc Loc = SMLoc::getFromPointer(Kind.data());
+  SMLoc Loc; // FIXME: Need to figure out the correct kind position.
   Expr *KindExpr = 0;
 
   if (::isdigit(Kind[0])) {
