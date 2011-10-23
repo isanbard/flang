@@ -30,8 +30,7 @@ class IdentifierInfo;
 class Decl;
 class VarDecl;
 
-//===----------------------------------------------------------------------===//
-/// Expr -
+/// Expr - Top-level class for expressions.
 class Expr {
 protected:
   enum ExprType {
@@ -76,17 +75,16 @@ public:
   static bool classof(const Expr *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// ConstantExpr -
 class ConstantExpr : public Expr {
-  char *Kind;                   // Optional Kind Selector
+  Expr *Kind;                   // Optional Kind Selector
 protected:
   ConstantExpr(ExprType Ty, QualType T, SMLoc Loc)
     : Expr(Ty, T, Loc), Kind(0) {}
   
   void setKindSelector(ASTContext &C, StringRef K);
 public:
-  const char *getKindSelector() const { return Kind; }
+  Expr *getKindSelector() const { return Kind; }
 
   virtual void print(llvm::raw_ostream&);
 

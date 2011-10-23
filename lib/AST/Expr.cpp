@@ -15,9 +15,10 @@
 using namespace flang;
 
 void ConstantExpr::setKindSelector(ASTContext &C, StringRef K) {
-  Kind = new (C) char[K.size() + 1];
-  std::strncpy(Kind, K.data(), K.size());
-  Kind[K.size()] = '\0';
+  SMLoc L = SMLoc::getFromPointer(K.data());
+  if (::isdigit(K[0]))
+    Kind = IntegerConstantExpr::Create(C, L, K);
+  // FIXME: Do VarExpr.
 }
 
 void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
