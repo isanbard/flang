@@ -149,6 +149,10 @@ public:
   }
 };
 
+//===----------------------------------------------------------------------===//
+// Specification Part Statements
+//===----------------------------------------------------------------------===//
+
 /// UseStmt -
 ///
 class UseStmt : public Stmt {
@@ -162,7 +166,8 @@ private:
   ModuleNature ModNature;
   const IdentifierInfo *ModName;
   bool Only;
-  // FIXME: Finish...
+  typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> RenamePair;
+  SmallVector<RenamePair, 8> RenameList;
 
   UseStmt(ModuleNature MN, const IdentifierInfo *Info, Token StmtLabelTok);
 public:
@@ -172,6 +177,17 @@ public:
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
   StringRef getModuleName() const;
+
+  void addRenameItem(const IdentifierInfo *LocalName,
+                     const IdentifierInfo *UseName);
+  void addRenameItem(const IdentifierInfo *UseName);
+
+  typedef SmallVectorImpl<RenamePair>::const_iterator iterator;
+
+  iterator begin() const { return RenameList.begin(); }
+  iterator end() const   { return RenameList.end(); }
+
+  bool empty() const { return RenameList.empty(); }
 
   static bool classof(const UseStmt*) { return true; }
   static bool classof(const Stmt *S) {

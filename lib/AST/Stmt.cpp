@@ -60,16 +60,25 @@ llvm::StringRef UseStmt::getModuleName() const {
   return ModName->getName();
 }
 
+void UseStmt::addRenameItem(const IdentifierInfo *LocalName,
+                            const IdentifierInfo *UseName) {
+  RenameList.push_back(std::make_pair(LocalName, UseName));
+}
+
+void UseStmt::addRenameItem(const IdentifierInfo *UseName) {
+  RenameList.push_back(std::make_pair(UseName, UseName));
+}
+
 //===----------------------------------------------------------------------===//
 // Import Statement
 //===----------------------------------------------------------------------===//
 
 ImportStmt::ImportStmt(Token StmtLabelTok)
-  : Stmt(Import, llvm::SMLoc(), StmtLabelTok) {
+  : Stmt(Import, SMLoc(), StmtLabelTok) {
 }
-ImportStmt::ImportStmt(llvm::ArrayRef<const IdentifierInfo*> names,
+ImportStmt::ImportStmt(ArrayRef<const IdentifierInfo*> names,
                        Token StmtLabelTok)
-  : Stmt(Import, llvm::SMLoc(), StmtLabelTok) {
+  : Stmt(Import, SMLoc(), StmtLabelTok) {
   Names.resize(names.size());
   std::copy(names.begin(), names.end(), Names.begin());
 }
@@ -78,7 +87,7 @@ ImportStmt *ImportStmt::Create(Token StmtLabelTok) {
   return new ImportStmt(StmtLabelTok);
 }
 
-ImportStmt *ImportStmt::Create(llvm::ArrayRef<const IdentifierInfo*> Names,
+ImportStmt *ImportStmt::Create(ArrayRef<const IdentifierInfo*> Names,
                                Token StmtLabelTok) {
   return new ImportStmt(Names, StmtLabelTok);
 }
