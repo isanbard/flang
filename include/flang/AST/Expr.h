@@ -75,7 +75,7 @@ public:
   static bool classof(const Expr *) { return true; }
 };
 
-/// ConstantExpr -
+/// ConstantExpr - The base class for all constant expressions.
 class ConstantExpr : public Expr {
   Expr *Kind;                   // Optional Kind Selector
 protected:
@@ -309,7 +309,6 @@ public:
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-//===----------------------------------------------------------------------===//
 /// VarExpr -
 class VarExpr : public DesignatorExpr {
   const VarDecl *Variable;
@@ -332,7 +331,6 @@ public:
   static bool classof(const VarExpr *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// UnaryExpr -
 class UnaryExpr : public Expr {
 public:
@@ -369,7 +367,6 @@ public:
   static bool classof(const UnaryExpr *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// DefinedOperatorUnaryExpr -
 class DefinedOperatorUnaryExpr : public UnaryExpr {
   IdentifierInfo *II;
@@ -389,7 +386,6 @@ public:
   static bool classof(const DefinedOperatorUnaryExpr *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// BinaryExpr -
 class BinaryExpr : public Expr {
 public:
@@ -447,7 +443,6 @@ public:
   static bool classof(const BinaryExpr *) { return true; }
 };
 
-//===----------------------------------------------------------------------===//
 /// DefinedOperatorBinaryExpr -
 class DefinedOperatorBinaryExpr : public BinaryExpr {
   IdentifierInfo *II;

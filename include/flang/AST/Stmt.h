@@ -19,17 +19,13 @@
 #include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/SMLoc.h"
-
-namespace llvm {
-  class StringRef;
-}
+#include "flang/Basic/LLVM.h"
 
 namespace flang {
 
 class FormatSpec;
 class IdentifierInfo;
 
-//===----------------------------------------------------------------------===//
 /// Stmt - The base class for all Fortran statements.
 ///
 class Stmt {
@@ -45,7 +41,7 @@ public:
   };
 private:
   StmtTy StmtID;
-  llvm::SMLoc Loc;
+  SMLoc Loc;
   Token StmtLabelTok;
 
   Stmt(const Stmt &);           // Do not implement!
@@ -60,7 +56,7 @@ protected:
     assert(0 && "Stmts cannot be released with regular 'delete'.");
   }
 
-  Stmt(StmtTy ID, llvm::SMLoc L, Token SLT)
+  Stmt(StmtTy ID, SMLoc L, Token SLT)
     : StmtID(ID), Loc(L), StmtLabelTok(SLT) {}
 public:
   virtual ~Stmt();
@@ -69,7 +65,7 @@ public:
   StmtTy getStatementID() const { return StmtID; }
 
   /// getLocation - Get the location of the statement.
-  llvm::SMLoc getLocation() const { return Loc; }
+  SMLoc getLocation() const { return Loc; }
 
   /// getStmtLabel - Get the statement label for this statement.
   const Token &getStmtLabel() const { return StmtLabelTok; }
@@ -99,27 +95,26 @@ public:
   void operator delete(void*, void*) throw() { }
 };
 
-//===----------------------------------------------------------------------===//
 /// ProgramStmt - The (optional) first statement of the 'main' program.
 ///
 class ProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
-  llvm::SMLoc NameLoc;
+  SMLoc NameLoc;
 
-  ProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
-              llvm::SMLoc NameL, Token SLT)
+  ProgramStmt(const IdentifierInfo *progName, SMLoc Loc,
+              SMLoc NameL, Token SLT)
     : Stmt(Program, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   ProgramStmt(const ProgramStmt &); // Do not implement!
 public:
   static ProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
-                             llvm::SMLoc L, llvm::SMLoc NameL,
+                             SMLoc L, SMLoc NameL,
                              Token StmtLabelTok);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
 
   /// getNameLocation - Get the location of the program name.
-  llvm::SMLoc getNameLocation() const { return NameLoc; }
+  SMLoc getNameLocation() const { return NameLoc; }
 
   static bool classof(const ProgramStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -127,27 +122,26 @@ public:
   }
 };
 
-//===----------------------------------------------------------------------===//
 /// EndProgramStmt - The last statement of the 'main' program.
 ///
 class EndProgramStmt : public Stmt {
   const IdentifierInfo *ProgName;
-  llvm::SMLoc NameLoc;
+  SMLoc NameLoc;
 
-  EndProgramStmt(const IdentifierInfo *progName, llvm::SMLoc Loc,
-                 llvm::SMLoc NameL, Token SLT)
+  EndProgramStmt(const IdentifierInfo *progName, SMLoc Loc,
+                 SMLoc NameL, Token SLT)
     : Stmt(EndProgram, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   EndProgramStmt(const EndProgramStmt &); // Do not implement!
 public:
   static EndProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
-                                llvm::SMLoc L, llvm::SMLoc NameL,
+                                SMLoc L, SMLoc NameL,
                                 Token StmtLabelTok);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
 
   /// getNameLocation - Get the location of the program name.
-  llvm::SMLoc getNameLocation() const { return NameLoc; }
+  SMLoc getNameLocation() const { return NameLoc; }
 
   static bool classof(const EndProgramStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -155,7 +149,6 @@ public:
   }
 };
 
-//===----------------------------------------------------------------------===//
 /// UseStmt -
 ///
 class UseStmt : public Stmt {
@@ -178,7 +171,7 @@ public:
 
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
-  llvm::StringRef getModuleName() const;
+  StringRef getModuleName() const;
 
   static bool classof(const UseStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -186,24 +179,23 @@ public:
   }
 };
 
-//===----------------------------------------------------------------------===//
 /// ImportStmt - Specifies that the named entities from the host scoping unit
 /// are accessible in the interface body by host association.
 ///
 class ImportStmt : public Stmt {
-  llvm::SmallVector<const IdentifierInfo*, 4> Names;
+  SmallVector<const IdentifierInfo*, 4> Names;
 
   ImportStmt(Token StmtLabelTok);
-  ImportStmt(llvm::ArrayRef<const IdentifierInfo*> names, Token StmtLabelTok);
+  ImportStmt(ArrayRef<const IdentifierInfo*> names, Token StmtLabelTok);
   ImportStmt(const ImportStmt &); // Do not implement!
 public:
   static ImportStmt *Create(Token StmtLabelTok);
-  static ImportStmt *Create(llvm::ArrayRef<const IdentifierInfo*> Names,
+  static ImportStmt *Create(ArrayRef<const IdentifierInfo*> Names,
                             Token StmtLabelTok);
 
   unsigned getNumNames() const { return Names.size(); }
 
-  typedef llvm::SmallVectorImpl<const IdentifierInfo*>::const_iterator iterator;
+  typedef SmallVectorImpl<const IdentifierInfo*>::const_iterator iterator;
   iterator begin() const { return Names.begin(); }
   iterator end() const   { return Names.end(); }
 
@@ -215,16 +207,15 @@ public:
   }
 };
 
-//===----------------------------------------------------------------------===//
 /// AsynchronousStmt - Specifies the asynchronous attribute for a list of
 /// objects.
 ///
 class AsynchronousStmt : public Stmt {
-  llvm::SmallVector<const IdentifierInfo*, 4> ObjNames;
-  AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
+  SmallVector<const IdentifierInfo*, 4> ObjNames;
+  AsynchronousStmt(ArrayRef<const IdentifierInfo*> objNames,
                    Token StmtLabelTok);
 public:
-  static AsynchronousStmt*Create(llvm::ArrayRef<const IdentifierInfo*> objNames,
+  static AsynchronousStmt*Create(ArrayRef<const IdentifierInfo*> objNames,
                                   Token StmtLabelTok);
 
   static bool classof(const AsynchronousStmt*) { return true; }
