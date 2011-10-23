@@ -348,6 +348,25 @@ Parser::ExprResult Parser::ParseLevel1Expr() {
   return E;
 }
 
+// SetKindSelector - Set the constant expression's kind selector (if present).
+void Parser::SetKindSelector(ConstantExpr *E, StringRef Kind) {
+  if (Kind.empty()) return;
+
+  SMLoc Loc = SMLoc::getFromPointer(Kind.data());
+  Expr *KindExpr = 0;
+
+  if (::isdigit(Kind[0])) {
+    KindExpr = IntegerConstantExpr::Create(Context, Loc, Kind);
+  } else {
+    std::string KindStr(Kind);
+    const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
+    VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
+    KindExpr = VarExpr::Create(Context, Loc, VD);
+  }
+
+  E->setKindSelector(KindExpr);
+}
+
 // ParsePrimaryExpr - Parse a primary expression.
 //
 //   [R701]:
@@ -386,22 +405,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
     E = LogicalConstantExpr::Create(Context, Loc, StrPair.first);
-
-    if (!StrPair.second.empty()) {
-      std::string KindStr = StrPair.second;
-      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
-      Expr *KindExpr = 0;
-
-      if (::isdigit(KindStr[0])) {
-        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
-      } else {
-        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
-        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
-        KindExpr = VarExpr::Create(Context, Loc, VD);
-      }
-
-      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
-    }
+    SetKindSelector(cast<ConstantExpr>(E.get()), StrPair.second);
 
     Lex();
     break;
@@ -415,22 +419,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
     E = BOZConstantExpr::Create(Context, Loc, StrPair.first);
-
-    if (!StrPair.second.empty()) {
-      std::string KindStr = StrPair.second;
-      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
-      Expr *KindExpr = 0;
-
-      if (::isdigit(KindStr[0])) {
-        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
-      } else {
-        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
-        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
-        KindExpr = VarExpr::Create(Context, Loc, VD);
-      }
-
-      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
-    }
+    SetKindSelector(cast<ConstantExpr>(E.get()), StrPair.second);
 
     Lex();
     break;
@@ -451,22 +440,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
     E = IntegerConstantExpr::Create(Context, Loc, StrPair.first);
-
-    if (!StrPair.second.empty()) {
-      std::string KindStr = StrPair.second;
-      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
-      Expr *KindExpr = 0;
-
-      if (::isdigit(KindStr[0])) {
-        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
-      } else {
-        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
-        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
-        KindExpr = VarExpr::Create(Context, Loc, VD);
-      }
-
-      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
-    }
+    SetKindSelector(cast<ConstantExpr>(E.get()), StrPair.second);
 
     Lex();
     break;
@@ -478,22 +452,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
     E = RealConstantExpr::Create(Context, Loc, NumStr);
-
-    if (!StrPair.second.empty()) {
-      std::string KindStr = StrPair.second;
-      SMLoc Loc = SMLoc::getFromPointer(KindStr.c_str());
-      Expr *KindExpr = 0;
-
-      if (::isdigit(KindStr[0])) {
-        KindExpr = IntegerConstantExpr::Create(Context, Loc, StrPair.second);
-      } else {
-        const IdentifierInfo *IDInfo = getIdentifierInfo(KindStr);
-        VarDecl *VD = Actions.ActOnKindSelector(Context, Loc, IDInfo);
-        KindExpr = VarExpr::Create(Context, Loc, VD);
-      }
-
-      cast<ConstantExpr>(E.get())->setKindSelector(KindExpr);
-    }
+    SetKindSelector(cast<ConstantExpr>(E.get()), StrPair.second);
 
     Lex();
     break;

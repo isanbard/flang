@@ -34,6 +34,7 @@ namespace llvm {
 namespace flang {
 
 class Action;
+class ConstantExpr;
 class DeclGroupRef;
 class Expr;
 class Parser;
@@ -263,6 +264,8 @@ private:
   bool AssignAttrSpec(DeclSpec &DS, DeclSpec::AS Val);
   bool AssignAccessSpec(DeclSpec &DS, DeclSpec::AC Val);
   bool AssignIntentSpec(DeclSpec &DS, DeclSpec::IS Val);
+
+  void SetKindSelector(ConstantExpr *E, StringRef Kind);
 
   void LexToEndOfStatement();
   bool EatIfPresent(tok::TokenKind);
