@@ -852,7 +852,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   Lex();
 
   if (Tok.is(tok::kw_NONE))
-    return Actions.ActOnIMPLICIT(StmtLabel);
+    return Actions.ActOnIMPLICIT(Context, StmtLabel);
 
   DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
@@ -867,24 +867,24 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   SmallVector<std::pair<const IdentifierInfo*,
                         const IdentifierInfo*>, 4> LetterSpecs;
   do {
-    if (Tok.isNot(tok::identifier)) {
+    const IdentifierInfo *First = Tok.getIdentifierInfo();
+    if (Tok.isNot(tok::identifier) || First->getName().size() > 1) {
       Diag.ReportError(Tok.getLocation(),
                        "expected a letter");
       return StmtResult();
     }
 
-    const IdentifierInfo *First = Tok.getIdentifierInfo();
     Lex();
 
     const IdentifierInfo *Second = 0;
     if (EatIfPresent(tok::minus)) {
-      if (Tok.isNot(tok::identifier)) {
+      Second = Tok.getIdentifierInfo();
+      if (Tok.isNot(tok::identifier) || Second->getName().size() > 1) {
         Diag.ReportError(Tok.getLocation(),
                          "expected a letter");
         return StmtResult();
       }
 
-      Second = Tok.getIdentifierInfo();
       Lex();
     }
 
@@ -895,7 +895,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in IMPLICIT statement");
 
-  return Actions.ActOnIMPLICIT(DS, LetterSpecs, StmtLabel);
+  return Actions.ActOnIMPLICIT(Context, DS, LetterSpecs, StmtLabel);
 }
 
 /// ParsePARAMETERStmt - Parse the PARAMETER statement.

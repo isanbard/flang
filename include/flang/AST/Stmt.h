@@ -231,6 +231,7 @@ public:
 /// specified in the statement.
 ///
 class ImplicitStmt : public Stmt {
+  QualType Ty;
   bool None;
 
   ImplicitStmt(SMLoc L, ExprResult StmtLabel);

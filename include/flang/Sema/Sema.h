@@ -74,11 +74,11 @@ public:
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);
-  StmtResult ActOnIMPLICIT(DeclSpec &DS,
+  StmtResult ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
                         ArrayRef<std::pair<const IdentifierInfo*,
                                            const IdentifierInfo*> > LetterSpecs,
                            Expr *StmtLabel);
-  StmtResult ActOnIMPLICIT(Expr *StmtLabel);
+  StmtResult ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel);
   StmtResult ActOnPARAMETER(llvm::ArrayRef<std::pair<const IdentifierInfo*,
                                            ExprResult> > NamedConsts,
                             Expr *StmtLabel);

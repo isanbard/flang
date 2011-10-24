@@ -85,7 +85,7 @@ bool Parser::ParseTypeDeclarationList(DeclSpec &DS,
 
 /// ParseTypeDeclarationStmt - Parse a type-declaration-stmt construct.
 ///
-///   [5.2.1] R501:
+///   [R501]:
 ///     type-declaration-stmt :=
 ///         declaration-type-spec [ [ , attr-spec ] ... :: ] entity-decl-list
 bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
@@ -95,7 +95,7 @@ bool Parser::ParseTypeDeclarationStmt(SmallVectorImpl<DeclResult> &Decls) {
 
   llvm::SmallVector<ExprResult, 4> Dimensions;
   while (EatIfPresent(tok::comma)) {
-    // [5.2.1] R502:
+    // [R502]:
     //   attr-spec :=
     //       access-spec
     //    or ALLOCATABLE

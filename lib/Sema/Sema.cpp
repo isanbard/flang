@@ -171,16 +171,17 @@ StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
   return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
-StmtResult Sema::ActOnIMPLICIT(DeclSpec &DS,
+StmtResult Sema::ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
                                ArrayRef<std::pair<const IdentifierInfo*,
                                const IdentifierInfo*> > LetterSpecs,
                                Expr *StmtLabel) {
+  QualType Ty = ActOnTypeName(C, DS);
   return StmtResult();
 }
 
-StmtResult Sema::ActOnIMPLICIT(Expr *StmtLabel) {
+StmtResult Sema::ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel) {
   // IMPLICIT NONE
-  return StmtResult();
+  return ImplicitStmt::Create(C, SMLoc(), StmtLabel);
 }
 
 StmtResult Sema::ActOnPARAMETER(ArrayRef<std::pair<const IdentifierInfo *,
