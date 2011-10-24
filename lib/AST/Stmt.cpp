@@ -51,9 +51,10 @@ EndProgramStmt *EndProgramStmt::Create(ASTContext &C,
 UseStmt::UseStmt(ModuleNature MN, const IdentifierInfo *Info,Token StmtLabelTok)
   : Stmt(Use, llvm::SMLoc(), StmtLabelTok), ModNature(MN), ModName(Info) {}
 
-UseStmt *UseStmt::Create(ModuleNature MN, const IdentifierInfo *Info,
+UseStmt *UseStmt::Create(ASTContext &C, ModuleNature MN,
+                         const IdentifierInfo *Info,
                          Token StmtLabelTok) {
-  return new UseStmt(MN, Info, StmtLabelTok);
+  return new (C) UseStmt(MN, Info, StmtLabelTok);
 }
 
 llvm::StringRef UseStmt::getModuleName() const {
@@ -83,13 +84,25 @@ ImportStmt::ImportStmt(ArrayRef<const IdentifierInfo*> names,
   std::copy(names.begin(), names.end(), Names.begin());
 }
 
-ImportStmt *ImportStmt::Create(Token StmtLabelTok) {
-  return new ImportStmt(StmtLabelTok);
+ImportStmt *ImportStmt::Create(ASTContext &C, Token StmtLabelTok) {
+  return new (C) ImportStmt(StmtLabelTok);
 }
 
-ImportStmt *ImportStmt::Create(ArrayRef<const IdentifierInfo*> Names,
+ImportStmt *ImportStmt::Create(ASTContext &C,
+                               ArrayRef<const IdentifierInfo*> Names,
                                Token StmtLabelTok) {
-  return new ImportStmt(Names, StmtLabelTok);
+  return new (C) ImportStmt(Names, StmtLabelTok);
+}
+
+//===----------------------------------------------------------------------===//
+// Implicit Statement
+//===----------------------------------------------------------------------===//
+
+ImplicitStmt::ImplicitStmt(SMLoc L, Token StmtLabel)
+  : Stmt(Implicit, L, StmtLabel), None(true) {}
+
+ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, Token StmtLabel) {
+  return new (C) ImplicitStmt(L, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
@@ -104,8 +117,9 @@ AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
 }
 
 AsynchronousStmt *AsynchronousStmt::
-Create(llvm::ArrayRef<const IdentifierInfo*> objNames, Token StmtLabelTok) {
-  return new AsynchronousStmt(objNames, StmtLabelTok);
+Create(ASTContext &C, llvm::ArrayRef<const IdentifierInfo*> objNames,
+       Token StmtLabelTok) {
+  return new (C) AsynchronousStmt(objNames, StmtLabelTok);
 }
 
 //===----------------------------------------------------------------------===//

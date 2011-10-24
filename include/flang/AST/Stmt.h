@@ -34,6 +34,7 @@ public:
     Program,
     Use,
     Import,
+    Implicit,
     Asynchronous,
     EndProgram,
     Assignment,
@@ -171,7 +172,8 @@ private:
 
   UseStmt(ModuleNature MN, const IdentifierInfo *Info, Token StmtLabelTok);
 public:
-  static UseStmt *Create(ModuleNature MN, const IdentifierInfo *Info,
+  static UseStmt *Create(ASTContext &C, ModuleNature MN,
+                         const IdentifierInfo *Info,
                          Token StmtLabelTok);
 
   /// Accessors:
@@ -205,8 +207,9 @@ class ImportStmt : public Stmt {
   ImportStmt(ArrayRef<const IdentifierInfo*> names, Token StmtLabelTok);
   ImportStmt(const ImportStmt &); // Do not implement!
 public:
-  static ImportStmt *Create(Token StmtLabelTok);
-  static ImportStmt *Create(ArrayRef<const IdentifierInfo*> Names,
+  static ImportStmt *Create(ASTContext &C, Token StmtLabelTok);
+  static ImportStmt *Create(ASTContext &C,
+                            ArrayRef<const IdentifierInfo*> Names,
                             Token StmtLabelTok);
 
   unsigned getNumNames() const { return Names.size(); }
@@ -223,6 +226,23 @@ public:
   }
 };
 
+/// ImplicitStmt - Specifies a type, and possibly type parameters, for all
+/// implicitly typed data entries whose names begin with one of the letters
+/// specified in the statement.
+///
+class ImplicitStmt : public Stmt {
+  bool None;
+
+  ImplicitStmt(SMLoc L, Token StmtLabel);
+public:
+  static ImplicitStmt *Create(ASTContext &C, SMLoc L, Token StmtLabel);
+
+  static bool classof(const ImplicitStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Implicit;
+  }
+};
+
 /// AsynchronousStmt - Specifies the asynchronous attribute for a list of
 /// objects.
 ///
@@ -231,7 +251,8 @@ class AsynchronousStmt : public Stmt {
   AsynchronousStmt(ArrayRef<const IdentifierInfo*> objNames,
                    Token StmtLabelTok);
 public:
-  static AsynchronousStmt*Create(ArrayRef<const IdentifierInfo*> objNames,
+  static AsynchronousStmt *Create(ASTContext &C,
+                                  ArrayRef<const IdentifierInfo*> objNames,
                                   Token StmtLabelTok);
 
   static bool classof(const AsynchronousStmt*) { return true; }
