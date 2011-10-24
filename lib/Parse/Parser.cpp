@@ -227,11 +227,13 @@ void Parser::LexToEndOfStatement() {
 void Parser::ParseStatementLabel() {
   if (Tok.isNot(tok::statement_label)) {
     if (Tok.isAtStartOfStatement())
-      StmtLabelTok.setKind(tok::unknown);
+      StmtLabel = 0;
     return;
   }
 
-  StmtLabelTok = Tok;
+  std::string NumStr;
+  CleanLiteral(Tok, NumStr);
+  StmtLabel = IntegerConstantExpr::Create(Context, Tok.getLocation(), NumStr);
   Lex();
 }
 
@@ -664,7 +666,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   llvm::SMLoc ProgramLoc = Tok.getLocation();
   if (!isaKeyword(IDInfo->getName()) || Tok.isNot(tok::kw_PROGRAM))
     return Actions.ActOnPROGRAM(Context, 0, ProgramLoc, llvm::SMLoc(),
-                                StmtLabelTok);
+                                StmtLabel);
 
   // Parse the program name.
   Lex();
@@ -678,7 +680,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   IDInfo = Tok.getIdentifierInfo();
   Lex(); // Eat program name.
   return Actions.ActOnPROGRAM(Context, IDInfo, ProgramLoc, NameLoc,
-                              StmtLabelTok);
+                              StmtLabel);
 }
 
 /// ParseUSEStmt - Parse the 'USE' statement.
@@ -813,7 +815,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   assert((UseNames.empty() || LocalNames.size() == UseNames.size()) &&
          "Unbalanced number of renames with USE ONLY names!");
   return Actions.ActOnUSE(MN, Name, OnlyUse, LocalNames, UseNames,
-                          StmtLabelTok);
+                          StmtLabel);
 #endif
 }
 
@@ -833,7 +835,7 @@ Parser::StmtResult Parser::ParseIMPORTStmt() {
     EatIfPresent(tok::comma);
   }
 
-  return Actions.ActOnIMPORT(ImportNameList, StmtLabelTok);
+  return Actions.ActOnIMPORT(ImportNameList, StmtLabel);
 }
 
 /// ParseIMPLICITStmt - Parse the IMPLICIT statement.
@@ -850,7 +852,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   Lex();
 
   if (Tok.is(tok::kw_NONE))
-    return Actions.ActOnIMPLICIT(StmtLabelTok);
+    return Actions.ActOnIMPLICIT(StmtLabel);
 
   DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
@@ -893,7 +895,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in IMPLICIT statement");
 
-  return Actions.ActOnIMPLICIT(DS, LetterSpecs, StmtLabelTok);
+  return Actions.ActOnIMPLICIT(DS, LetterSpecs, StmtLabel);
 }
 
 /// ParsePARAMETERStmt - Parse the PARAMETER statement.
@@ -944,7 +946,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  return Actions.ActOnPARAMETER(NamedConsts, StmtLabelTok);
+  return Actions.ActOnPARAMETER(NamedConsts, StmtLabel);
 }
 
 /// ParseFORMATStmt - Parse the FORMAT statement.
@@ -1050,7 +1052,7 @@ Parser::StmtResult Parser::ParseASYNCHRONOUSStmt() {
     EatIfPresent(tok::comma);
   }
 
-  return Actions.ActOnASYNCHRONOUS(ObjNameList, StmtLabelTok);
+  return Actions.ActOnASYNCHRONOUS(ObjNameList, StmtLabel);
 }
 
 /// ParseBINDStmt - Parse the BIND statement.

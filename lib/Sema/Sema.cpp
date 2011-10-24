@@ -167,37 +167,37 @@ Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
 
 StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                               llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                              Token StmtLabel) {
+                              Expr *StmtLabel) {
   return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
 StmtResult Sema::ActOnIMPLICIT(DeclSpec &DS,
                                ArrayRef<std::pair<const IdentifierInfo*,
                                const IdentifierInfo*> > LetterSpecs,
-                               Token &StmtLabel) {
+                               Expr *StmtLabel) {
   return StmtResult();
 }
 
-StmtResult Sema::ActOnIMPLICIT(Token &StmtLabel) {
+StmtResult Sema::ActOnIMPLICIT(Expr *StmtLabel) {
   // IMPLICIT NONE
   return StmtResult();
 }
 
 StmtResult Sema::ActOnPARAMETER(ArrayRef<std::pair<const IdentifierInfo *,
                                 ExprResult> > NamedConsts,
-                                Token &StmtLabel) {
+                                Expr *StmtLabel) {
   return StmtResult();
 }
 
 StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
                                  const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                                 Token StmtLabel) {
+                                 Expr *StmtLabel) {
   return EndProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
 StmtResult Sema::ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
-                                     ExprResult RHS, Token StmtLabel) {
+                                     ExprResult RHS, Expr *StmtLabel) {
   return AssignmentStmt::Create(C, LHS, RHS, StmtLabel);
 }
 
@@ -223,6 +223,6 @@ LabelFormatSpec *ActOnLabelFormatSpec(ASTContext &C, SMLoc Loc,
 
 StmtResult Sema::ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,
                                 ArrayRef<ExprResult> OutputItemList,
-                                Token StmtLabel) {
+                                Expr *StmtLabel) {
   return PrintStmt::Create(C, Loc, FS, OutputItemList, StmtLabel);
 }

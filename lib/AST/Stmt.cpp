@@ -29,8 +29,8 @@ Stmt::~Stmt() {}
 
 ProgramStmt *ProgramStmt::Create(ASTContext &C, const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                                 Token StmtLabelTok) {
-  return new (C) ProgramStmt(ProgName, Loc, NameLoc, StmtLabelTok);
+                                 ExprResult StmtLabel) {
+  return new (C) ProgramStmt(ProgName, Loc, NameLoc, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
@@ -40,21 +40,22 @@ ProgramStmt *ProgramStmt::Create(ASTContext &C, const IdentifierInfo *ProgName,
 EndProgramStmt *EndProgramStmt::Create(ASTContext &C,
                                        const IdentifierInfo *ProgName,
                                        llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                                       Token StmtLabelTok) {
-  return new (C) EndProgramStmt(ProgName, Loc, NameLoc, StmtLabelTok);
+                                       ExprResult StmtLabel) {
+  return new (C) EndProgramStmt(ProgName, Loc, NameLoc, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
 // Use Statement
 //===----------------------------------------------------------------------===//
 
-UseStmt::UseStmt(ModuleNature MN, const IdentifierInfo *Info,Token StmtLabelTok)
-  : Stmt(Use, llvm::SMLoc(), StmtLabelTok), ModNature(MN), ModName(Info) {}
+UseStmt::UseStmt(ModuleNature MN, const IdentifierInfo *Info,
+                 ExprResult StmtLabel)
+  : Stmt(Use, llvm::SMLoc(), StmtLabel), ModNature(MN), ModName(Info) {}
 
 UseStmt *UseStmt::Create(ASTContext &C, ModuleNature MN,
                          const IdentifierInfo *Info,
-                         Token StmtLabelTok) {
-  return new (C) UseStmt(MN, Info, StmtLabelTok);
+                         ExprResult StmtLabel) {
+  return new (C) UseStmt(MN, Info, StmtLabel);
 }
 
 llvm::StringRef UseStmt::getModuleName() const {
@@ -74,34 +75,35 @@ void UseStmt::addRenameItem(const IdentifierInfo *UseName) {
 // Import Statement
 //===----------------------------------------------------------------------===//
 
-ImportStmt::ImportStmt(Token StmtLabelTok)
-  : Stmt(Import, SMLoc(), StmtLabelTok) {
+ImportStmt::ImportStmt(ExprResult StmtLabel)
+  : Stmt(Import, SMLoc(), StmtLabel) {
 }
 ImportStmt::ImportStmt(ArrayRef<const IdentifierInfo*> names,
-                       Token StmtLabelTok)
-  : Stmt(Import, SMLoc(), StmtLabelTok) {
+                       ExprResult StmtLabel)
+  : Stmt(Import, SMLoc(), StmtLabel) {
   Names.resize(names.size());
   std::copy(names.begin(), names.end(), Names.begin());
 }
 
-ImportStmt *ImportStmt::Create(ASTContext &C, Token StmtLabelTok) {
-  return new (C) ImportStmt(StmtLabelTok);
+ImportStmt *ImportStmt::Create(ASTContext &C, ExprResult StmtLabel) {
+  return new (C) ImportStmt(StmtLabel);
 }
 
 ImportStmt *ImportStmt::Create(ASTContext &C,
                                ArrayRef<const IdentifierInfo*> Names,
-                               Token StmtLabelTok) {
-  return new (C) ImportStmt(Names, StmtLabelTok);
+                               ExprResult StmtLabel) {
+  return new (C) ImportStmt(Names, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
 // Implicit Statement
 //===----------------------------------------------------------------------===//
 
-ImplicitStmt::ImplicitStmt(SMLoc L, Token StmtLabel)
+ImplicitStmt::ImplicitStmt(SMLoc L, ExprResult StmtLabel)
   : Stmt(Implicit, L, StmtLabel), None(true) {}
 
-ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, Token StmtLabel) {
+ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L,
+                                   ExprResult StmtLabel) {
   return new (C) ImplicitStmt(L, StmtLabel);
 }
 
@@ -111,15 +113,15 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, Token StmtLabel) {
 
 AsynchronousStmt::
 AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
-                 Token StmtLabelTok)
-  : Stmt(Asynchronous, llvm::SMLoc(), StmtLabelTok) {
+                 ExprResult StmtLabel)
+  : Stmt(Asynchronous, llvm::SMLoc(), StmtLabel) {
   std::copy(objNames.begin(), objNames.end(), ObjNames.begin());
 }
 
 AsynchronousStmt *AsynchronousStmt::
 Create(ASTContext &C, llvm::ArrayRef<const IdentifierInfo*> objNames,
-       Token StmtLabelTok) {
-  return new (C) AsynchronousStmt(objNames, StmtLabelTok);
+       ExprResult StmtLabel) {
+  return new (C) AsynchronousStmt(objNames, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
@@ -127,13 +129,13 @@ Create(ASTContext &C, llvm::ArrayRef<const IdentifierInfo*> objNames,
 //===----------------------------------------------------------------------===//
 
 AssignmentStmt::AssignmentStmt(ExprResult lhs, ExprResult rhs,
-                               Token StmtLabelTok)
-  : Stmt(Assignment, llvm::SMLoc(), StmtLabelTok), LHS(lhs), RHS(rhs)
+                               ExprResult StmtLabel)
+  : Stmt(Assignment, llvm::SMLoc(), StmtLabel), LHS(lhs), RHS(rhs)
 {}
 
 AssignmentStmt *AssignmentStmt::Create(ASTContext &C, ExprResult lhs,
-                                       ExprResult rhs, Token StmtLabelTok) {
-  return new (C) AssignmentStmt(lhs, rhs, StmtLabelTok);
+                                       ExprResult rhs, ExprResult StmtLabel) {
+  return new (C) AssignmentStmt(lhs, rhs, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
@@ -141,12 +143,13 @@ AssignmentStmt *AssignmentStmt::Create(ASTContext &C, ExprResult lhs,
 //===----------------------------------------------------------------------===//
 
 PrintStmt::PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
-                     Token StmtLabelTok)
-  : Stmt(Print, L, StmtLabelTok), FS(fs) {
+                     ExprResult StmtLabel)
+  : Stmt(Print, L, StmtLabel), FS(fs) {
   OutputItemList.append(OutList.begin(), OutList.end());
 }
 
 PrintStmt *PrintStmt::Create(ASTContext &C, SMLoc L, FormatSpec *fs,
-                             ArrayRef<ExprResult> OutList, Token StmtLabelTok) {
-  return new (C) PrintStmt(L, fs, OutList, StmtLabelTok);
+                             ArrayRef<ExprResult> OutList,
+                             ExprResult StmtLabel) {
+  return new (C) PrintStmt(L, fs, OutList, StmtLabel);
 }

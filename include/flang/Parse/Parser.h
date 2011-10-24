@@ -91,8 +91,8 @@ private:
   /// NextTok - The next token so that we can do one level of lookahead.
   Token NextTok;
 
-  /// StmtLabelTok - If set, this is the statement label for the statement.
-  Token StmtLabelTok;
+  /// StmtLabel - If set, this is the statement label for the statement.
+  Expr *StmtLabel;
 
   // PrevTokLocation - The location of the token we previously consumed. This
   // token is used for diagnostics where we expected to see a token following

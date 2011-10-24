@@ -43,7 +43,7 @@ public:
 private:
   StmtTy StmtID;
   SMLoc Loc;
-  Token StmtLabelTok;
+  ExprResult StmtLabel;
 
   Stmt(const Stmt &);           // Do not implement!
   friend class ASTContext;
@@ -57,8 +57,8 @@ protected:
     assert(0 && "Stmts cannot be released with regular 'delete'.");
   }
 
-  Stmt(StmtTy ID, SMLoc L, Token SLT)
-    : StmtID(ID), Loc(L), StmtLabelTok(SLT) {}
+  Stmt(StmtTy ID, SMLoc L, ExprResult SLT)
+    : StmtID(ID), Loc(L), StmtLabel(SLT) {}
 public:
   virtual ~Stmt();
 
@@ -69,7 +69,7 @@ public:
   SMLoc getLocation() const { return Loc; }
 
   /// getStmtLabel - Get the statement label for this statement.
-  const Token &getStmtLabel() const { return StmtLabelTok; }
+  ExprResult getStmtLabel() const { return StmtLabel; }
 
   static bool classof(const Stmt*) { return true; }
 
@@ -103,13 +103,13 @@ class ProgramStmt : public Stmt {
   SMLoc NameLoc;
 
   ProgramStmt(const IdentifierInfo *progName, SMLoc Loc,
-              SMLoc NameL, Token SLT)
+              SMLoc NameL, ExprResult SLT)
     : Stmt(Program, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   ProgramStmt(const ProgramStmt &); // Do not implement!
 public:
   static ProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
                              SMLoc L, SMLoc NameL,
-                             Token StmtLabelTok);
+                             ExprResult StmtLabel);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
@@ -130,13 +130,13 @@ class EndProgramStmt : public Stmt {
   SMLoc NameLoc;
 
   EndProgramStmt(const IdentifierInfo *progName, SMLoc Loc,
-                 SMLoc NameL, Token SLT)
+                 SMLoc NameL, ExprResult SLT)
     : Stmt(EndProgram, Loc, SLT), ProgName(progName), NameLoc(NameL) {}
   EndProgramStmt(const EndProgramStmt &); // Do not implement!
 public:
   static EndProgramStmt *Create(ASTContext &C, const IdentifierInfo *ProgName,
                                 SMLoc L, SMLoc NameL,
-                                Token StmtLabelTok);
+                                ExprResult StmtLabel);
 
   /// getProgramName - Get the name of the program. This may be null.
   const IdentifierInfo *getProgramName() const { return ProgName; }
@@ -170,11 +170,11 @@ private:
   typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> RenamePair;
   SmallVector<RenamePair, 8> RenameList;
 
-  UseStmt(ModuleNature MN, const IdentifierInfo *Info, Token StmtLabelTok);
+  UseStmt(ModuleNature MN, const IdentifierInfo *Info, ExprResult StmtLabel);
 public:
   static UseStmt *Create(ASTContext &C, ModuleNature MN,
                          const IdentifierInfo *Info,
-                         Token StmtLabelTok);
+                         ExprResult StmtLabel);
 
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
@@ -203,14 +203,14 @@ public:
 class ImportStmt : public Stmt {
   SmallVector<const IdentifierInfo*, 4> Names;
 
-  ImportStmt(Token StmtLabelTok);
-  ImportStmt(ArrayRef<const IdentifierInfo*> names, Token StmtLabelTok);
+  ImportStmt(ExprResult StmtLabel);
+  ImportStmt(ArrayRef<const IdentifierInfo*> names, ExprResult StmtLabel);
   ImportStmt(const ImportStmt &); // Do not implement!
 public:
-  static ImportStmt *Create(ASTContext &C, Token StmtLabelTok);
+  static ImportStmt *Create(ASTContext &C, ExprResult StmtLabel);
   static ImportStmt *Create(ASTContext &C,
                             ArrayRef<const IdentifierInfo*> Names,
-                            Token StmtLabelTok);
+                            ExprResult StmtLabel);
 
   unsigned getNumNames() const { return Names.size(); }
 
@@ -233,9 +233,9 @@ public:
 class ImplicitStmt : public Stmt {
   bool None;
 
-  ImplicitStmt(SMLoc L, Token StmtLabel);
+  ImplicitStmt(SMLoc L, ExprResult StmtLabel);
 public:
-  static ImplicitStmt *Create(ASTContext &C, SMLoc L, Token StmtLabel);
+  static ImplicitStmt *Create(ASTContext &C, SMLoc L, ExprResult StmtLabel);
 
   static bool classof(const ImplicitStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -249,11 +249,11 @@ public:
 class AsynchronousStmt : public Stmt {
   SmallVector<const IdentifierInfo*, 4> ObjNames;
   AsynchronousStmt(ArrayRef<const IdentifierInfo*> objNames,
-                   Token StmtLabelTok);
+                   ExprResult StmtLabel);
 public:
   static AsynchronousStmt *Create(ASTContext &C,
                                   ArrayRef<const IdentifierInfo*> objNames,
-                                  Token StmtLabelTok);
+                                  ExprResult StmtLabel);
 
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -270,10 +270,10 @@ class AssignmentStmt : public Stmt {
   ExprResult LHS;
   ExprResult RHS;
 
-  AssignmentStmt(ExprResult LHS, ExprResult RHS, Token StmtLabelTok);
+  AssignmentStmt(ExprResult LHS, ExprResult RHS, ExprResult StmtLabel);
 public:
   static AssignmentStmt *Create(ASTContext &C, ExprResult LHS,
-                                ExprResult RHS, Token StmtLabelTok);
+                                ExprResult RHS, ExprResult StmtLabel);
 
   Expr *getLHS() const { return LHS.get(); }
   Expr *getRHS() const { return RHS.get(); }
@@ -290,10 +290,10 @@ class PrintStmt : public Stmt {
   SmallVector<ExprResult, 4> OutputItemList;
 
   PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
-            Token StmtLabelTok);
+            ExprResult StmtLabel);
 public:
   static PrintStmt *Create(ASTContext &C, SMLoc L, FormatSpec *fs,
-                           ArrayRef<ExprResult> OutList, Token StmtLabelTok);
+                           ArrayRef<ExprResult> OutList, ExprResult StmtLabel);
 
   FormatSpec *getFormatSpec() const { return FS; }
   ArrayRef<ExprResult> getOutputItemList() const { return OutputItemList; }

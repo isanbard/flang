@@ -73,23 +73,22 @@ public:
                         const IdentifierInfo *IDInfo);
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
-                          SMLoc Loc, SMLoc NameLoc,
-                          Token StmtLabelTok);
+                          SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);
   StmtResult ActOnIMPLICIT(DeclSpec &DS,
                         ArrayRef<std::pair<const IdentifierInfo*,
                                            const IdentifierInfo*> > LetterSpecs,
-                           Token &StmtLabel);
-  StmtResult ActOnIMPLICIT(Token &StmtLabel);
+                           Expr *StmtLabel);
+  StmtResult ActOnIMPLICIT(Expr *StmtLabel);
   StmtResult ActOnPARAMETER(llvm::ArrayRef<std::pair<const IdentifierInfo*,
                                            ExprResult> > NamedConsts,
-                            Token &StmtLabel);
+                            Expr *StmtLabel);
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
                              SMLoc Loc, SMLoc NameLoc,
-                             Token StmtLabel);
+                             Expr *StmtLabel);
 
   StmtResult ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
-                                 ExprResult RHS, Token StmtLabel);
+                                 ExprResult RHS, Expr *StmtLabel);
 
   QualType ActOnArraySpec(ASTContext &C, QualType ElemTy,
                           ArrayRef<ExprResult> Dims);
@@ -103,20 +102,20 @@ public:
 
   StmtResult ActOnPrintStmt(ASTContext &C, SMLoc Loc, FormatSpec *FS,
                             ArrayRef<ExprResult> OutputItemList,
-                            Token StmtLabel);
+                            Expr *StmtLabel);
 
   // FIXME: TODO:
 
   StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
-                         Token &StmtLabel) { return StmtResult(); }
+                         Expr *StmtLabel) { return StmtResult(); }
   StmtResult ActOnUSE(UseStmt::ModuleNature MN, llvm::StringRef Name,
                       bool OnlyList,
                       llvm::ArrayRef<const VarDecl*> LocalNames,
                       llvm::ArrayRef<const VarDecl*> UseNames,
-                      Token &StmtLabel) { return StmtResult(); }
+                      Expr *StmtLabel) { return StmtResult(); }
   StmtResult
   ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
-                    Token &StmtLabel) { return StmtResult(); }
+                    Expr *StmtLabel) { return StmtResult(); }
 
   QualType ActOnBuiltinType(ASTContext *Ctx,
                             BuiltinType::TypeSpec TS,

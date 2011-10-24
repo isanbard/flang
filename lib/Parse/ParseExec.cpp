@@ -124,7 +124,7 @@ Parser::StmtResult Parser::ParseAssignmentStmt() {
   EatIfPresent(tok::equal);
 
   ExprResult RHS = ParseExpression();
-  return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabelTok);
+  return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabel);
 }
 
 /// ParsePrintStatement
@@ -161,7 +161,7 @@ Parser::StmtResult Parser::ParsePrintStmt() {
       break;
   }
 
-  return Actions.ActOnPrintStmt(Context, Loc, FS, OutputItemList, StmtLabelTok);
+  return Actions.ActOnPrintStmt(Context, Loc, FS, OutputItemList, StmtLabel);
 }
 
 /// ParseEND_PROGRAMStmt - Parse the END PROGRAM statement.
@@ -186,5 +186,5 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
     Lex(); // Eat the ending token.
   }
 
-  return Actions.ActOnENDPROGRAM(Context, IDInfo, Loc, NameLoc, StmtLabelTok);
+  return Actions.ActOnENDPROGRAM(Context, IDInfo, Loc, NameLoc, StmtLabel);
 }
