@@ -102,9 +102,26 @@ ImportStmt *ImportStmt::Create(ASTContext &C,
 ImplicitStmt::ImplicitStmt(SMLoc L, ExprResult StmtLabel)
   : Stmt(Implicit, L, StmtLabel), None(true) {}
 
+ImplicitStmt::ImplicitStmt(SMLoc L, QualType T, ExprResult StmtLabel)
+  : Stmt(Implicit, L, StmtLabel), None(false) {}
+
 ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L,
                                    ExprResult StmtLabel) {
   return new (C) ImplicitStmt(L, StmtLabel);
+}
+
+ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
+                                   ExprResult StmtLabel) {
+  return new (C) ImplicitStmt(L, T, StmtLabel);
+}
+
+void ImplicitStmt::addLetterSpec(const IdentifierInfo *L) {
+  LetterSpecList.push_back(std::make_pair(L, (const IdentifierInfo*)0));
+}
+
+void ImplicitStmt::addLetterSpec(const IdentifierInfo *First,
+                                 const IdentifierInfo *Last) {
+  LetterSpecList.push_back(std::make_pair(First, Last));
 }
 
 //===----------------------------------------------------------------------===//
