@@ -125,6 +125,20 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
 }
 
 //===----------------------------------------------------------------------===//
+// Parameter Statement
+//===----------------------------------------------------------------------===//
+
+ParameterStmt::ParameterStmt(SMLoc Loc, const IdentifierInfo *NC, ExprResult CE,
+                             ExprResult StmtLabel)
+  : Stmt(Parameter, Loc, StmtLabel), NamedConstant(NC), ConstantExpr(CE) {}
+
+ParameterStmt *ParameterStmt::Create(ASTContext &C, SMLoc Loc,
+                                     const IdentifierInfo *NC, ExprResult CE,
+                                     ExprResult StmtLabel) {
+  return new (C) ParameterStmt(Loc, NC, CE, StmtLabel);
+}
+
+//===----------------------------------------------------------------------===//
 // Asynchronous Statement
 //===----------------------------------------------------------------------===//
 

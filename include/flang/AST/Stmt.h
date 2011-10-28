@@ -35,6 +35,7 @@ public:
     Use,
     Import,
     Implicit,
+    Parameter,
     Asynchronous,
     EndProgram,
     Assignment,
@@ -154,7 +155,7 @@ public:
 // Specification Part Statements
 //===----------------------------------------------------------------------===//
 
-/// UseStmt -
+/// UseStmt - A reference to the module it specifies.
 ///
 class UseStmt : public Stmt {
 public:
@@ -248,6 +249,25 @@ public:
   static bool classof(const ImplicitStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Implicit;
+  }
+};
+
+/// ParameterStmt - Specifies the PARAMETER attribute and the values for the
+/// named constants in the list.
+///
+class ParameterStmt : public Stmt {
+  const IdentifierInfo *NamedConstant;
+  ExprResult ConstantExpr;
+  ParameterStmt(SMLoc Loc, const IdentifierInfo *NC, ExprResult CE,
+                ExprResult StmtLabel);
+public:
+  static ParameterStmt *Create(ASTContext &C, SMLoc Loc,
+                               const IdentifierInfo *NC, ExprResult CE,
+                               ExprResult StmtLabel);
+
+  static bool classof(const ParameterStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Parameter;
   }
 };
 
