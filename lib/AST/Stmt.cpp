@@ -129,16 +129,20 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
 //===----------------------------------------------------------------------===//
 
 AsynchronousStmt::
-AsynchronousStmt(llvm::ArrayRef<const IdentifierInfo*> objNames,
+AsynchronousStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
                  ExprResult StmtLabel)
   : Stmt(Asynchronous, llvm::SMLoc(), StmtLabel) {
-  std::copy(objNames.begin(), objNames.end(), ObjNames.begin());
+  NumObjNames = objNames.size();
+  ObjNames = new (C) const IdentifierInfo *[NumObjNames];
+
+  for (unsigned I = 0; I != NumObjNames; ++I)
+    ObjNames[I] = objNames[I];
 }
 
 AsynchronousStmt *AsynchronousStmt::
-Create(ASTContext &C, llvm::ArrayRef<const IdentifierInfo*> objNames,
+Create(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
        ExprResult StmtLabel) {
-  return new (C) AsynchronousStmt(objNames, StmtLabel);
+  return new (C) AsynchronousStmt(C, objNames, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//

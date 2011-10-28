@@ -261,13 +261,20 @@ public:
 /// objects.
 ///
 class AsynchronousStmt : public Stmt {
-  SmallVector<const IdentifierInfo*, 4> ObjNames;
-  AsynchronousStmt(ArrayRef<const IdentifierInfo*> objNames,
+  unsigned NumObjNames;
+  const IdentifierInfo **ObjNames;
+  AsynchronousStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
                    ExprResult StmtLabel);
 public:
   static AsynchronousStmt *Create(ASTContext &C,
                                   ArrayRef<const IdentifierInfo*> objNames,
                                   ExprResult StmtLabel);
+
+  unsigned getNumObjectNames() const { return NumObjNames; }
+  const IdentifierInfo *getObjectNameAt(unsigned I) const {
+    assert(I < NumObjNames && "Invalid index!");
+    return ObjNames[I];
+  }
 
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
