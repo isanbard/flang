@@ -41,6 +41,7 @@ public:
       Implicit,
       Parameter,
       Format,
+      Entry,
 
     Asynchronous,
     EndProgram,
@@ -178,13 +179,16 @@ private:
   unsigned NumRenames;
   RenamePair *RenameList;
 
-  UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *Info,
-          ExprResult StmtLabel, ArrayRef<RenamePair> RenameList);
+  UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *modName,
+          ArrayRef<RenamePair> RenameList, ExprResult StmtLabel);
 public:
   static UseStmt *Create(ASTContext &C, ModuleNature MN,
-                         const IdentifierInfo *Info,
-                         ExprResult StmtLabel,
-                         ArrayRef<RenamePair> RenameList);
+                         const IdentifierInfo *modName,
+                         ExprResult StmtLabel);
+  static UseStmt *Create(ASTContext &C, ModuleNature MN,
+                         const IdentifierInfo *modName,
+                         ArrayRef<RenamePair> RenameList,
+                         ExprResult StmtLabel);
 
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }

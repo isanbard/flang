@@ -704,13 +704,13 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     } else {
       Diag.ReportError(Tok.getLocation(),
                        "expected module nature keyword");
-      return StmtResult();
+      return StmtResult(true);
     }
 
     if (!EatIfPresent(tok::coloncolon)) {
       Diag.ReportError(Tok.getLocation(),
                        "expected a '::' after the module nature");
-      return StmtResult();
+      return StmtResult(true);
     }
   }
 
@@ -719,20 +719,20 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   if (Tok.isNot(tok::identifier)) {
     Diag.ReportError(Tok.getLocation(),
                      "missing module name in USE statement");
-    return StmtResult();
+    return StmtResult(true);
   }
 
-  llvm::StringRef Name = Tok.getIdentifierInfo()->getName();
+  const IdentifierInfo *ModuleName = Tok.getIdentifierInfo();
   Lex();
 
   if (!EatIfPresent(tok::comma)) {
     if (!Tok.isAtStartOfStatement()) {
       Diag.ReportError(Tok.getLocation(),
                        "expected a ',' in USE statement");
-      return StmtResult();
+      return StmtResult(true);
     }
 
-    return StmtResult();        // FIXME:
+    return UseStmt::Create(Context, MN, ModuleName, StmtLabel);
   }
 
   bool OnlyUse = false;

@@ -48,9 +48,9 @@ EndProgramStmt *EndProgramStmt::Create(ASTContext &C,
 // Use Statement
 //===----------------------------------------------------------------------===//
 
-UseStmt::UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *Info,
-                 ExprResult StmtLabel, ArrayRef<RenamePair> RenameLst)
-  : Stmt(Use, llvm::SMLoc(), StmtLabel), ModNature(MN), ModName(Info) {
+UseStmt::UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *modName,
+                 ArrayRef<RenamePair> RenameLst, ExprResult StmtLabel)
+  : Stmt(Use, llvm::SMLoc(), StmtLabel), ModNature(MN), ModName(modName) {
   NumRenames = RenameLst.size();
   RenameList = new (C) RenamePair[NumRenames];
 
@@ -59,9 +59,16 @@ UseStmt::UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *Info,
 }
 
 UseStmt *UseStmt::Create(ASTContext &C, ModuleNature MN,
-                         const IdentifierInfo *Info,
-                         ExprResult StmtLabel, ArrayRef<RenamePair> RenameList){
-  return new (C) UseStmt(C, MN, Info, StmtLabel, RenameList);
+                         const IdentifierInfo *modName,
+                         ExprResult StmtLabel) {
+  return new (C) UseStmt(C, MN, modName, ArrayRef<RenamePair>(), StmtLabel);
+}
+
+UseStmt *UseStmt::Create(ASTContext &C, ModuleNature MN,
+                         const IdentifierInfo *modName,
+                         ArrayRef<RenamePair> RenameList,
+                         ExprResult StmtLabel) {
+  return new (C) UseStmt(C, MN, modName, RenameList, StmtLabel);
 }
 
 llvm::StringRef UseStmt::getModuleName() const {
