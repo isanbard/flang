@@ -732,7 +732,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
       return StmtResult(true);
     }
 
-    return UseStmt::Create(Context, MN, ModuleName, StmtLabel);
+    return Actions.ActOnUSE(Context, MN, ModuleName, StmtLabel);
   }
 
   bool OnlyUse = false;

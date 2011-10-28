@@ -74,6 +74,8 @@ public:
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);
+  StmtResult ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
+                      const IdentifierInfo *ModName, ExprResult StmtLabel);
   StmtResult ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
                         ArrayRef<std::pair<const IdentifierInfo*,
                                            const IdentifierInfo*> > LetterSpecs,
