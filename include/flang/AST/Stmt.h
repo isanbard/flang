@@ -32,10 +32,16 @@ class Stmt {
 public:
   enum StmtTy {
     Program,
+
+    // Specification Part
     Use,
     Import,
-    Implicit,
-    Parameter,
+
+      // Implicit Part
+      Implicit,
+      Parameter,
+      Format,
+
     Asynchronous,
     EndProgram,
     Assignment,
@@ -268,6 +274,22 @@ public:
   static bool classof(const ParameterStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Parameter;
+  }
+};
+
+/// FormatStmt -
+///
+class FormatStmt : public Stmt {
+  FormatSpec *FS;
+
+  FormatStmt(SMLoc Loc, FormatSpec *fs, ExprResult StmtLabel);
+public:
+  static FormatStmt *Create(ASTContext &C, SMLoc Loc, FormatSpec *fs,
+                            ExprResult StmtLabel);
+
+  static bool classof(const FormatStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Format;
   }
 };
 

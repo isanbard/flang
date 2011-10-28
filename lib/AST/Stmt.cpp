@@ -139,6 +139,18 @@ ParameterStmt *ParameterStmt::Create(ASTContext &C, SMLoc Loc,
 }
 
 //===----------------------------------------------------------------------===//
+// Format Statement
+//===----------------------------------------------------------------------===//
+
+FormatStmt::FormatStmt(SMLoc Loc, FormatSpec *fs, ExprResult StmtLabel)
+  : Stmt(Format, Loc, StmtLabel), FS(fs) {}
+
+FormatStmt *FormatStmt::Create(ASTContext &C, SMLoc Loc, FormatSpec *fs,
+                               ExprResult StmtLabel) {
+  return new (C) FormatStmt(Loc, fs, StmtLabel);
+}
+
+//===----------------------------------------------------------------------===//
 // Asynchronous Statement
 //===----------------------------------------------------------------------===//
 
