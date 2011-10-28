@@ -181,12 +181,14 @@ private:
 
   UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *modName,
           ArrayRef<RenamePair> RenameList, ExprResult StmtLabel);
+
+  void init(ASTContext &C, ArrayRef<RenamePair> RenameList);
 public:
   static UseStmt *Create(ASTContext &C, ModuleNature MN,
                          const IdentifierInfo *modName,
                          ExprResult StmtLabel);
   static UseStmt *Create(ASTContext &C, ModuleNature MN,
-                         const IdentifierInfo *modName,
+                         const IdentifierInfo *modName, bool Only,
                          ArrayRef<RenamePair> RenameList,
                          ExprResult StmtLabel);
 

@@ -745,7 +745,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
       if (Tok.isNot(tok::equalgreater)) {
         Diag.ReportError(Tok.getLocation(),
                          "expected a ':' after the ONLY keyword");
-        return StmtResult();
+        return StmtResult(true);
       }
 
       OnlyUse = false;
@@ -754,7 +754,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     }
   }
 
-  return false;
+  return StmtResult();
   // FIXME: !!!
 #if 0
   llvm::SmallVector<const VarDecl*, 8> LocalNames;
