@@ -163,33 +163,32 @@ public:
     Intrinsic,
     NonIntrinsic
   };
+  typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> RenamePair;
 private:
   ModuleNature ModNature;
   const IdentifierInfo *ModName;
   bool Only;
-  typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> RenamePair;
-  SmallVector<RenamePair, 8> RenameList;
+  unsigned NumRenames;
+  RenamePair *RenameList;
 
-  UseStmt(ModuleNature MN, const IdentifierInfo *Info, ExprResult StmtLabel);
+  UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *Info,
+          ExprResult StmtLabel, ArrayRef<RenamePair> RenameList);
 public:
   static UseStmt *Create(ASTContext &C, ModuleNature MN,
                          const IdentifierInfo *Info,
-                         ExprResult StmtLabel);
+                         ExprResult StmtLabel,
+                         ArrayRef<RenamePair> RenameList);
 
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
   StringRef getModuleName() const;
 
-  void addRenameItem(const IdentifierInfo *LocalName,
-                     const IdentifierInfo *UseName);
-  void addRenameItem(const IdentifierInfo *UseName);
+  typedef RenamePair *iterator;
 
-  typedef SmallVectorImpl<RenamePair>::const_iterator iterator;
+  iterator begin() const { return &RenameList[0]; }
+  iterator end() const   { return &RenameList[NumRenames]; }
 
-  iterator begin() const { return RenameList.begin(); }
-  iterator end() const   { return RenameList.end(); }
-
-  bool empty() const { return RenameList.empty(); }
+  bool empty() const { return NumRenames == 0; }
 
   static bool classof(const UseStmt*) { return true; }
   static bool classof(const Stmt *S) {
