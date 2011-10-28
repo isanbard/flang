@@ -183,12 +183,11 @@ public:
   ModuleNature getModuleNature() const { return ModNature; }
   StringRef getModuleName() const;
 
-  typedef RenamePair *iterator;
-
-  iterator begin() const { return &RenameList[0]; }
-  iterator end() const   { return &RenameList[NumRenames]; }
-
-  bool empty() const { return NumRenames == 0; }
+  unsigned getNumRenames() const { return NumRenames; }
+  RenamePair getRenamePairAt(unsigned I) {
+    assert(I < NumRenames && "Invalid index!");
+    return RenameList[I];
+  }
 
   static bool classof(const UseStmt*) { return true; }
   static bool classof(const Stmt *S) {
@@ -200,24 +199,23 @@ public:
 /// are accessible in the interface body by host association.
 ///
 class ImportStmt : public Stmt {
-  SmallVector<const IdentifierInfo*, 4> Names;
+  unsigned NumNames;
+  const IdentifierInfo **Names;
 
   ImportStmt(ExprResult StmtLabel);
-  ImportStmt(ArrayRef<const IdentifierInfo*> names, ExprResult StmtLabel);
-  ImportStmt(const ImportStmt &); // Do not implement!
+  ImportStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> names,
+             ExprResult StmtLabel);
 public:
   static ImportStmt *Create(ASTContext &C, ExprResult StmtLabel);
   static ImportStmt *Create(ASTContext &C,
                             ArrayRef<const IdentifierInfo*> Names,
                             ExprResult StmtLabel);
 
-  unsigned getNumNames() const { return Names.size(); }
-
-  typedef SmallVectorImpl<const IdentifierInfo*>::const_iterator iterator;
-  iterator begin() const { return Names.begin(); }
-  iterator end() const   { return Names.end(); }
-
-  bool empty() const { return Names.empty(); }
+  unsigned getNumNames() const { return NumNames; }
+  const IdentifierInfo *getNameAt(unsigned I) {
+    assert(I < NumNames && "Invalid index!");
+    return Names[I];
+  }
 
   static bool classof(const ImportStmt*) { return true; }
   static bool classof(const Stmt *S) {
