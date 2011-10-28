@@ -308,16 +308,19 @@ public:
 /// PrintStmt
 class PrintStmt : public Stmt {
   FormatSpec *FS;
-  SmallVector<ExprResult, 4> OutputItemList;
+  unsigned NumOutputItems;
+  ExprResult *OutputItemList;
 
-  PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
-            ExprResult StmtLabel);
+  PrintStmt(ASTContext &C, SMLoc L, FormatSpec *fs,
+            ArrayRef<ExprResult> OutList, ExprResult StmtLabel);
 public:
   static PrintStmt *Create(ASTContext &C, SMLoc L, FormatSpec *fs,
                            ArrayRef<ExprResult> OutList, ExprResult StmtLabel);
 
   FormatSpec *getFormatSpec() const { return FS; }
-  ArrayRef<ExprResult> getOutputItemList() const { return OutputItemList; }
+  ArrayRef<ExprResult> getOutputItemList() const {
+    return ArrayRef<ExprResult>(OutputItemList, NumOutputItems);
+  }
 
   static bool classof(const PrintStmt*) { return true; }
   static bool classof(const Stmt *S) {

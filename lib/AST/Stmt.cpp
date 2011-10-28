@@ -163,14 +163,15 @@ AssignmentStmt *AssignmentStmt::Create(ASTContext &C, ExprResult lhs,
 // Print Statement
 //===----------------------------------------------------------------------===//
 
-PrintStmt::PrintStmt(SMLoc L, FormatSpec *fs, ArrayRef<ExprResult> OutList,
-                     ExprResult StmtLabel)
+PrintStmt::PrintStmt(ASTContext &C, SMLoc L, FormatSpec *fs,
+                     ArrayRef<ExprResult> OutList, ExprResult StmtLabel)
   : Stmt(Print, L, StmtLabel), FS(fs) {
-  OutputItemList.append(OutList.begin(), OutList.end());
+  NumOutputItems = OutList.size();
+  OutputItemList = new (C) ExprResult[NumOutputItems];
 }
 
 PrintStmt *PrintStmt::Create(ASTContext &C, SMLoc L, FormatSpec *fs,
                              ArrayRef<ExprResult> OutList,
                              ExprResult StmtLabel) {
-  return new (C) PrintStmt(L, fs, OutList, StmtLabel);
+  return new (C) PrintStmt(C, L, fs, OutList, StmtLabel);
 }
