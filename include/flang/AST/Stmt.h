@@ -183,10 +183,8 @@ public:
   ModuleNature getModuleNature() const { return ModNature; }
   StringRef getModuleName() const;
 
-  unsigned getNumRenames() const { return NumRenames; }
-  RenamePair getRenamePairAt(unsigned I) {
-    assert(I < NumRenames && "Invalid index!");
-    return RenameList[I];
+  ArrayRef<RenamePair> getRenameList() const {
+    return ArrayRef<RenamePair>(RenameList, NumRenames);
   }
 
   static bool classof(const UseStmt*) { return true; }
@@ -211,10 +209,8 @@ public:
                             ArrayRef<const IdentifierInfo*> Names,
                             ExprResult StmtLabel);
 
-  unsigned getNumNames() const { return NumNames; }
-  const IdentifierInfo *getNameAt(unsigned I) {
-    assert(I < NumNames && "Invalid index!");
-    return Names[I];
+  ArrayRef<const IdentifierInfo *> getNameList() const {
+    return ArrayRef<const IdentifierInfo *>(Names, NumNames);
   }
 
   static bool classof(const ImportStmt*) { return true; }
@@ -245,10 +241,8 @@ public:
                               ArrayRef<LetterSpec> SpecList,
                               ExprResult StmtLabel);
 
-  unsigned getNumLetterSpecs() const { return NumLetterSpecs; }
-  LetterSpec getLetterSpecAt(unsigned I) {
-    assert(I < NumLetterSpecs && "Invalid index!");
-    return LetterSpecList[I];
+  ArrayRef<LetterSpec> getLetterSpecList() const {
+    return ArrayRef<LetterSpec>(LetterSpecList, NumLetterSpecs);
   }
 
   static bool classof(const ImplicitStmt*) { return true; }
@@ -270,10 +264,8 @@ public:
                                   ArrayRef<const IdentifierInfo*> objNames,
                                   ExprResult StmtLabel);
 
-  unsigned getNumObjectNames() const { return NumObjNames; }
-  const IdentifierInfo *getObjectNameAt(unsigned I) const {
-    assert(I < NumObjNames && "Invalid index!");
-    return ObjNames[I];
+  ArrayRef<const IdentifierInfo *> getObjectNameList() const {
+    return ArrayRef<const IdentifierInfo *>(ObjNames, NumObjNames);
   }
 
   static bool classof(const AsynchronousStmt*) { return true; }
