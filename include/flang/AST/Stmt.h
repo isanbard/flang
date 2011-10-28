@@ -228,20 +228,28 @@ public:
 /// specified in the statement.
 ///
 class ImplicitStmt : public Stmt {
-  SmallVector<std::pair<const IdentifierInfo *,
-                        const IdentifierInfo *>, 4> LetterSpecList;
+public:
+  typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> LetterSpec;
+private:
   QualType Ty;
   bool None;
+  unsigned NumLetterSpecs;
+  LetterSpec *LetterSpecList;
 
   ImplicitStmt(SMLoc L, ExprResult StmtLabel);
-  ImplicitStmt(SMLoc L, QualType T, ExprResult StmtLabel);
+  ImplicitStmt(ASTContext &C, SMLoc L, QualType T,
+               ArrayRef<LetterSpec> SpecList, ExprResult StmtLabel);
 public:
   static ImplicitStmt *Create(ASTContext &C, SMLoc L, ExprResult StmtLabel);
   static ImplicitStmt *Create(ASTContext &C, SMLoc L, QualType T,
+                              ArrayRef<LetterSpec> SpecList,
                               ExprResult StmtLabel);
 
-  void addLetterSpec(const IdentifierInfo *L);
-  void addLetterSpec(const IdentifierInfo *First, const IdentifierInfo *Last);
+  unsigned getNumLetterSpecs() const { return NumLetterSpecs; }
+  LetterSpec getLetterSpecAt(unsigned I) {
+    assert(I < NumLetterSpecs && "Invalid index!");
+    return LetterSpecList[I];
+  }
 
   static bool classof(const ImplicitStmt*) { return true; }
   static bool classof(const Stmt *S) {

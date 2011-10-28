@@ -99,10 +99,19 @@ ImportStmt *ImportStmt::Create(ASTContext &C,
 //===----------------------------------------------------------------------===//
 
 ImplicitStmt::ImplicitStmt(SMLoc L, ExprResult StmtLabel)
-  : Stmt(Implicit, L, StmtLabel), None(true) {}
+  : Stmt(Implicit, L, StmtLabel), None(true),
+    NumLetterSpecs(0), LetterSpecList(0) {}
 
-ImplicitStmt::ImplicitStmt(SMLoc L, QualType T, ExprResult StmtLabel)
-  : Stmt(Implicit, L, StmtLabel), None(false) {}
+ImplicitStmt::ImplicitStmt(ASTContext &C, SMLoc L, QualType T,
+                           ArrayRef<LetterSpec> SpecList,
+                           ExprResult StmtLabel)
+  : Stmt(Implicit, L, StmtLabel), None(false) {
+  NumLetterSpecs = SpecList.size();
+  LetterSpecList = new (C) LetterSpec[NumLetterSpecs];
+
+  for (unsigned I = 0; I != NumLetterSpecs; ++I)
+    LetterSpecList[I] = SpecList[I];
+}
 
 ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L,
                                    ExprResult StmtLabel) {
@@ -110,17 +119,9 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L,
 }
 
 ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
+                                   ArrayRef<LetterSpec> SpecList,
                                    ExprResult StmtLabel) {
-  return new (C) ImplicitStmt(L, T, StmtLabel);
-}
-
-void ImplicitStmt::addLetterSpec(const IdentifierInfo *L) {
-  LetterSpecList.push_back(std::make_pair(L, (const IdentifierInfo*)0));
-}
-
-void ImplicitStmt::addLetterSpec(const IdentifierInfo *First,
-                                 const IdentifierInfo *Last) {
-  LetterSpecList.push_back(std::make_pair(First, Last));
+  return new (C) ImplicitStmt(C, L, T, SpecList, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//
