@@ -902,8 +902,8 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
       return StmtResult();
     }
 
+    SMLoc IDLoc = Tok.getLocation();
     const IdentifierInfo *II = Tok.getIdentifierInfo();
-    NamedLocs.push_back(Tok.getLocation());
     Lex();
 
     if (!EatIfPresent(tok::equal)) {
@@ -916,7 +916,9 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     if (ConstExpr.isInvalid())
       return StmtResult();
 
-    ParamList.push_back(ParameterStmt::ParamPair(II, ConstExpr));
+    ParamList.push_back(Actions.ActOnPARAMETERPair(Context, IDLoc, II,
+                                                   ConstExpr));
+
   } while (EatIfPresent(tok::comma));
 
   if (!EatIfPresent(tok::r_paren)) {
@@ -925,7 +927,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  return Actions.ActOnPARAMETER(Context, Loc, NamedLocs, ParamList, StmtLabel);
+  return Actions.ActOnPARAMETER(Context, Loc, ParamList, StmtLabel);
 }
 
 /// ParseFORMATStmt - Parse the FORMAT statement.

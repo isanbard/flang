@@ -91,8 +91,10 @@ public:
   StmtResult ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel);
 
   // PARAMETER statement:
+  ParameterStmt::ParamPair ActOnPARAMETERPair(ASTContext &C, SMLoc Loc,
+                                              const IdentifierInfo *IDInfo,
+                                              ExprResult CE);
   StmtResult ActOnPARAMETER(ASTContext &C, SMLoc Loc,
-                            ArrayRef<SMLoc> NamedLocs,
                             ArrayRef<ParameterStmt::ParamPair> ParamList,
                             Expr *StmtLabel);
 

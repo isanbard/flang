@@ -196,31 +196,30 @@ StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel) {
   return ImplicitStmt::Create(C, Loc, StmtLabel);
 }
 
-StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
-                                ArrayRef<SMLoc> NamedLocs,
-                                ArrayRef<ParameterStmt::ParamPair> ParamList,
-                                Expr *StmtLabel) {
-  for (unsigned I = 0, E = ParamList.size(); I != E; ++I) {
-    ParameterStmt::ParamPair P = ParamList[I];
-    const IdentifierInfo *IDInfo = P.first;
-    Expr *CE = P.second.get();
-
-    if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {
-      Diags.ReportError(NamedLocs[I],
-                        llvm::Twine("variable '") + IDInfo->getName() +
-                        "' already defined");
-      Diags.getClient()->HandleDiagnostic(Diagnostic::Note, Prev->getLocation(),
-                                          "previous definition");
-    }
-
-    QualType T = CE->getType();
-    VarDecl *VD = VarDecl::Create(C, CurContext, NamedLocs[I], IDInfo, T);
-    CurContext->addDecl(VD);
-
-    // Store the Decl in the IdentifierInfo for easy access.
-    const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
+ParameterStmt::ParamPair
+Sema::ActOnPARAMETERPair(ASTContext &C, SMLoc Loc, const IdentifierInfo *IDInfo,
+                         ExprResult CE) {
+  if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {
+    Diags.ReportError(Loc,
+                      llvm::Twine("variable '") + IDInfo->getName() +
+                      "' already defined");
+    Diags.getClient()->HandleDiagnostic(Diagnostic::Note, Prev->getLocation(),
+                                        "previous definition");
+    return ParameterStmt::ParamPair(0, ExprResult());
   }
 
+  QualType T = CE.get()->getType();
+  VarDecl *VD = VarDecl::Create(C, CurContext, Loc, IDInfo, T);
+  CurContext->addDecl(VD);
+
+  // Store the Decl in the IdentifierInfo for easy access.
+  const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
+  return ParameterStmt::ParamPair(IDInfo, CE);
+}
+
+StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
+                                ArrayRef<ParameterStmt::ParamPair> ParamList,
+                                Expr *StmtLabel) {
   return ParameterStmt::Create(C, Loc, ParamList, StmtLabel);
 }
 
