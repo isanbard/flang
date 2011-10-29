@@ -98,6 +98,11 @@ public:
                             ArrayRef<ParameterStmt::ParamPair> ParamList,
                             Expr *StmtLabel);
 
+  // ASYNCHRONOUS statement:
+  StmtResult ActOnASYNCHRONOUS(ASTContext &C, SMLoc Loc,
+                               ArrayRef<const IdentifierInfo*> ObjNames,
+                               Expr *StmtLabel);
+
   // END PROGRAM statement:
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
@@ -125,9 +130,6 @@ public:
 
   StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
                          Expr *StmtLabel) { return StmtResult(); }
-  StmtResult
-  ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
-                    Expr *StmtLabel) { return StmtResult(); }
 
   QualType ActOnBuiltinType(ASTContext *Ctx,
                             BuiltinType::TypeSpec TS,

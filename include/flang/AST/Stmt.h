@@ -325,10 +325,11 @@ public:
 class AsynchronousStmt : public Stmt {
   unsigned NumObjNames;
   const IdentifierInfo **ObjNames;
-  AsynchronousStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
+  AsynchronousStmt(ASTContext &C, SMLoc Loc,
+                   ArrayRef<const IdentifierInfo*> objNames,
                    ExprResult StmtLabel);
 public:
-  static AsynchronousStmt *Create(ASTContext &C,
+  static AsynchronousStmt *Create(ASTContext &C, SMLoc Loc,
                                   ArrayRef<const IdentifierInfo*> objNames,
                                   ExprResult StmtLabel);
 

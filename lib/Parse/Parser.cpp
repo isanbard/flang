@@ -673,7 +673,7 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
   if (Tok.isNot(tok::identifier) || Tok.isAtStartOfStatement()) {
     Diag.ReportError(ProgramLoc,
                      "'PROGRAM' keyword expects an identifier");
-    return StmtResult();
+    return StmtResult(true);
   }
 
   llvm::SMLoc NameLoc = Tok.getLocation();
@@ -966,7 +966,7 @@ bool Parser::ParseProcedureDeclStmt() {
 
 /// ParseSpecificationStmt - Parse the specification statement.
 ///
-///   [2.1] R212:
+///   [R212]:
 ///     specification-stmt :=
 ///         access-stmt
 ///      or allocatable-stmt
@@ -1010,32 +1010,46 @@ Parser::StmtResult Parser::ParseACCESSStmt() {
 
 /// ParseALLOCATABLEStmt - Parse the ALLOCATABLE statement.
 ///
-///   [5.2.2] R520:
+///   [R520]:
 ///     allocatable-stmt :=
 ///         ALLOCATABLE [::] object-name       #
 ///         # [ ( deferred-shape-spec-list ) ] #
-///         # [ , object-name [ ( deferred-sape-spec-list ) ] ] ...
+///         # [ , object-name [ ( deferred-shape-spec-list ) ] ] ...
 Parser::StmtResult Parser::ParseALLOCATABLEStmt() {
   return StmtResult();
 }
 
 /// ParseASYNCHRONOUSStmt - Parse the ASYNCHRONOUS statement.
 ///
-///   [5.4.3] R528:
+///   [R528]:
 ///     asynchronous-stmt :=
 ///         ASYNCHRONOUS [::] object-name-list
 Parser::StmtResult Parser::ParseASYNCHRONOUSStmt() {
+  SMLoc Loc = Tok.getLocation();
   Lex();
   EatIfPresent(tok::coloncolon);
 
-  llvm::SmallVector<const IdentifierInfo*, 8> ObjNameList;
-  while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
+  SmallVector<const IdentifierInfo*, 8> ObjNameList;
+  while (!Tok.isAtStartOfStatement()) {
+    if (Tok.isNot(tok::identifier)) {
+      Diag.ReportError(Tok.getLocation(),
+                       "expected an identifier in ASYNCHRONOUS statement");
+      return StmtResult(true);
+    }
+
     ObjNameList.push_back(Tok.getIdentifierInfo());
     Lex();
-    EatIfPresent(tok::comma);
+    if (!EatIfPresent(tok::comma)) {
+      if (!Tok.isAtStartOfStatement()) {
+        Diag.ReportError(Tok.getLocation(),
+                         "expected ',' in ASYNCHRONOUS statement");
+        continue;
+      }
+      break;
+    }
   }
 
-  return Actions.ActOnASYNCHRONOUS(ObjNameList, StmtLabel);
+  return Actions.ActOnASYNCHRONOUS(Context, Loc, ObjNameList, StmtLabel);
 }
 
 /// ParseBINDStmt - Parse the BIND statement.

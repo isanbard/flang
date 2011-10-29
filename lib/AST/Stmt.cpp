@@ -186,9 +186,10 @@ EntryStmt *EntryStmt::Create(ASTContext &C, SMLoc Loc, ExprResult StmtLabel) {
 //===----------------------------------------------------------------------===//
 
 AsynchronousStmt::
-AsynchronousStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
+AsynchronousStmt(ASTContext &C, SMLoc Loc,
+                 ArrayRef<const IdentifierInfo*> objNames,
                  ExprResult StmtLabel)
-  : Stmt(Asynchronous, llvm::SMLoc(), StmtLabel) {
+  : Stmt(Asynchronous, Loc, StmtLabel) {
   NumObjNames = objNames.size();
   ObjNames = new (C) const IdentifierInfo *[NumObjNames];
 
@@ -197,9 +198,9 @@ AsynchronousStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
 }
 
 AsynchronousStmt *AsynchronousStmt::
-Create(ASTContext &C, ArrayRef<const IdentifierInfo*> objNames,
+Create(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> objNames,
        ExprResult StmtLabel) {
-  return new (C) AsynchronousStmt(C, objNames, StmtLabel);
+  return new (C) AsynchronousStmt(C, Loc, objNames, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//

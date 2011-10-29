@@ -223,6 +223,12 @@ StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
   return ParameterStmt::Create(C, Loc, ParamList, StmtLabel);
 }
 
+StmtResult Sema::ActOnASYNCHRONOUS(ASTContext &C, SMLoc Loc,
+                                   ArrayRef<const IdentifierInfo *>ObjNames,
+                                   Expr *StmtLabel) {
+  return AsynchronousStmt::Create(C, Loc, ObjNames, StmtLabel);
+}
+
 StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
                                  const IdentifierInfo *ProgName,
                                  llvm::SMLoc Loc, llvm::SMLoc NameLoc,
