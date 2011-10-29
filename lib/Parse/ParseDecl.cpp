@@ -406,6 +406,14 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
   default:
     Lex();
 
+    if (Tok.is(tok::l_paren)) {
+      if (NextTok.isNot(tok::kw_KIND) &&
+          NextTok.isNot(tok::kw_LEN) &&
+          NextTok.is(tok::identifier) &&
+          !NextTok.getIdentifierInfo()->getFETokenInfo<VarDecl>())
+        return false;
+    }
+
     if (EatIfPresent(tok::l_paren)) {
       Kind = ParseSelector(true);
       if (Kind.isInvalid())
