@@ -74,8 +74,15 @@ public:
 
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);
+
+  // USE statement:
   StmtResult ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
                       const IdentifierInfo *ModName, ExprResult StmtLabel);
+  StmtResult ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
+                      const IdentifierInfo *ModName, bool OnlyList,
+                      ArrayRef<UseStmt::RenamePair> RenameNames,
+                      ExprResult StmtLabel);
+
   StmtResult ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
                         ArrayRef<std::pair<const IdentifierInfo*,
                                            const IdentifierInfo*> > LetterSpecs,
@@ -110,11 +117,6 @@ public:
 
   StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
                          Expr *StmtLabel) { return StmtResult(); }
-  StmtResult ActOnUSE(UseStmt::ModuleNature MN, llvm::StringRef Name,
-                      bool OnlyList,
-                      llvm::ArrayRef<const VarDecl*> LocalNames,
-                      llvm::ArrayRef<const VarDecl*> UseNames,
-                      Expr *StmtLabel) { return StmtResult(); }
   StmtResult
   ActOnASYNCHRONOUS(llvm::ArrayRef<const IdentifierInfo*> ObjNames,
                     Expr *StmtLabel) { return StmtResult(); }

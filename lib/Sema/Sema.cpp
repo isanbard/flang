@@ -176,6 +176,13 @@ StmtResult Sema::ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
   return UseStmt::Create(C, MN, ModName, StmtLabel);
 }
 
+StmtResult Sema::ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
+                          const IdentifierInfo *ModName, bool OnlyList,
+                          ArrayRef<UseStmt::RenamePair> RenameNames,
+                          ExprResult StmtLabel) {
+  return UseStmt::Create(C, MN, ModName, OnlyList, RenameNames, StmtLabel);
+}
+
 StmtResult Sema::ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
                                ArrayRef<std::pair<const IdentifierInfo*,
                                const IdentifierInfo*> > LetterSpecs,

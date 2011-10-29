@@ -754,11 +754,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     }
   }
 
-  return StmtResult();
-  // FIXME: !!!
-#if 0
-  llvm::SmallVector<const VarDecl*, 8> LocalNames;
-  llvm::SmallVector<const VarDecl*, 8> UseNames;
+  SmallVector<UseStmt::RenamePair, 8> RenameNames;
 
   if (!OnlyUse && Tok.is(tok::equalgreater)) {
     // They're using 'ONLY' as a non-keyword and renaming it.
@@ -769,54 +765,32 @@ Parser::StmtResult Parser::ParseUSEStmt() {
       return StmtResult();
     }
 
-    // FIXME:
-    LocalNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
-                                                    UseListFirstVar));
-    UseNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
-                                                  Tok.getIdentifierInfo()));
+    RenameNames.push_back(UseStmt::RenamePair(UseListFirstVar,
+                                              Tok.getIdentifierInfo()));
     Lex();
     EatIfPresent(tok::comma);
   }
 
-  while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
-    LocalNames.push_back(Context.getOrCreateVarDecl(llvm::SMLoc(), 0,
-                                                    Tok.getIdentifierInfo()));
+  while (!Tok.isAtStartOfStatement()) {
+    const IdentifierInfo *LocalName = Tok.getIdentifierInfo();
+    const IdentifierInfo *UseName = 0;
+    SMLoc LocalLoc = Tok.getLocation();
     Lex();
 
-    if (OnlyUse) {
-      if (Tok.is(tok::equalgreater)) {
-        Diag.ReportError(Tok.getLocation(),
-                         "performing a rename in an 'ONLY' list");
-        return StmtResult();
-      }
-
-      if (!EatIfPresent(tok::comma))
-        break;
-      continue;
+    if (EatIfPresent(tok::equalgreater)) {
+      UseName = Tok.getIdentifierInfo();
+      SMLoc UseNameLoc = Tok.getLocation();
+      Lex();
     }
 
-    if (!EatIfPresent(tok::equalgreater)) {
-      Diag.ReportError(Tok.getLocation(),
-                       "expected a '=>' in the rename list");
-      return StmtResult();
-    }
-
-    // FIXME: Check for identifier kind.
-    llvm::SMLoc UseNameLoc = Tok.getLocation();
-    // FIXME:
-    UseNames.push_back(Context.getOrCreateVarDecl(UseNameLoc, 0,
-                                                  Tok.getIdentifierInfo()));
-    Lex();
+    RenameNames.push_back(UseStmt::RenamePair(LocalName, UseName));
 
     if (!EatIfPresent(tok::comma))
       break;
   }
 
-  assert((UseNames.empty() || LocalNames.size() == UseNames.size()) &&
-         "Unbalanced number of renames with USE ONLY names!");
-  return Actions.ActOnUSE(MN, Name, OnlyUse, LocalNames, UseNames,
+  return Actions.ActOnUSE(Context, MN, ModuleName, OnlyUse, RenameNames,
                           StmtLabel);
-#endif
 }
 
 /// ParseIMPORTStmt - Parse the IMPORT statement.
