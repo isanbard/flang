@@ -883,14 +883,14 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
 Parser::StmtResult Parser::ParsePARAMETERStmt() {
   // Check if this is an assignment.
   if (NextTok.is(tok::equal))
-    return false;
+    return StmtResult();
 
   SMLoc Loc = Tok.getLocation();
   Lex();
   if (!EatIfPresent(tok::l_paren)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected '(' in PARAMETER statement");
-    return StmtResult();
+    return StmtResult(true);
   }
 
   SmallVector<ParameterStmt::ParamPair, 4> ParamList;
@@ -899,7 +899,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     if (Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
                        "expected a named constant in PARAMETER statement");
-      return StmtResult();
+      return StmtResult(true);
     }
 
     SMLoc IDLoc = Tok.getLocation();
@@ -909,12 +909,12 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     if (!EatIfPresent(tok::equal)) {
       Diag.ReportError(Tok.getLocation(),
                        "expected '=' in PARAMETER statement");
-      return StmtResult();
+      return StmtResult(true);
     }
 
     ExprResult ConstExpr = ParseExpression();
     if (ConstExpr.isInvalid())
-      return StmtResult();
+      return StmtResult(true);
 
     ParamList.push_back(Actions.ActOnPARAMETERPair(Context, IDLoc, II,
                                                    ConstExpr));
@@ -924,7 +924,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
   if (!EatIfPresent(tok::r_paren)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in PARAMETER statement");
-    return StmtResult();
+    return StmtResult(true);
   }
 
   return Actions.ActOnPARAMETER(Context, Loc, ParamList, StmtLabel);
