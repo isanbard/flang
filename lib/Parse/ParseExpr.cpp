@@ -504,6 +504,8 @@ ExprResult Parser::ParseDesignator() {
   //       name
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   VarDecl *VD = IDInfo->getFETokenInfo<VarDecl>();
+  if (!VD) return ExprResult();
+
   E = VarExpr::Create(Context, Tok.getLocation(), VD);
   Lex();
 
