@@ -190,15 +190,15 @@ StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
   return ImplicitStmt::Create(C, Loc, Ty, LetterSpecs, StmtLabel);
 }
 
-StmtResult Sema::ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel) {
+StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel) {
   // IMPLICIT NONE
-  return ImplicitStmt::Create(C, SMLoc(), StmtLabel);
+  return ImplicitStmt::Create(C, Loc, StmtLabel);
 }
 
-StmtResult Sema::ActOnPARAMETER(ArrayRef<std::pair<const IdentifierInfo *,
-                                ExprResult> > NamedConsts,
+StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
+                                ArrayRef<ParameterStmt::ParamPair> ParamList,
                                 Expr *StmtLabel) {
-  return StmtResult();
+  return ParameterStmt::Create(C, Loc, ParamList, StmtLabel);
 }
 
 StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,

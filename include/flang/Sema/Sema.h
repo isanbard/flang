@@ -72,6 +72,7 @@ public:
   Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, SMLoc IDLoc,
                         const IdentifierInfo *IDInfo);
 
+  // PROGRAM statement:
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);
 
@@ -83,13 +84,18 @@ public:
                       ArrayRef<UseStmt::RenamePair> RenameNames,
                       ExprResult StmtLabel);
 
+  // IMPLICIT statement:
   StmtResult ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
                            ArrayRef<ImplicitStmt::LetterSpec> LetterSpecs,
                            Expr *StmtLabel);
-  StmtResult ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel);
-  StmtResult ActOnPARAMETER(llvm::ArrayRef<std::pair<const IdentifierInfo*,
-                                           ExprResult> > NamedConsts,
+  StmtResult ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel);
+
+  // PARAMETER statement:
+  StmtResult ActOnPARAMETER(ASTContext &C, SMLoc Loc,
+                            ArrayRef<ParameterStmt::ParamPair> ParamList,
                             Expr *StmtLabel);
+
+  // END PROGRAM statement:
   StmtResult ActOnENDPROGRAM(ASTContext &C,
                              const IdentifierInfo *ProgName,
                              SMLoc Loc, SMLoc NameLoc,

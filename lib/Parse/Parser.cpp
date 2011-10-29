@@ -829,7 +829,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   Lex();
 
   if (Tok.is(tok::kw_NONE))
-    return Actions.ActOnIMPLICIT(Context, StmtLabel);
+    return Actions.ActOnIMPLICIT(Context, Loc, StmtLabel);
 
   DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
@@ -885,6 +885,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
   if (NextTok.is(tok::equal))
     return false;
 
+  SMLoc Loc = Tok.getLocation();
   Lex();
   if (!EatIfPresent(tok::l_paren)) {
     Diag.ReportError(Tok.getLocation(),
@@ -892,8 +893,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  llvm::SmallVector<std::pair<const IdentifierInfo *,
-                              ExprResult>, 4> NamedConsts;
+  SmallVector<ParameterStmt::ParamPair, 4> ParamList;
   do {
     if (Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
@@ -914,7 +914,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     if (ConstExpr.isInvalid())
       return StmtResult();
 
-    NamedConsts.push_back(std::make_pair(II, ConstExpr));
+    ParamList.push_back(ParameterStmt::ParamPair(II, ConstExpr));
   } while (EatIfPresent(tok::comma));
 
   if (!EatIfPresent(tok::r_paren)) {
@@ -923,7 +923,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  return Actions.ActOnPARAMETER(NamedConsts, StmtLabel);
+  return Actions.ActOnPARAMETER(Context, Loc, ParamList, StmtLabel);
 }
 
 /// ParseFORMATStmt - Parse the FORMAT statement.

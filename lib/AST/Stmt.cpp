@@ -142,14 +142,20 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
 // Parameter Statement
 //===----------------------------------------------------------------------===//
 
-ParameterStmt::ParameterStmt(SMLoc Loc, const IdentifierInfo *NC, ExprResult CE,
-                             ExprResult StmtLabel)
-  : Stmt(Parameter, Loc, StmtLabel), NamedConstant(NC), ConstantExpr(CE) {}
+ParameterStmt::ParameterStmt(ASTContext &C, SMLoc Loc,
+                             ArrayRef<ParamPair> PList, ExprResult StmtLabel)
+  : Stmt(Parameter, Loc, StmtLabel) {
+  NumParams = PList.size();
+  ParamList = new (C) ParamPair[NumParams];
+
+  for (unsigned I = 0; I != NumParams; ++I)
+    ParamList[I] = PList[I];
+}
 
 ParameterStmt *ParameterStmt::Create(ASTContext &C, SMLoc Loc,
-                                     const IdentifierInfo *NC, ExprResult CE,
+                                     ArrayRef<ParamPair>ParamList,
                                      ExprResult StmtLabel) {
-  return new (C) ParameterStmt(Loc, NC, CE, StmtLabel);
+  return new (C) ParameterStmt(C, Loc, ParamList, StmtLabel);
 }
 
 //===----------------------------------------------------------------------===//

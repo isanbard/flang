@@ -268,14 +268,21 @@ public:
 /// named constants in the list.
 ///
 class ParameterStmt : public Stmt {
-  const IdentifierInfo *NamedConstant;
-  ExprResult ConstantExpr;
-  ParameterStmt(SMLoc Loc, const IdentifierInfo *NC, ExprResult CE,
+public:
+  typedef std::pair<const IdentifierInfo*, ExprResult> ParamPair;
+private:
+  unsigned NumParams;
+  ParamPair *ParamList;
+  ParameterStmt(ASTContext &C, SMLoc Loc, ArrayRef<ParamPair> ParamList,
                 ExprResult StmtLabel);
 public:
   static ParameterStmt *Create(ASTContext &C, SMLoc Loc,
-                               const IdentifierInfo *NC, ExprResult CE,
+                               ArrayRef<ParamPair> ParamList,
                                ExprResult StmtLabel);
+
+  ArrayRef<ParamPair> getParameterList() const {
+    return ArrayRef<ParamPair>(ParamList, NumParams);
+  }
 
   static bool classof(const ParameterStmt*) { return true; }
   static bool classof(const Stmt *S) {
