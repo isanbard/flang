@@ -197,6 +197,7 @@ StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel) {
 }
 
 StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
+                                ArrayRef<SMLoc> NamedLocs,
                                 ArrayRef<ParameterStmt::ParamPair> ParamList,
                                 Expr *StmtLabel) {
   for (unsigned I = 0, E = ParamList.size(); I != E; ++I) {
@@ -205,15 +206,15 @@ StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
     Expr *CE = P.second.get();
 
     if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {
-      Diags.ReportError(Loc,    // FIXME: This isn't correct for the IDInfo.
+      Diags.ReportError(NamedLocs[I],
                         llvm::Twine("variable '") + IDInfo->getName() +
-                        "' already declared");
+                        "' already defined");
       Diags.getClient()->HandleDiagnostic(Diagnostic::Note, Prev->getLocation(),
-                                          "previous declaration");
+                                          "previous definition");
     }
 
     QualType T = CE->getType();
-    VarDecl *VD = VarDecl::Create(C, CurContext, Loc, IDInfo, T);
+    VarDecl *VD = VarDecl::Create(C, CurContext, NamedLocs[I], IDInfo, T);
     CurContext->addDecl(VD);
 
     // Store the Decl in the IdentifierInfo for easy access.

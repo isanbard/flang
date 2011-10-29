@@ -92,6 +92,7 @@ public:
 
   // PARAMETER statement:
   StmtResult ActOnPARAMETER(ASTContext &C, SMLoc Loc,
+                            ArrayRef<SMLoc> NamedLocs,
                             ArrayRef<ParameterStmt::ParamPair> ParamList,
                             Expr *StmtLabel);
 

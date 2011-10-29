@@ -894,6 +894,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
   }
 
   SmallVector<ParameterStmt::ParamPair, 4> ParamList;
+  SmallVector<SMLoc, 4> NamedLocs;
   do {
     if (Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
@@ -902,6 +903,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     }
 
     const IdentifierInfo *II = Tok.getIdentifierInfo();
+    NamedLocs.push_back(Tok.getLocation());
     Lex();
 
     if (!EatIfPresent(tok::equal)) {
@@ -923,7 +925,7 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
     return StmtResult();
   }
 
-  return Actions.ActOnPARAMETER(Context, Loc, ParamList, StmtLabel);
+  return Actions.ActOnPARAMETER(Context, Loc, NamedLocs, ParamList, StmtLabel);
 }
 
 /// ParseFORMATStmt - Parse the FORMAT statement.
