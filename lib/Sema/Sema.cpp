@@ -16,6 +16,7 @@
 #include "flang/Sema/DeclSpec.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
+#include "flang/AST/Expr.h"
 #include "flang/AST/Stmt.h"
 #include "flang/Basic/Diagnostic.h"
 #include "llvm/Support/raw_ostream.h"
@@ -198,6 +199,27 @@ StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, Expr *StmtLabel) {
 StmtResult Sema::ActOnPARAMETER(ASTContext &C, SMLoc Loc,
                                 ArrayRef<ParameterStmt::ParamPair> ParamList,
                                 Expr *StmtLabel) {
+  for (unsigned I = 0, E = ParamList.size(); I != E; ++I) {
+    ParameterStmt::ParamPair P = ParamList[I];
+    const IdentifierInfo *IDInfo = P.first;
+    Expr *CE = P.second.get();
+
+    if (const VarDecl *Prev = IDInfo->getFETokenInfo<VarDecl>()) {
+      Diags.ReportError(Loc,    // FIXME: This isn't correct for the IDInfo.
+                        llvm::Twine("variable '") + IDInfo->getName() +
+                        "' already declared");
+      Diags.getClient()->HandleDiagnostic(Diagnostic::Note, Prev->getLocation(),
+                                          "previous declaration");
+    }
+
+    QualType T = CE->getType();
+    VarDecl *VD = VarDecl::Create(C, CurContext, Loc, IDInfo, T);
+    CurContext->addDecl(VD);
+
+    // Store the Decl in the IdentifierInfo for easy access.
+    const_cast<IdentifierInfo*>(IDInfo)->setFETokenInfo(VD);
+  }
+
   return ParameterStmt::Create(C, Loc, ParamList, StmtLabel);
 }
 
