@@ -833,12 +833,12 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
 
   DeclSpec DS;
   if (ParseDeclarationTypeSpec(DS))
-    return true;
+    return StmtResult();
 
   if (!EatIfPresent(tok::l_paren)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected '(' in IMPLICIT statement");
-    return StmtResult();
+    return StmtResult(true);
   }
 
   SmallVector<std::pair<const IdentifierInfo*,
@@ -848,7 +848,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
     if (Tok.isNot(tok::identifier) || First->getName().size() > 1) {
       Diag.ReportError(Tok.getLocation(),
                        "expected a letter");
-      return StmtResult();
+      return StmtResult(true);
     }
 
     Lex();
@@ -859,7 +859,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
       if (Tok.isNot(tok::identifier) || Second->getName().size() > 1) {
         Diag.ReportError(Tok.getLocation(),
                          "expected a letter");
-        return StmtResult();
+        return StmtResult(true);
       }
 
       Lex();
@@ -868,9 +868,11 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
     LetterSpecs.push_back(std::make_pair(First, Second));
   } while (EatIfPresent(tok::comma));
 
-  if (!EatIfPresent(tok::r_paren))
+  if (!EatIfPresent(tok::r_paren)) {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in IMPLICIT statement");
+    return StmtResult(true);
+  }
 
   return Actions.ActOnIMPLICIT(Context, Loc, DS, LetterSpecs, StmtLabel);
 }
