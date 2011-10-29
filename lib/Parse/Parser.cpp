@@ -825,6 +825,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   if (NextTok.is(tok::equal))
     return StmtResult();
 
+  SMLoc Loc = Tok.getLocation();
   Lex();
 
   if (Tok.is(tok::kw_NONE))
@@ -871,7 +872,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
     Diag.ReportError(Tok.getLocation(),
                      "expected ')' in IMPLICIT statement");
 
-  return Actions.ActOnIMPLICIT(Context, DS, LetterSpecs, StmtLabel);
+  return Actions.ActOnIMPLICIT(Context, Loc, DS, LetterSpecs, StmtLabel);
 }
 
 /// ParsePARAMETERStmt - Parse the PARAMETER statement.

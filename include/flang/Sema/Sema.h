@@ -83,9 +83,8 @@ public:
                       ArrayRef<UseStmt::RenamePair> RenameNames,
                       ExprResult StmtLabel);
 
-  StmtResult ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
-                        ArrayRef<std::pair<const IdentifierInfo*,
-                                           const IdentifierInfo*> > LetterSpecs,
+  StmtResult ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
+                           ArrayRef<ImplicitStmt::LetterSpec> LetterSpecs,
                            Expr *StmtLabel);
   StmtResult ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel);
   StmtResult ActOnPARAMETER(llvm::ArrayRef<std::pair<const IdentifierInfo*,

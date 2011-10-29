@@ -183,12 +183,11 @@ StmtResult Sema::ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
   return UseStmt::Create(C, MN, ModName, OnlyList, RenameNames, StmtLabel);
 }
 
-StmtResult Sema::ActOnIMPLICIT(ASTContext &C, DeclSpec &DS,
-                               ArrayRef<std::pair<const IdentifierInfo*,
-                               const IdentifierInfo*> > LetterSpecs,
+StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
+                               ArrayRef<ImplicitStmt::LetterSpec> LetterSpecs,
                                Expr *StmtLabel) {
   QualType Ty = ActOnTypeName(C, DS);
-  return StmtResult();
+  return ImplicitStmt::Create(C, Loc, Ty, LetterSpecs, StmtLabel);
 }
 
 StmtResult Sema::ActOnIMPLICIT(ASTContext &C, Expr *StmtLabel) {
