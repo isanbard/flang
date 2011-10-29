@@ -1075,7 +1075,7 @@ Parser::StmtResult Parser::ParseCOMMONStmt() {
 
 /// ParseDATAStmt - Parse the DATA statement.
 ///
-///   [5.2.5] R524:
+///   [R524]:
 ///     data-stmt :=
 ///         DATA data-stmt-set [ [,] data-stmt-set ] ...
 Parser::StmtResult Parser::ParseDATAStmt() {
@@ -1084,7 +1084,7 @@ Parser::StmtResult Parser::ParseDATAStmt() {
 
 /// ParseDIMENSIONStmt - Parse the DIMENSION statement.
 ///
-///   [5.2.6] R535:
+///   [R535]:
 ///     dimension-stmt :=
 ///         DIMENSION [::] array-name ( array-spec ) #
 ///         # [ , array-name ( array-spec ) ] ...
@@ -1094,7 +1094,7 @@ Parser::StmtResult Parser::ParseDIMENSIONStmt() {
 
 /// ParseEQUIVALENCEStmt - Parse the EQUIVALENCE statement.
 ///
-///   [5.5.1] R554:
+///   [R554]:
 ///     equivalence-stmt :=
 ///         EQUIVALENCE equivalence-set-list
 Parser::StmtResult Parser::ParseEQUIVALENCEStmt() {
@@ -1103,7 +1103,7 @@ Parser::StmtResult Parser::ParseEQUIVALENCEStmt() {
 
 /// ParseEXTERNALStmt - Parse the EXTERNAL statement.
 ///
-///   [12.3.2.2] R1210:
+///   [R1210]:
 ///     external-stmt :=
 ///         EXTERNAL [::] external-name-list
 Parser::StmtResult Parser::ParseEXTERNALStmt() {
@@ -1112,7 +1112,7 @@ Parser::StmtResult Parser::ParseEXTERNALStmt() {
 
 /// ParseINTENTStmt - Parse the INTENT statement.
 ///
-///   [5.2.7] R536:
+///   [R536]:
 ///     intent-stmt :=
 ///         INTENT ( intent-spec ) [::] dummy-arg-name-list
 Parser::StmtResult Parser::ParseINTENTStmt() {
@@ -1121,7 +1121,7 @@ Parser::StmtResult Parser::ParseINTENTStmt() {
 
 /// ParseINTRINSICStmt - Parse the INTRINSIC statement.
 ///
-///   [12.3.2.4] R1216:
+///   [R1216]:
 ///     intrinsic-stmt :=
 ///         INTRINSIC [::] intrinsic-procedure-name-list
 Parser::StmtResult Parser::ParseINTRINSICStmt() {
@@ -1130,7 +1130,7 @@ Parser::StmtResult Parser::ParseINTRINSICStmt() {
 
 /// ParseNAMELISTStmt - Parse the NAMELIST statement.
 ///
-///   [5.4] R552:
+///   [R552]:
 ///     namelist-stmt :=
 ///         NAMELIST #
 ///         # / namelist-group-name / namelist-group-object-list #
@@ -1142,7 +1142,7 @@ Parser::StmtResult Parser::ParseNAMELISTStmt() {
 
 /// ParseOPTIONALStmt - Parse the OPTIONAL statement.
 ///
-///   [5.2.8] R537:
+///   [R537]:
 ///     optional-stmt :=
 ///         OPTIONAL [::] dummy-arg-name-list
 Parser::StmtResult Parser::ParseOPTIONALStmt() {
@@ -1151,7 +1151,7 @@ Parser::StmtResult Parser::ParseOPTIONALStmt() {
 
 /// ParsePOINTERStmt - Parse the POINTER statement.
 ///
-///   [5.2.10] R540:
+///   [R540]:
 ///     pointer-stmt :=
 ///         POINTER [::] pointer-decl-list
 Parser::StmtResult Parser::ParsePOINTERStmt() {
@@ -1160,7 +1160,7 @@ Parser::StmtResult Parser::ParsePOINTERStmt() {
 
 /// ParsePROTECTEDStmt - Parse the PROTECTED statement.
 ///
-///   [5.2.11] R542:
+///   [R542]:
 ///     protected-stmt :=
 ///         PROTECTED [::] entity-name-list
 Parser::StmtResult Parser::ParsePROTECTEDStmt() {
@@ -1169,7 +1169,7 @@ Parser::StmtResult Parser::ParsePROTECTEDStmt() {
 
 /// ParseSAVEStmt - Parse the SAVE statement.
 ///
-///   [5.2.12] R543:
+///   [R543]:
 ///     save-stmt :=
 ///         SAVE [ [::] saved-entity-list ]
 Parser::StmtResult Parser::ParseSAVEStmt() {
@@ -1178,7 +1178,7 @@ Parser::StmtResult Parser::ParseSAVEStmt() {
 
 /// ParseTARGETStmt - Parse the TARGET statement.
 ///
-///   [5.2.13] R546:
+///   [R546]:
 ///     target-stmt :=
 ///         TARGET [::] object-name [ ( array-spec ) ] #
 ///         # [ , object-name [ ( array-spec ) ] ] ...
@@ -1188,7 +1188,7 @@ Parser::StmtResult Parser::ParseTARGETStmt() {
 
 /// ParseVALUEStmt - Parse the VALUE statement.
 ///
-///   [5.2.14] R547:
+///   [R547]:
 ///     value-stmt :=
 ///         VALUE [::] dummy-arg-name-list
 Parser::StmtResult Parser::ParseVALUEStmt() {
@@ -1197,7 +1197,7 @@ Parser::StmtResult Parser::ParseVALUEStmt() {
 
 /// ParseVOLATILEStmt - Parse the VOLATILE statement.
 ///
-///   [5.2.15] R548:
+///   [R548]:
 ///     volatile-stmt :=
 ///         VOLATILE [::] object-name-list
 Parser::StmtResult Parser::ParseVOLATILEStmt() {
@@ -1206,7 +1206,7 @@ Parser::StmtResult Parser::ParseVOLATILEStmt() {
 
 /// ParseALLOCATEStmt - Parse the ALLOCATE statement.
 ///
-///   [6.3.1] R623:
+///   [R623]:
 ///     allocate-stmt :=
 ///         ALLOCATE ( [ type-spec :: ] alocation-list [ , alloc-opt-list ] )
 Parser::StmtResult Parser::ParseALLOCATEStmt() {
@@ -1215,7 +1215,7 @@ Parser::StmtResult Parser::ParseALLOCATEStmt() {
 
 /// ParseNULLIFYStmt - Parse the NULLIFY statement.
 ///
-///   [6.3.2] R633:
+///   [R633]:
 ///     nullify-stmt :=
 ///         NULLIFY ( pointer-object-list )
 Parser::StmtResult Parser::ParseNULLIFYStmt() {
@@ -1224,7 +1224,7 @@ Parser::StmtResult Parser::ParseNULLIFYStmt() {
 
 /// ParseDEALLOCATEStmt - Parse the DEALLOCATE statement.
 ///
-///   [6.3.3] R635:
+///   [R635]:
 ///     deallocate-stmt :=
 ///         DEALLOCATE ( allocate-object-list [ , dealloc-op-list ] )
 Parser::StmtResult Parser::ParseDEALLOCATEStmt() {
@@ -1233,7 +1233,7 @@ Parser::StmtResult Parser::ParseDEALLOCATEStmt() {
 
 /// ParseWHEREStmt - Parse the WHERE statement.
 ///
-///   [7.4.3.1] R743:
+///   [R743]:
 ///     where-stmt :=
 ///         WHERE ( mask-expr ) where-assignment-stmt
 Parser::StmtResult Parser::ParseWHEREStmt() {
@@ -1242,7 +1242,7 @@ Parser::StmtResult Parser::ParseWHEREStmt() {
 
 /// ParseFORALLStmt - Parse the FORALL construct statement.
 ///
-///   [7.4.4.1] R753:
+///   [R753]:
 ///     forall-construct-stmt :=
 ///         [forall-construct-name :] FORALL forall-header
 Parser::StmtResult Parser::ParseFORALLStmt() {
@@ -1251,7 +1251,7 @@ Parser::StmtResult Parser::ParseFORALLStmt() {
 
 /// ParseENDFORALLStmt - Parse the END FORALL construct statement.
 /// 
-///   [7.4.4.1] R758:
+///   [R758]:
 ///     end-forall-stmt :=
 ///         END FORALL [forall-construct-name]
 Parser::StmtResult Parser::ParseEND_FORALLStmt() {
