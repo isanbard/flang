@@ -165,6 +165,17 @@ FormatStmt *FormatStmt::Create(ASTContext &C, SMLoc Loc, FormatSpec *fs,
 }
 
 //===----------------------------------------------------------------------===//
+// Entry Statement
+//===----------------------------------------------------------------------===//
+
+EntryStmt::EntryStmt(SMLoc Loc, ExprResult StmtLabel)
+  : Stmt(Entry, Loc, StmtLabel) {}
+
+EntryStmt *EntryStmt::Create(ASTContext &C, SMLoc Loc, ExprResult StmtLabel) {
+  return new (C) EntryStmt(Loc, StmtLabel);
+}
+
+//===----------------------------------------------------------------------===//
 // Asynchronous Statement
 //===----------------------------------------------------------------------===//
 

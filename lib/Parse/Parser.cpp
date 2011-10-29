@@ -714,6 +714,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     }
   }
 
+  // Eat optional '::'.
   EatIfPresent(tok::coloncolon);
 
   if (Tok.isNot(tok::identifier)) {
@@ -723,6 +724,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   }
 
   const IdentifierInfo *ModuleName = Tok.getIdentifierInfo();
+  SMLoc ModuleNameLoc = Tok.getLocation();
   Lex();
 
   if (!EatIfPresent(tok::comma)) {
@@ -797,12 +799,12 @@ Parser::StmtResult Parser::ParseUSEStmt() {
 ///
 ///   [R1209]:
 ///     import-stmt :=
-///         IMPORT [[::] import-name-list]
+///         IMPORT [ [ :: ] import-name-list ]
 Parser::StmtResult Parser::ParseIMPORTStmt() {
   Lex();
   EatIfPresent(tok::coloncolon);
 
-  llvm::SmallVector<IdentifierInfo*, 4> ImportNameList;
+  SmallVector<IdentifierInfo*, 4> ImportNameList;
   while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
     ImportNameList.push_back(Tok.getIdentifierInfo());
     Lex();

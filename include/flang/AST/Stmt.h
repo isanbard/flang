@@ -299,6 +299,19 @@ public:
   }
 };
 
+/// EntryStmt -
+///
+class EntryStmt : public Stmt {
+  EntryStmt(SMLoc Loc, ExprResult StmtLabel);
+public:
+  static EntryStmt *Create(ASTContext &C, SMLoc Loc, ExprResult StmtLabel);
+
+  static bool classof(const EntryStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == Entry;
+  }
+};
+
 /// AsynchronousStmt - Specifies the asynchronous attribute for a list of
 /// objects.
 ///
