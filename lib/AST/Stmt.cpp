@@ -116,7 +116,7 @@ ImplicitStmt::ImplicitStmt(SMLoc L, ExprResult StmtLabel)
 ImplicitStmt::ImplicitStmt(ASTContext &C, SMLoc L, QualType T,
                            ArrayRef<LetterSpec> SpecList,
                            ExprResult StmtLabel)
-  : Stmt(Implicit, L, StmtLabel), None(false) {
+  : Stmt(Implicit, L, StmtLabel), Ty(T), None(false) {
   NumLetterSpecs = SpecList.size();
   LetterSpecList = new (C) LetterSpec[NumLetterSpecs];
 

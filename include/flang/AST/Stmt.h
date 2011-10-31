@@ -253,6 +253,10 @@ public:
                               ArrayRef<LetterSpec> SpecList,
                               ExprResult StmtLabel);
 
+  bool isNone() const { return None; }
+
+  QualType getType() const { return Ty; }
+
   ArrayRef<LetterSpec> getLetterSpecList() const {
     return ArrayRef<LetterSpec>(LetterSpecList, NumLetterSpecs);
   }

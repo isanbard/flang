@@ -319,9 +319,6 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
     Body.push_back(ProgStmt);
   }
 
-  // FIXME: Debugging support.
-  dump(ProgStmt);
-
   // If the PROGRAM statement has an identifier, pass it on to the main program
   // action.
   const IdentifierInfo *IDInfo = 0;
@@ -352,9 +349,6 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   ParseStatementLabel();
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
   Body.push_back(EndProgStmt);
-
-  // FIXME: Debugging support.
-  dump(EndProgStmt);
 
   IDInfo = 0;
   NameLoc = SMLoc();

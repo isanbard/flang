@@ -34,6 +34,7 @@ private:
   VISIT(EndProgramStmt);
   VISIT(UseStmt);
   VISIT(ImportStmt);
+  VISIT(ImplicitStmt);
   VISIT(AsynchronousStmt);
   VISIT(AssignmentStmt);
   VISIT(PrintStmt);
@@ -52,6 +53,7 @@ void StmtVisitor::visit(StmtResult S) {
   HANDLE(EndProgramStmt);
   HANDLE(UseStmt);
   HANDLE(ImportStmt);
+  HANDLE(ImplicitStmt);
   HANDLE(AsynchronousStmt);
   HANDLE(AssignmentStmt);
   HANDLE(PrintStmt);
@@ -79,9 +81,28 @@ void StmtVisitor::visit(const ImportStmt *S) {
     OS << ":";
     for (unsigned I = 0, E = NameList.size(); I != E; ++I)
       OS << "\n  ('" << NameList[I]->getName() << "')";
-    OS << ")\n";
   }
   OS << ")\n";
+}
+void StmtVisitor::visit(const ImplicitStmt *S) {
+  ArrayRef<ImplicitStmt::LetterSpec> LS = S->getLetterSpecList();
+  OS << "(implicit";
+  if (S->isNone()) {
+    OS << " none)\n";
+    return;
+  }
+  OS << ":\n  (";
+  S->getType().print(OS);
+  OS << " ::\n";
+  for (unsigned I = 0, E = LS.size(); I != E; ++I) {
+    ImplicitStmt::LetterSpec Spec = LS[I];
+    OS << "    (" << Spec.first->getName();
+    if (Spec.second)
+      OS << "-" << Spec.second->getName();
+    OS << ")\n";
+  }
+
+  OS << "  )\n)\n";
 }
 void StmtVisitor::visit(const AsynchronousStmt *S) {
 }
@@ -93,8 +114,7 @@ void StmtVisitor::visit(const AssignmentStmt *S) {
   OS << "))\n";
 }
 void StmtVisitor::visit(const PrintStmt *S) {
-  OS << "(print:\n  [";
-  OS << ")\n";
+  OS << "(print)\n";
 }
 
 void flang::dump(ArrayRef<StmtResult> S) {
