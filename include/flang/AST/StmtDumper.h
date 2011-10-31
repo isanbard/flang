@@ -14,13 +14,13 @@
 #ifndef FLANG_AST_STMTDUMPER_H__
 #define FLANG_AST_STMTDUMPER_H__
 
+#include "flang/Sema/Ownership.h"
 #include "llvm/ADT/ArrayRef.h"
 
 namespace flang {
-  class Stmt;
 
   /// dump - Dump an array of statements.
-  void dump(llvm::ArrayRef<Stmt*> S);
+  void dump(llvm::ArrayRef<StmtResult> S);
 
 } // end flang namespace
 

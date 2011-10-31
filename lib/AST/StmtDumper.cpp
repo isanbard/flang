@@ -26,7 +26,7 @@ class StmtVisitor {
 public:
   StmtVisitor(raw_ostream &os) : OS(os) {}
 
-  void visit(Stmt*);
+  void visit(StmtResult);
 
 private:
 #define VISIT(STMT) void visit(const STMT *S)
@@ -42,11 +42,11 @@ private:
 
 } // end anonymous namespace
 
-void StmtVisitor::visit(Stmt *S) {
+void StmtVisitor::visit(StmtResult S) {
 #define HANDLE(STMT) \
-  if (const STMT *stmt = dyn_cast<STMT>(S)) {   \
-    visit(stmt);                                \
-    return;                                     \
+  if (const STMT *stmt = dyn_cast<STMT>(S.get())) {     \
+    visit(stmt);                                        \
+    return;                                             \
   }
   HANDLE(ProgramStmt);
   HANDLE(EndProgramStmt);
@@ -73,6 +73,15 @@ void StmtVisitor::visit(const EndProgramStmt *S) {
 void StmtVisitor::visit(const UseStmt *S) {
 }
 void StmtVisitor::visit(const ImportStmt *S) {
+  ArrayRef<const IdentifierInfo *> NameList = S->getNameList();
+  OS << "(import";
+  if (NameList.size() != 0) {
+    OS << ":";
+    for (unsigned I = 0, E = NameList.size(); I != E; ++I)
+      OS << "\n  ('" << NameList[I]->getName() << "')";
+    OS << ")\n";
+  }
+  OS << ")\n";
 }
 void StmtVisitor::visit(const AsynchronousStmt *S) {
 }
@@ -88,9 +97,9 @@ void StmtVisitor::visit(const PrintStmt *S) {
   OS << ")\n";
 }
 
-void flang::dump(ArrayRef<Stmt*> S) {
+void flang::dump(ArrayRef<StmtResult> S) {
   StmtVisitor SV(llvm::errs());
 
-  for (ArrayRef<Stmt*>::iterator I = S.begin(), E = S.end(); I != E; ++I)
+  for (ArrayRef<StmtResult>::iterator I = S.begin(), E = S.end(); I != E; ++I)
     SV.visit(*I);
 }

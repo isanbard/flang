@@ -320,7 +320,7 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   }
 
   // FIXME: Debugging support.
-  dump(ProgStmt.get());
+  dump(ProgStmt);
 
   // If the PROGRAM statement has an identifier, pass it on to the main program
   // action.
@@ -346,12 +346,15 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM))
     ParseExecutionPart(Body);
 
+  // FIXME: Debugging support.
+  dump(Body);
+
   ParseStatementLabel();
   StmtResult EndProgStmt = ParseEND_PROGRAMStmt();
   Body.push_back(EndProgStmt);
 
   // FIXME: Debugging support.
-  dump(EndProgStmt.get());
+  dump(EndProgStmt);
 
   IDInfo = 0;
   NameLoc = SMLoc();
@@ -690,6 +693,10 @@ Parser::StmtResult Parser::ParsePROGRAMStmt() {
 ///         USE [ [ , module-nature ] :: ] module-name [ , rename-list ]
 ///      or USE [ [ , module-nature ] :: ] module-name , ONLY : [ only-list ]
 Parser::StmtResult Parser::ParseUSEStmt() {
+  // Check if this is an assignment.
+  if (NextTok.is(tok::equal))
+    return StmtResult();
+
   Lex();
 
   // module-nature :=
@@ -801,6 +808,10 @@ Parser::StmtResult Parser::ParseUSEStmt() {
 ///     import-stmt :=
 ///         IMPORT [ [ :: ] import-name-list ]
 Parser::StmtResult Parser::ParseIMPORTStmt() {
+  // Check if this is an assignment.
+  if (NextTok.is(tok::equal))
+    return StmtResult();
+
   SMLoc Loc = Tok.getLocation();
   Lex();
   EatIfPresent(tok::coloncolon);
