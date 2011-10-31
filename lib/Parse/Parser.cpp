@@ -764,7 +764,7 @@ Parser::StmtResult Parser::ParseUSEStmt() {
     if (Tok.isAtStartOfStatement() || Tok.isNot(tok::identifier)) {
       Diag.ReportError(Tok.getLocation(),
                        "missing rename of variable in USE statement");
-      return StmtResult();
+      return StmtResult(true);
     }
 
     RenameNames.push_back(UseStmt::RenamePair(UseListFirstVar,
@@ -806,10 +806,23 @@ Parser::StmtResult Parser::ParseIMPORTStmt() {
   EatIfPresent(tok::coloncolon);
 
   SmallVector<const IdentifierInfo*, 4> ImportNameList;
-  while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
+  while (!Tok.isAtStartOfStatement()) {
+    if (Tok.isNot(tok::identifier)) {
+      Diag.ReportError(Tok.getLocation(),
+                       "expected import name in IMPORT statement");
+      return StmtResult(true);
+    }
+
     ImportNameList.push_back(Tok.getIdentifierInfo());
     Lex();
-    EatIfPresent(tok::comma);
+    if (!EatIfPresent(tok::comma))
+      break;
+  }
+
+  if (!Tok.isAtStartOfStatement()) {
+    Diag.ReportError(Tok.getLocation(),
+                     "missing comma before import name in IMPORT statement");
+    LexToEndOfStatement();
   }
 
   return Actions.ActOnIMPORT(Context, Loc, ImportNameList, StmtLabel);
