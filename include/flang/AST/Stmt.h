@@ -214,11 +214,10 @@ class ImportStmt : public Stmt {
   const IdentifierInfo **Names;
 
   ImportStmt(ExprResult StmtLabel);
-  ImportStmt(ASTContext &C, ArrayRef<const IdentifierInfo*> names,
+  ImportStmt(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> names,
              ExprResult StmtLabel);
 public:
-  static ImportStmt *Create(ASTContext &C, ExprResult StmtLabel);
-  static ImportStmt *Create(ASTContext &C,
+  static ImportStmt *Create(ASTContext &C, SMLoc Loc,
                             ArrayRef<const IdentifierInfo*> Names,
                             ExprResult StmtLabel);
 

@@ -184,6 +184,12 @@ StmtResult Sema::ActOnUSE(ASTContext &C, UseStmt::ModuleNature MN,
   return UseStmt::Create(C, MN, ModName, OnlyList, RenameNames, StmtLabel);
 }
 
+StmtResult Sema::ActOnIMPORT(ASTContext &C, SMLoc Loc,
+                             ArrayRef<const IdentifierInfo*> ImportNamesList,
+                             ExprResult StmtLabel) {
+  return ImportStmt::Create(C, Loc, ImportNamesList, StmtLabel);
+}
+
 StmtResult Sema::ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
                                ArrayRef<ImplicitStmt::LetterSpec> LetterSpecs,
                                Expr *StmtLabel) {

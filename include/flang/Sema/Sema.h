@@ -84,6 +84,11 @@ public:
                       ArrayRef<UseStmt::RenamePair> RenameNames,
                       ExprResult StmtLabel);
 
+  // IMPORT statement:
+  StmtResult ActOnIMPORT(ASTContext &C, SMLoc Loc,
+                         ArrayRef<const IdentifierInfo*> ImportNamesList,
+                         ExprResult StmtLabel);
+
   // IMPLICIT statement:
   StmtResult ActOnIMPLICIT(ASTContext &C, SMLoc Loc, DeclSpec &DS,
                            ArrayRef<ImplicitStmt::LetterSpec> LetterSpecs,
@@ -127,9 +132,6 @@ public:
                             Expr *StmtLabel);
 
   // FIXME: TODO:
-
-  StmtResult ActOnIMPORT(llvm::ArrayRef<IdentifierInfo*>,
-                         Expr *StmtLabel) { return StmtResult(); }
 
   QualType ActOnBuiltinType(ASTContext *Ctx,
                             BuiltinType::TypeSpec TS,

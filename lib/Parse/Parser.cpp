@@ -801,17 +801,18 @@ Parser::StmtResult Parser::ParseUSEStmt() {
 ///     import-stmt :=
 ///         IMPORT [ [ :: ] import-name-list ]
 Parser::StmtResult Parser::ParseIMPORTStmt() {
+  SMLoc Loc = Tok.getLocation();
   Lex();
   EatIfPresent(tok::coloncolon);
 
-  SmallVector<IdentifierInfo*, 4> ImportNameList;
+  SmallVector<const IdentifierInfo*, 4> ImportNameList;
   while (!Tok.isAtStartOfStatement() && Tok.is(tok::identifier)) {
     ImportNameList.push_back(Tok.getIdentifierInfo());
     Lex();
     EatIfPresent(tok::comma);
   }
 
-  return Actions.ActOnIMPORT(ImportNameList, StmtLabel);
+  return Actions.ActOnIMPORT(Context, Loc, ImportNameList, StmtLabel);
 }
 
 /// ParseIMPLICITStmt - Parse the IMPLICIT statement.
@@ -1001,7 +1002,7 @@ bool Parser::ParseSpecificationStmt() {
 
 /// ParseACCESSStmt - Parse the ACCESS statement.
 ///
-///   [5.2.1] R518:
+///   [R518]:
 ///     access-stmt :=
 ///         access-spec [[::] access-id-list]
 Parser::StmtResult Parser::ParseACCESSStmt() {
