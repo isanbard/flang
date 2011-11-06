@@ -259,9 +259,8 @@ public:
   static bool classof(const DesignatorExpr *) { return true; }
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// FIXME: Should this go somewhere else?
-
+//===----------------------------------------------------------------------===//
+/// ArraySpec - The base class for all array specifications.
 class ArraySpec {
 public:
   enum ArraySpecKind {
@@ -283,6 +282,7 @@ public:
   static bool classof(const ArraySpec *) { return true; }
 };
 
+/// ExplicitShapeSpec - Used for an array whose shape is explicitly declared.
 class ExplicitShapeSpec : public ArraySpec {
   ExprResult LowerBound;
   ExprResult UpperBound;
@@ -303,6 +303,8 @@ public:
   }
 };
 
+/// AssumedShapeSpec - An assumed-shape array is a nonallocatable nonpointer
+/// dummy argument array that takes its shape from its effective arguments.
 class AssumedShapeSpec : public ArraySpec {
   ExprResult LowerBound;
 
@@ -320,6 +322,8 @@ public:
   }
 };
 
+/// DeferredShapeSpec - A deferred-shape array is an allocatable array or an
+/// array pointer.
 class DeferredShapeSpec : public ArraySpec {
   DeferredShapeSpec();
 public:
@@ -331,6 +335,8 @@ public:
   }
 };
 
+/// AssumedSizeSpec - An assumed-size array is a dummy argument array whose size
+/// is assumed from that of its effective argument.
 class AssumedSizeSpec : public ArraySpec {
   // FIXME: Finish
 public:
@@ -340,6 +346,8 @@ public:
   }
 };
 
+/// ImpliedShapeSpec - An implied-shape array is a named constant taht takes its
+/// shape from the constant-expr in its declaration.
 class ImpliedShapeSpec : public ArraySpec {
   ExprResult LowerBound;
 
@@ -354,9 +362,6 @@ public:
     return AS->getKind() == k_ImpliedShape;
   }
 };
-
-//
-////////////////////////////////////////////////////////////////////////////////
 
 /// VarExpr -
 class VarExpr : public DesignatorExpr {
