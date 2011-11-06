@@ -591,6 +591,9 @@ bool Parser::ParseDeclarationConstruct() {
     // FIXME: And the rest?
   }
 
+  if (ParseSpecificationStmt())
+    return true;
+
   return false;
 }
 
@@ -1010,8 +1013,63 @@ bool Parser::ParseSpecificationStmt() {
   StmtResult Result;
   switch (Tok.getKind()) {
   default: break;
+  case tok::kw_PUBLIC:
+  case tok::kw_PRIVATE:
+    Result = ParseACCESSStmt();
+    return true;
+  case tok::kw_ALLOCATABLE:
+    Result = ParseALLOCATABLEStmt();
+    return true;
   case tok::kw_ASYNCHRONOUS:
     Result = ParseASYNCHRONOUSStmt();
+    return true;
+  case tok::kw_BIND:
+    Result = ParseBINDStmt();
+    return true;
+  case tok::kw_COMMON:
+    Result = ParseCOMMONStmt();
+    return true;
+  case tok::kw_DATA:
+    Result = ParseDATAStmt();
+    return true;
+  case tok::kw_DIMENSION:
+    Result = ParseDIMENSIONStmt();
+    return true;
+  case tok::kw_EQUIVALENCE:
+    Result = ParseEQUIVALENCEStmt();
+    return true;
+  case tok::kw_EXTERNAL:
+    Result = ParseEXTERNALStmt();
+    return true;
+  case tok::kw_INTENT:
+    Result = ParseINTENTStmt();
+    return true;
+  case tok::kw_INTRINSIC:
+    Result = ParseINTRINSICStmt();
+    return true;
+  case tok::kw_NAMELIST:
+    Result = ParseNAMELISTStmt();
+    return true;
+  case tok::kw_OPTIONAL:
+    Result = ParseOPTIONALStmt();
+    return true;
+  case tok::kw_POINTER:
+    Result = ParsePOINTERStmt();
+    return true;
+  case tok::kw_PROTECTED:
+    Result = ParsePROTECTEDStmt();
+    return true;
+  case tok::kw_SAVE:
+    Result = ParseSAVEStmt();
+    return true;
+  case tok::kw_TARGET:
+    Result = ParseTARGETStmt();
+    return true;
+  case tok::kw_VALUE:
+    Result = ParseVALUEStmt();
+    return true;
+  case tok::kw_VOLATILE:
+    Result = ParseVOLATILEStmt();
     return true;
   }
 
@@ -1020,7 +1078,7 @@ bool Parser::ParseSpecificationStmt() {
 
 /// ParseACCESSStmt - Parse the ACCESS statement.
 ///
-///   [R518]:
+///   [R524]:
 ///     access-stmt :=
 ///         access-spec [[::] access-id-list]
 Parser::StmtResult Parser::ParseACCESSStmt() {
@@ -1029,7 +1087,7 @@ Parser::StmtResult Parser::ParseACCESSStmt() {
 
 /// ParseALLOCATABLEStmt - Parse the ALLOCATABLE statement.
 ///
-///   [R520]:
+///   [R526]:
 ///     allocatable-stmt :=
 ///         ALLOCATABLE [::] object-name       #
 ///         # [ ( deferred-shape-spec-list ) ] #
