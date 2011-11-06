@@ -251,17 +251,55 @@ void DefinedOperatorBinaryExpr::print(llvm::raw_ostream &O) {
 }
 
 //===----------------------------------------------------------------------===//
-// Subscript Methods
+// Array Specification
 //===----------------------------------------------------------------------===//
 
-Subscript *Subscript::create(Expr *E) {
-  return new Subscript(Subscript::Normal, E);
+ArraySpec::ArraySpec(ArraySpecKind K)
+  : Kind(K) {}
+
+ExplicitShapeSpec::ExplicitShapeSpec(ExprResult UB)
+  : ArraySpec(k_ExplicitShape), LowerBound(), UpperBound(UB) {}
+ExplicitShapeSpec::ExplicitShapeSpec(ExprResult LB, ExprResult UB)
+  : ArraySpec(k_ExplicitShape), LowerBound(LB), UpperBound(UB) {}
+
+ExplicitShapeSpec *ExplicitShapeSpec::Create(ASTContext &C, ExprResult UB) {
+  return new (C) ExplicitShapeSpec(UB);
 }
 
-Subscript *Subscript::createEmptyRange() {
-  return new Subscript(Subscript::EmptyRange);
+ExplicitShapeSpec *ExplicitShapeSpec::Create(ASTContext &C,
+                                             ExprResult LB, ExprResult UB) {
+  return new (C) ExplicitShapeSpec(LB, UB);
 }
 
-Subscript *Subscript::createSplat() {
-  return new Subscript(Subscript::Splat);
+AssumedShapeSpec::AssumedShapeSpec()
+  : ArraySpec(k_AssumedShape), LowerBound() {}
+AssumedShapeSpec::AssumedShapeSpec(ExprResult LB)
+  : ArraySpec(k_AssumedShape), LowerBound(LB) {}
+
+AssumedShapeSpec *AssumedShapeSpec::Create(ASTContext &C) {
+  return new (C) AssumedShapeSpec();
+}
+
+AssumedShapeSpec *AssumedShapeSpec::Create(ASTContext &C, ExprResult LB) {
+  return new (C) AssumedShapeSpec(LB);
+}
+
+DeferredShapeSpec::DeferredShapeSpec()
+  : ArraySpec(k_DeferredShape) {}
+
+DeferredShapeSpec *DeferredShapeSpec::Create(ASTContext &C) {
+  return new (C) DeferredShapeSpec();
+}
+
+ImpliedShapeSpec::ImpliedShapeSpec()
+  : ArraySpec(k_ImpliedShape), LowerBound() {}
+ImpliedShapeSpec::ImpliedShapeSpec(ExprResult LB)
+  : ArraySpec(k_ImpliedShape), LowerBound(LB) {}
+
+ImpliedShapeSpec *ImpliedShapeSpec::Create(ASTContext &C) {
+  return new (C) ImpliedShapeSpec();
+}
+
+ImpliedShapeSpec *ImpliedShapeSpec::Create(ASTContext &C, ExprResult LB) {
+  return new (C) ImpliedShapeSpec(LB);
 }

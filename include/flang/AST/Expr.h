@@ -262,48 +262,97 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 // FIXME: Should this go somewhere else?
 
-class Subscript {
+class ArraySpec {
 public:
-  enum SubscriptTy { Normal = 0, EmptyRange = ':', Splat = '*' };
+  enum ArraySpecKind {
+    k_ExplicitShape,
+    k_AssumedShape,
+    k_DeferredShape,
+    k_AssumedSize,
+    k_ImpliedShape
+  };
 private:
-  SubscriptTy Ty;
-  Expr *Val;
-  Subscript(SubscriptTy ty, Expr *e = 0)
-    : Ty(ty), Val(e) {}
-  Subscript(const Subscript&);  // Don't implement.
+  ArraySpecKind Kind;
+  ArraySpec(const ArraySpec&);
+  const ArraySpec &operator=(const ArraySpec&);
+protected:
+  ArraySpec(ArraySpecKind K);
 public:
-  static Subscript *create(Expr *E);
-  static Subscript *createEmptyRange();
-  static Subscript *createSplat();
+  ArraySpecKind getKind() const { return Kind; }
 
-  Expr *getValue() const { return Val; }
-  void setValue(Expr *V) { Val = V; }
-
-  bool isEmptyRange() const { return Ty == EmptyRange; }
-  bool isSplat() const { return Ty == Splat; }
+  static bool classof(const ArraySpec *) { return true; }
 };
 
-class SubscriptTriplet : public Subscript {
-  Subscript *Sub1;
-  Subscript *Sub2;
-  Subscript *Stride;
+class ExplicitShapeSpec : public ArraySpec {
+  ExprResult LowerBound;
+  ExprResult UpperBound;
+
+  ExplicitShapeSpec(ExprResult LB, ExprResult UB);
+  ExplicitShapeSpec(ExprResult UB);
 public:
+  static ExplicitShapeSpec *Create(ASTContext &C, ExprResult UB);
+  static ExplicitShapeSpec *Create(ASTContext &C, ExprResult LB,
+                                   ExprResult UB);
+
+  ExprResult getLowerBound() const { return LowerBound; }
+  ExprResult getUpperBound() const { return UpperBound; }
+
+  static bool classof(const ExplicitShapeSpec *) { return true; }
+  static bool classof(const ArraySpec *AS) {
+    return AS->getKind() == k_ExplicitShape;
+  }
 };
 
-class VectorSubscript : public Subscript {
-  // int-expr
+class AssumedShapeSpec : public ArraySpec {
+  ExprResult LowerBound;
+
+  AssumedShapeSpec();
+  AssumedShapeSpec(ExprResult LB);
 public:
+  static AssumedShapeSpec *Create(ASTContext &C);
+  static AssumedShapeSpec *Create(ASTContext &C, ExprResult LB);
+
+  ExprResult getLowerBound() const { return LowerBound; }
+
+  static bool classof(const AssumedShapeSpec *) { return true; }
+  static bool classof(const ArraySpec *AS) {
+    return AS->getKind() == k_AssumedShape;
+  }
 };
 
-class CoSubscript : public Subscript {
+class DeferredShapeSpec : public ArraySpec {
+  DeferredShapeSpec();
 public:
+  static DeferredShapeSpec *Create(ASTContext &C);
+
+  static bool classof(const DeferredShapeSpec *) { return true; }
+  static bool classof(const ArraySpec *AS) {
+    return AS->getKind() == k_DeferredShape;
+  }
 };
 
-class PartRef {
-  Decl *PartName;
-  llvm::SmallVector<Subscript*, 4> Subscripts;
-  llvm::SmallVector<CoSubscript*, 2> ImageSelector;
+class AssumedSizeSpec : public ArraySpec {
+  // FIXME: Finish
 public:
+  static bool classof(const AssumedSizeSpec *) { return true; }
+  static bool classof(const ArraySpec *AS) {
+    return AS->getKind() == k_AssumedSize;
+  }
+};
+
+class ImpliedShapeSpec : public ArraySpec {
+  ExprResult LowerBound;
+
+  ImpliedShapeSpec();
+  ImpliedShapeSpec(ExprResult LB);
+public:
+  static ImpliedShapeSpec *Create(ASTContext &C);
+  static ImpliedShapeSpec *Create(ASTContext &C, ExprResult LB);
+
+  static bool classof(const ImpliedShapeSpec *) { return true; }
+  static bool classof(const ArraySpec *AS) {
+    return AS->getKind() == k_ImpliedShape;
+  }
 };
 
 //
