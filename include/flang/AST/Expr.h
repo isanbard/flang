@@ -283,6 +283,10 @@ public:
 };
 
 /// ExplicitShapeSpec - Used for an array whose shape is explicitly declared.
+///
+///   [R516]:
+///     explicit-shape-spec :=
+///         [ lower-bound : ] upper-bound
 class ExplicitShapeSpec : public ArraySpec {
   ExprResult LowerBound;
   ExprResult UpperBound;
@@ -305,6 +309,10 @@ public:
 
 /// AssumedShapeSpec - An assumed-shape array is a nonallocatable nonpointer
 /// dummy argument array that takes its shape from its effective arguments.
+///
+///   [R519]:
+///     assumed-shape-spec :=
+///         [ lower-bound ] :
 class AssumedShapeSpec : public ArraySpec {
   ExprResult LowerBound;
 
@@ -324,6 +332,10 @@ public:
 
 /// DeferredShapeSpec - A deferred-shape array is an allocatable array or an
 /// array pointer.
+///
+///   [R520]:
+///     deferred-shape-spec :=
+///         :
 class DeferredShapeSpec : public ArraySpec {
   DeferredShapeSpec();
 public:
@@ -337,6 +349,10 @@ public:
 
 /// AssumedSizeSpec - An assumed-size array is a dummy argument array whose size
 /// is assumed from that of its effective argument.
+///
+///   [R521]:
+///     assumed-size-spec :=
+///         [ explicit-shape-spec , ]... [ lower-bound : ] *
 class AssumedSizeSpec : public ArraySpec {
   // FIXME: Finish
 public:
@@ -348,6 +364,10 @@ public:
 
 /// ImpliedShapeSpec - An implied-shape array is a named constant taht takes its
 /// shape from the constant-expr in its declaration.
+///
+///   [R522]:
+///     implied-shape-spec :=
+///         [ lower-bound : ] *
 class ImpliedShapeSpec : public ArraySpec {
   ExprResult LowerBound;
 
