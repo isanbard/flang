@@ -386,6 +386,8 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   // FIXME: Add rest of the primary expressions.
   switch (Tok.getKind()) {
   default:
+    if (isaKeyword(Tok.getIdentifierInfo()->getName()))
+      goto possible_keyword_as_ident;
     Diag.ReportError(Loc, "unknown unary expression");
     break;
   case tok::l_paren:
@@ -458,6 +460,7 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     break;
   }
   case tok::identifier:
+    possible_keyword_as_ident:
     parse_designator:
     E = Parser::ParseDesignator();
     if (E.isInvalid()) return ExprResult();
@@ -496,17 +499,15 @@ ExprResult Parser::ParseDesignator() {
     // Possibly something like: '0123456789'(N:N)
     return ParseSubstring();
 
-  ExprResult E;
-  if (Tok.isNot(tok::identifier)) return E;
-
   // [R504]:
   //   object-name :=
   //       name
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
+  if (!IDInfo) return ExprResult(true);
   VarDecl *VD = IDInfo->getFETokenInfo<VarDecl>();
-  if (!VD) return ExprResult();
+  if (!VD) return ExprResult(true);
 
-  E = VarExpr::Create(Context, Tok.getLocation(), VD);
+  ExprResult E = VarExpr::Create(Context, Tok.getLocation(), VD);
   Lex();
 
   return E;
