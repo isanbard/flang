@@ -117,9 +117,15 @@ void StmtVisitor::visit(const PrintStmt *S) {
   OS << "(print)\n";
 }
 
+void flang::dump(StmtResult S) {
+  StmtVisitor SV(llvm::errs());
+  SV.visit(S);
+}
+
 void flang::dump(ArrayRef<StmtResult> S) {
   StmtVisitor SV(llvm::errs());
 
   for (ArrayRef<StmtResult>::iterator I = S.begin(), E = S.end(); I != E; ++I)
-    SV.visit(*I);
+    if (!isa<ProgramStmt>(I->get()))
+      SV.visit(*I);
 }

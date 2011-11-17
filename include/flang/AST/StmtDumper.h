@@ -19,6 +19,9 @@
 
 namespace flang {
 
+  /// dump - Dump a statement.
+  void dump(StmtResult S);
+
   /// dump - Dump an array of statements.
   void dump(llvm::ArrayRef<StmtResult> S);
 

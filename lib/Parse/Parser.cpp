@@ -327,6 +327,8 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
     ProgramStmt *PS = ProgStmt.takeAs<ProgramStmt>();
     IDInfo = PS->getProgramName();
     NameLoc = PS->getNameLocation();
+    // FIXME: Debugging
+    dump(PS);
   }
 
   Actions.ActOnMainProgram(IDInfo, NameLoc);
