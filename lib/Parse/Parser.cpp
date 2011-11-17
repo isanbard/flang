@@ -852,7 +852,7 @@ Parser::StmtResult Parser::ParseIMPLICITStmt() {
   SMLoc Loc = Tok.getLocation();
   Lex();
 
-  if (Tok.is(tok::kw_NONE))
+  if (EatIfPresent(tok::kw_NONE))
     return Actions.ActOnIMPLICIT(Context, Loc, StmtLabel);
 
   DeclSpec DS;
