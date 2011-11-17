@@ -403,10 +403,8 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     ParseStatementLabel();
   }
 
-  if (ParseImplicitPartList(Body)) {
-    LexToEndOfStatement();
+  if (ParseImplicitPartList(Body))
     HasErrors = true;
-  }
 
   if (ParseDeclarationConstructList()) {
     LexToEndOfStatement();
