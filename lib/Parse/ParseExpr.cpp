@@ -505,7 +505,14 @@ ExprResult Parser::ParseDesignator() {
   const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   if (!IDInfo) return ExprResult(true);
   VarDecl *VD = IDInfo->getFETokenInfo<VarDecl>();
-  if (!VD) return ExprResult(true);
+  if (!VD) {
+    // This variable hasn't been specified before. We need to apply any IMPLICIT
+    // rules to it.
+    Decl *D = Actions.ActOnImplicitEntityDecl(Context, Tok.getLocation(),
+                                              IDInfo);
+    if (!D) return ExprResult(true);
+    VD = cast<VarDecl>(D);
+  }
 
   ExprResult E = VarExpr::Create(Context, Tok.getLocation(), VD);
   Lex();

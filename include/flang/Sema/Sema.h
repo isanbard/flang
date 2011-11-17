@@ -72,6 +72,9 @@ public:
   Decl *ActOnEntityDecl(ASTContext &C, DeclSpec &DS, SMLoc IDLoc,
                         const IdentifierInfo *IDInfo);
 
+  Decl *ActOnImplicitEntityDecl(ASTContext &C, SMLoc IDLoc,
+                                const IdentifierInfo *IDInfo);
+
   // PROGRAM statement:
   StmtResult ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
                           SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel);

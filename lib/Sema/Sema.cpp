@@ -166,9 +166,17 @@ Decl *Sema::ActOnEntityDecl(ASTContext &C, DeclSpec &DS, llvm::SMLoc IDLoc,
   return VD;
 }
 
+Decl *Sema::ActOnImplicitEntityDecl(ASTContext &C, SMLoc IDLoc,
+                                    const IdentifierInfo *IDInfo) {
+  // FIXME: This needs to look at the IMPLICIT statements, if any.
+  DeclSpec DS;
+  DS.SetTypeSpecType(DeclSpec::TST_real);
+
+  return ActOnEntityDecl(C, DS, IDLoc, IDInfo);
+}
+
 StmtResult Sema::ActOnPROGRAM(ASTContext &C, const IdentifierInfo *ProgName,
-                              llvm::SMLoc Loc, llvm::SMLoc NameLoc,
-                              Expr *StmtLabel) {
+                              SMLoc Loc, SMLoc NameLoc, Expr *StmtLabel) {
   return ProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 

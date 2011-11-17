@@ -272,9 +272,9 @@ bool Parser::ParseProgramUnit() {
   if (Tok.is(tok::eof))
     return true;
 
-  ParseStatementLabel();
   std::vector<StmtResult> Body;
 
+  ParseStatementLabel();
   if (NextTok.is(tok::equal))
     return ParseMainProgram(Body);
 
