@@ -349,9 +349,7 @@ public:
 
 /// ExternalStmt - Specifies the external attribute for a list of objects.
 ///
-class ExternalStmt : public Stmt {
-  unsigned NumExternalNames;
-  const IdentifierInfo **ExternalNames;
+class ExternalStmt : public ListStmt {
   ExternalStmt(ASTContext &C, SMLoc Loc,
                ArrayRef<const IdentifierInfo *> ExternalNames,
                ExprResult StmtLabel);
@@ -359,10 +357,6 @@ public:
   static ExternalStmt *Create(ASTContext &C, SMLoc Loc,
                               ArrayRef<const IdentifierInfo*> ExternalNames,
                               ExprResult StmtLabel);
-
-  ArrayRef<const IdentifierInfo *> getExternalNameList() const {
-    return ArrayRef<const IdentifierInfo *>(ExternalNames, NumExternalNames);
-  }
 
   static bool classof(const ExternalStmt*) { return true; }
   static bool classof(const Stmt *S) {

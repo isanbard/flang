@@ -205,15 +205,9 @@ Create(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> objNames,
 //===----------------------------------------------------------------------===//
 
 ExternalStmt::ExternalStmt(ASTContext &C, SMLoc Loc,
-                           ArrayRef<const IdentifierInfo *> externalNames,
+                           ArrayRef<const IdentifierInfo *> ExternalNames,
                            ExprResult StmtLabel)
-  : Stmt(External, Loc, StmtLabel) {
-  NumExternalNames = externalNames.size();
-  ExternalNames = new (C) const IdentifierInfo *[NumExternalNames];
-
-  for (unsigned I = 0; I != NumExternalNames; ++I)
-    ExternalNames[I] = externalNames[I];
-}
+  : ListStmt(C, External, Loc, ExternalNames, StmtLabel) {}
 
 ExternalStmt *ExternalStmt::Create(ASTContext &C, SMLoc Loc,
                                    ArrayRef<const IdentifierInfo*>ExternalNames,
