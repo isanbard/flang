@@ -224,20 +224,13 @@ public:
 /// ImportStmt - Specifies that the named entities from the host scoping unit
 /// are accessible in the interface body by host association.
 ///
-class ImportStmt : public Stmt {
-  unsigned NumNames;
-  const IdentifierInfo **Names;
-
+class ImportStmt : public ListStmt {
   ImportStmt(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> names,
              ExprResult StmtLabel);
 public:
   static ImportStmt *Create(ASTContext &C, SMLoc Loc,
                             ArrayRef<const IdentifierInfo*> Names,
                             ExprResult StmtLabel);
-
-  ArrayRef<const IdentifierInfo *> getNameList() const {
-    return ArrayRef<const IdentifierInfo *>(Names, NumNames);
-  }
 
   static bool classof(const ImportStmt*) { return true; }
   static bool classof(const Stmt *S) {

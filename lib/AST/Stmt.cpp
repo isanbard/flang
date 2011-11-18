@@ -101,14 +101,9 @@ llvm::StringRef UseStmt::getModuleName() const {
 //===----------------------------------------------------------------------===//
 
 ImportStmt::ImportStmt(ASTContext &C, SMLoc Loc,
-                       ArrayRef<const IdentifierInfo*> names,
+                       ArrayRef<const IdentifierInfo*> Names,
                        ExprResult StmtLabel)
-  : Stmt(Import, Loc, StmtLabel), NumNames(names.size()), Names(0) {
-  Names = new (C) const IdentifierInfo*[NumNames];
-
-  for (unsigned I = 0; I != NumNames; ++I)
-    Names[I] = names[I];
-}
+  : ListStmt(C, Import, Loc, Names, StmtLabel) {}
 
 ImportStmt *ImportStmt::Create(ASTContext &C, SMLoc Loc,
                                ArrayRef<const IdentifierInfo*> Names,

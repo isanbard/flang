@@ -75,7 +75,7 @@ void StmtVisitor::visit(const EndProgramStmt *S) {
 void StmtVisitor::visit(const UseStmt *S) {
 }
 void StmtVisitor::visit(const ImportStmt *S) {
-  ArrayRef<const IdentifierInfo *> NameList = S->getNameList();
+  ArrayRef<const IdentifierInfo *> NameList = S->getIDList();
   OS << "(import";
   if (NameList.size() != 0) {
     OS << ":";
