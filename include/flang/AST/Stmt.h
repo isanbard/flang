@@ -105,6 +105,20 @@ public:
   void operator delete(void*, void*) throw() { }
 };
 
+/// ListStmt - A statement which has a list of identifiers associated with it.
+///
+class ListStmt : public Stmt {
+  unsigned NumIDs;
+  const IdentifierInfo **IDList;
+protected:
+  ListStmt(ASTContext &C, StmtTy ID, SMLoc L,
+           ArrayRef<const IdentifierInfo *> IDs, ExprResult SLT);
+public:
+  ArrayRef<const IdentifierInfo *> getIDList() const {
+    return ArrayRef<const IdentifierInfo *>(IDList, NumIDs);
+  }
+};
+
 /// ProgramStmt - The (optional) first statement of the 'main' program.
 ///
 class ProgramStmt : public Stmt {
