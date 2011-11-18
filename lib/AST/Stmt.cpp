@@ -100,9 +100,6 @@ llvm::StringRef UseStmt::getModuleName() const {
 // Import Statement
 //===----------------------------------------------------------------------===//
 
-ImportStmt::ImportStmt(ExprResult StmtLabel)
-  : Stmt(Import, SMLoc(), StmtLabel), NumNames(0), Names(0) {
-}
 ImportStmt::ImportStmt(ASTContext &C, SMLoc Loc,
                        ArrayRef<const IdentifierInfo*> names,
                        ExprResult StmtLabel)

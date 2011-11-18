@@ -228,7 +228,6 @@ class ImportStmt : public Stmt {
   unsigned NumNames;
   const IdentifierInfo **Names;
 
-  ImportStmt(ExprResult StmtLabel);
   ImportStmt(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> names,
              ExprResult StmtLabel);
 public:
