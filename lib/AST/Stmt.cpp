@@ -192,13 +192,7 @@ AsynchronousStmt::
 AsynchronousStmt(ASTContext &C, SMLoc Loc,
                  ArrayRef<const IdentifierInfo*> objNames,
                  ExprResult StmtLabel)
-  : Stmt(Asynchronous, Loc, StmtLabel) {
-  NumObjNames = objNames.size();
-  ObjNames = new (C) const IdentifierInfo *[NumObjNames];
-
-  for (unsigned I = 0; I != NumObjNames; ++I)
-    ObjNames[I] = objNames[I];
-}
+  : ListStmt(C, Asynchronous, Loc, objNames, StmtLabel) {}
 
 AsynchronousStmt *AsynchronousStmt::
 Create(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> objNames,

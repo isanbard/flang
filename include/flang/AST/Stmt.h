@@ -332,9 +332,7 @@ public:
 /// AsynchronousStmt - Specifies the asynchronous attribute for a list of
 /// objects.
 ///
-class AsynchronousStmt : public Stmt {
-  unsigned NumObjNames;
-  const IdentifierInfo **ObjNames;
+class AsynchronousStmt : public ListStmt {
   AsynchronousStmt(ASTContext &C, SMLoc Loc,
                    ArrayRef<const IdentifierInfo*> objNames,
                    ExprResult StmtLabel);
@@ -342,10 +340,6 @@ public:
   static AsynchronousStmt *Create(ASTContext &C, SMLoc Loc,
                                   ArrayRef<const IdentifierInfo*> objNames,
                                   ExprResult StmtLabel);
-
-  ArrayRef<const IdentifierInfo *> getObjectNameList() const {
-    return ArrayRef<const IdentifierInfo *>(ObjNames, NumObjNames);
-  }
 
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
