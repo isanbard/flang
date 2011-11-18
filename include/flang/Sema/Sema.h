@@ -117,6 +117,11 @@ public:
                              SMLoc Loc, SMLoc NameLoc,
                              Expr *StmtLabel);
 
+  // EXTERNAL statement:
+  StmtResult ActOnEXTERNAL(ASTContext &C, SMLoc Loc,
+                           ArrayRef<const IdentifierInfo *> ExternalNames,
+                           Expr *StmtLabel);
+
   StmtResult ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
                                  ExprResult RHS, Expr *StmtLabel);
 

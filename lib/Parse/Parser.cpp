@@ -942,7 +942,6 @@ Parser::StmtResult Parser::ParsePARAMETERStmt() {
 
     ParamList.push_back(Actions.ActOnPARAMETERPair(Context, IDLoc, II,
                                                    ConstExpr));
-
   } while (EatIfPresent(tok::comma));
 
   if (!EatIfPresent(tok::r_paren)) {
@@ -1184,7 +1183,32 @@ Parser::StmtResult Parser::ParseEQUIVALENCEStmt() {
 ///     external-stmt :=
 ///         EXTERNAL [::] external-name-list
 Parser::StmtResult Parser::ParseEXTERNALStmt() {
-  return StmtResult();
+  SMLoc Loc = Tok.getLocation();
+  Lex();
+
+  EatIfPresent(tok::coloncolon);
+
+  SmallVector<const IdentifierInfo*, 8> ExternalNameList;
+  while (!Tok.isAtStartOfStatement()) {
+    if (Tok.isNot(tok::identifier)) {
+      Diag.ReportError(Tok.getLocation(),
+                       "expected an identifier in EXTERNAL statement");
+      return StmtResult(true);
+    }
+
+    ExternalNameList.push_back(Tok.getIdentifierInfo());
+    Lex();
+    if (!EatIfPresent(tok::comma)) {
+      if (!Tok.isAtStartOfStatement()) {
+        Diag.ReportError(Tok.getLocation(),
+                         "expected ',' in EXTERNAL statement");
+        return StmtResult(true);
+      }
+      break;
+    }
+  }
+
+  return Actions.ActOnEXTERNAL(Context, Loc, ExternalNameList, StmtLabel);
 }
 
 /// ParseINTENTStmt - Parse the INTENT statement.

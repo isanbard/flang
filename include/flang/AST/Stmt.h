@@ -44,6 +44,7 @@ public:
       Entry,
 
     Asynchronous,
+    External,
     EndProgram,
     Assignment,
     Print
@@ -343,6 +344,29 @@ public:
   static bool classof(const AsynchronousStmt*) { return true; }
   static bool classof(const Stmt *S) {
     return S->getStatementID() == Asynchronous;
+  }
+};
+
+/// ExternalStmt - Specifies the external attribute for a list of objects.
+///
+class ExternalStmt : public Stmt {
+  unsigned NumExternalNames;
+  const IdentifierInfo **ExternalNames;
+  ExternalStmt(ASTContext &C, SMLoc Loc,
+               ArrayRef<const IdentifierInfo *> ExternalNames,
+               ExprResult StmtLabel);
+public:
+  static ExternalStmt *Create(ASTContext &C, SMLoc Loc,
+                              ArrayRef<const IdentifierInfo*> ExternalNames,
+                              ExprResult StmtLabel);
+
+  ArrayRef<const IdentifierInfo *> getExternalNameList() const {
+    return ArrayRef<const IdentifierInfo *>(ExternalNames, NumExternalNames);
+  }
+
+  static bool classof(const ExternalStmt*) { return true; }
+  static bool classof(const Stmt *S) {
+    return S->getStatementID() == External;
   }
 };
 

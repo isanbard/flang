@@ -250,6 +250,12 @@ StmtResult Sema::ActOnENDPROGRAM(ASTContext &C,
   return EndProgramStmt::Create(C, ProgName, Loc, NameLoc, StmtLabel);
 }
 
+StmtResult Sema::ActOnEXTERNAL(ASTContext &C, SMLoc Loc,
+                               ArrayRef<const IdentifierInfo *> ExternalNames,
+                               Expr *StmtLabel) {
+  return ExternalStmt::Create(C, Loc, ExternalNames, StmtLabel);
+}
+
 StmtResult Sema::ActOnAssignmentStmt(ASTContext &C, ExprResult LHS,
                                      ExprResult RHS, Expr *StmtLabel) {
   return AssignmentStmt::Create(C, LHS, RHS, StmtLabel);
