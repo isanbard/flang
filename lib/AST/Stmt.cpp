@@ -48,20 +48,10 @@ EndProgramStmt *EndProgramStmt::Create(ASTContext &C,
 // Use Statement
 //===----------------------------------------------------------------------===//
 
-void UseStmt::init(ASTContext &C, ArrayRef<RenamePair> RenameLst) {
-  NumRenames = RenameLst.size();
-  RenameList = new (C) RenamePair[NumRenames];
-
-  for (unsigned I = 0; I != NumRenames; ++I)
-    RenameList[I] = RenameLst[I];
-}
-
 UseStmt::UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *modName,
-                 ArrayRef<RenamePair> RenameLst, ExprResult StmtLabel)
-  : Stmt(Use, llvm::SMLoc(), StmtLabel), ModNature(MN), ModName(modName),
-    Only(false) {
-  init(C, RenameLst);
-}
+                 ArrayRef<RenamePair> RenameList, ExprResult StmtLabel)
+  : ListStmt(C, Use, SMLoc(), RenameList, StmtLabel),
+    ModNature(MN), ModName(modName), Only(false) {}
 
 UseStmt *UseStmt::Create(ASTContext &C, ModuleNature MN,
                          const IdentifierInfo *modName,

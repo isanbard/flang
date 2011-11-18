@@ -113,7 +113,7 @@ class ListStmt : public Stmt {
   T *IDList;
 protected:
   ListStmt(ASTContext &C, Stmt::StmtTy ID, SMLoc L,
-           ArrayRef<const IdentifierInfo *> IDs, ExprResult SLT)
+           ArrayRef<T> IDs, ExprResult SLT)
     : Stmt(ID, L, SLT) {
     NumIDs = IDs.size();
     IDList = new (C) T [NumIDs];
@@ -187,7 +187,8 @@ public:
 
 /// UseStmt - A reference to the module it specifies.
 ///
-class UseStmt : public Stmt {
+class UseStmt : public ListStmt<std::pair<const IdentifierInfo *,
+                                          const IdentifierInfo *> > {
 public:
   enum ModuleNature {
     None,
@@ -199,8 +200,6 @@ private:
   ModuleNature ModNature;
   const IdentifierInfo *ModName;
   bool Only;
-  unsigned NumRenames;
-  RenamePair *RenameList;
 
   UseStmt(ASTContext &C, ModuleNature MN, const IdentifierInfo *modName,
           ArrayRef<RenamePair> RenameList, ExprResult StmtLabel);
@@ -218,10 +217,6 @@ public:
   /// Accessors:
   ModuleNature getModuleNature() const { return ModNature; }
   StringRef getModuleName() const;
-
-  ArrayRef<RenamePair> getRenameList() const {
-    return ArrayRef<RenamePair>(RenameList, NumRenames);
-  }
 
   static bool classof(const UseStmt*) { return true; }
   static bool classof(const Stmt *S) {
