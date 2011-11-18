@@ -107,15 +107,23 @@ public:
 
 /// ListStmt - A statement which has a list of identifiers associated with it.
 ///
+template <typename T = const IdentifierInfo *>
 class ListStmt : public Stmt {
   unsigned NumIDs;
-  const IdentifierInfo **IDList;
+  T *IDList;
 protected:
-  ListStmt(ASTContext &C, StmtTy ID, SMLoc L,
-           ArrayRef<const IdentifierInfo *> IDs, ExprResult SLT);
+  ListStmt(ASTContext &C, Stmt::StmtTy ID, SMLoc L,
+           ArrayRef<const IdentifierInfo *> IDs, ExprResult SLT)
+    : Stmt(ID, L, SLT) {
+    NumIDs = IDs.size();
+    IDList = new (C) T [NumIDs];
+
+    for (unsigned I = 0; I != NumIDs; ++I)
+      IDList[I] = IDs[I];
+  }
 public:
-  ArrayRef<const IdentifierInfo *> getIDList() const {
-    return ArrayRef<const IdentifierInfo *>(IDList, NumIDs);
+  ArrayRef<T> getIDList() const {
+    return ArrayRef<T>(IDList, NumIDs);
   }
 };
 
@@ -224,7 +232,7 @@ public:
 /// ImportStmt - Specifies that the named entities from the host scoping unit
 /// are accessible in the interface body by host association.
 ///
-class ImportStmt : public ListStmt {
+class ImportStmt : public ListStmt<> {
   ImportStmt(ASTContext &C, SMLoc Loc, ArrayRef<const IdentifierInfo*> names,
              ExprResult StmtLabel);
 public:
@@ -332,7 +340,7 @@ public:
 /// AsynchronousStmt - Specifies the asynchronous attribute for a list of
 /// objects.
 ///
-class AsynchronousStmt : public ListStmt {
+class AsynchronousStmt : public ListStmt<> {
   AsynchronousStmt(ASTContext &C, SMLoc Loc,
                    ArrayRef<const IdentifierInfo*> objNames,
                    ExprResult StmtLabel);
@@ -349,7 +357,7 @@ public:
 
 /// ExternalStmt - Specifies the external attribute for a list of objects.
 ///
-class ExternalStmt : public ListStmt {
+class ExternalStmt : public ListStmt<> {
   ExternalStmt(ASTContext &C, SMLoc Loc,
                ArrayRef<const IdentifierInfo *> ExternalNames,
                ExprResult StmtLabel);

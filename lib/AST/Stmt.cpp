@@ -24,20 +24,6 @@ using namespace flang;
 Stmt::~Stmt() {}
 
 //===----------------------------------------------------------------------===//
-// List Statement Base Class
-//===----------------------------------------------------------------------===//
-
-ListStmt::ListStmt(ASTContext &C, StmtTy ID, SMLoc L,
-                   ArrayRef<const IdentifierInfo *> IDs, ExprResult SLT)
-  : Stmt(ID, L, SLT) {
-  NumIDs = IDs.size();
-  IDList = new (C) const IdentifierInfo *[NumIDs];
-
-  for (unsigned I = 0; I != NumIDs; ++I)
-    IDList[I] = IDs[I];
-}
-
-//===----------------------------------------------------------------------===//
 // Program Statement
 //===----------------------------------------------------------------------===//
 
