@@ -85,7 +85,7 @@ void StmtVisitor::visit(const ImportStmt *S) {
   OS << ")\n";
 }
 void StmtVisitor::visit(const ImplicitStmt *S) {
-  ArrayRef<ImplicitStmt::LetterSpec> LS = S->getLetterSpecList();
+  ArrayRef<ImplicitStmt::LetterSpec> LS = S->getIDList();
   OS << "(implicit";
   if (S->isNone()) {
     OS << " none)\n";

@@ -112,8 +112,8 @@ class ListStmt : public Stmt {
   unsigned NumIDs;
   T *IDList;
 protected:
-  ListStmt(ASTContext &C, Stmt::StmtTy ID, SMLoc L,
-           ArrayRef<T> IDs, ExprResult SLT)
+  ListStmt(ASTContext &C, Stmt::StmtTy ID, SMLoc L, ArrayRef<T> IDs,
+           ExprResult SLT)
     : Stmt(ID, L, SLT) {
     NumIDs = IDs.size();
     IDList = new (C) T [NumIDs];
@@ -245,16 +245,15 @@ public:
 /// implicitly typed data entries whose names begin with one of the letters
 /// specified in the statement.
 ///
-class ImplicitStmt : public Stmt {
+class ImplicitStmt : public ListStmt<std::pair<const IdentifierInfo *,
+                                               const IdentifierInfo *> > {
 public:
   typedef std::pair<const IdentifierInfo *, const IdentifierInfo *> LetterSpec;
 private:
   QualType Ty;
   bool None;
-  unsigned NumLetterSpecs;
-  LetterSpec *LetterSpecList;
 
-  ImplicitStmt(SMLoc L, ExprResult StmtLabel);
+  ImplicitStmt(ASTContext &C, SMLoc L, ExprResult StmtLabel);
   ImplicitStmt(ASTContext &C, SMLoc L, QualType T,
                ArrayRef<LetterSpec> SpecList, ExprResult StmtLabel);
 public:
@@ -266,10 +265,6 @@ public:
   bool isNone() const { return None; }
 
   QualType getType() const { return Ty; }
-
-  ArrayRef<LetterSpec> getLetterSpecList() const {
-    return ArrayRef<LetterSpec>(LetterSpecList, NumLetterSpecs);
-  }
 
   static bool classof(const ImplicitStmt*) { return true; }
   static bool classof(const Stmt *S) {

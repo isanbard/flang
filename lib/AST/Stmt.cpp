@@ -91,24 +91,17 @@ ImportStmt *ImportStmt::Create(ASTContext &C, SMLoc Loc,
 // Implicit Statement
 //===----------------------------------------------------------------------===//
 
-ImplicitStmt::ImplicitStmt(SMLoc L, ExprResult StmtLabel)
-  : Stmt(Implicit, L, StmtLabel), None(true),
-    NumLetterSpecs(0), LetterSpecList(0) {}
+ImplicitStmt::ImplicitStmt(ASTContext &C, SMLoc L, ExprResult StmtLabel)
+  : ListStmt(C, Implicit, L, ArrayRef<LetterSpec>(), StmtLabel), None(true) {}
 
 ImplicitStmt::ImplicitStmt(ASTContext &C, SMLoc L, QualType T,
                            ArrayRef<LetterSpec> SpecList,
                            ExprResult StmtLabel)
-  : Stmt(Implicit, L, StmtLabel), Ty(T), None(false) {
-  NumLetterSpecs = SpecList.size();
-  LetterSpecList = new (C) LetterSpec[NumLetterSpecs];
-
-  for (unsigned I = 0; I != NumLetterSpecs; ++I)
-    LetterSpecList[I] = SpecList[I];
-}
+  : ListStmt(C, Implicit, L, SpecList, StmtLabel), Ty(T), None(false) {}
 
 ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L,
                                    ExprResult StmtLabel) {
-  return new (C) ImplicitStmt(L, StmtLabel);
+  return new (C) ImplicitStmt(C, L, StmtLabel);
 }
 
 ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
