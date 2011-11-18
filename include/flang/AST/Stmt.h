@@ -381,11 +381,8 @@ public:
 };
 
 /// PrintStmt
-class PrintStmt : public Stmt {
+class PrintStmt : public ListStmt<ExprResult> {
   FormatSpec *FS;
-  unsigned NumOutputItems;
-  ExprResult *OutputItemList;
-
   PrintStmt(ASTContext &C, SMLoc L, FormatSpec *fs,
             ArrayRef<ExprResult> OutList, ExprResult StmtLabel);
 public:
@@ -393,9 +390,6 @@ public:
                            ArrayRef<ExprResult> OutList, ExprResult StmtLabel);
 
   FormatSpec *getFormatSpec() const { return FS; }
-  ArrayRef<ExprResult> getOutputItemList() const {
-    return ArrayRef<ExprResult>(OutputItemList, NumOutputItems);
-  }
 
   static bool classof(const PrintStmt*) { return true; }
   static bool classof(const Stmt *S) {
