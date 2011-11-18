@@ -116,13 +116,7 @@ ImplicitStmt *ImplicitStmt::Create(ASTContext &C, SMLoc L, QualType T,
 
 ParameterStmt::ParameterStmt(ASTContext &C, SMLoc Loc,
                              ArrayRef<ParamPair> PList, ExprResult StmtLabel)
-  : Stmt(Parameter, Loc, StmtLabel) {
-  NumParams = PList.size();
-  ParamList = new (C) ParamPair[NumParams];
-
-  for (unsigned I = 0; I != NumParams; ++I)
-    ParamList[I] = PList[I];
-}
+  : ListStmt(C, Parameter, Loc, PList, StmtLabel) {}
 
 ParameterStmt *ParameterStmt::Create(ASTContext &C, SMLoc Loc,
                                      ArrayRef<ParamPair>ParamList,
