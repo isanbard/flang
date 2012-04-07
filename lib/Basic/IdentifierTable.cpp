@@ -73,11 +73,12 @@ static void AddPredefined(llvm::StringRef ID, tok::TokenKind TokenCode,
       (LangOpts.Fortran90 && (Flags & KEYF90)) ||
       (LangOpts.Fortran95 && (Flags & KEYF95)) ||
       (LangOpts.Fortran2003 && (Flags & KEYF2003)) ||
-      (LangOpts.Fortran2008 && (Flags & KEYF2008)))
+      (LangOpts.Fortran2008 && (Flags & KEYF2008))) {
     if (!isBuiltin)
       Table.getKeyword(ID, TokenCode);
     else
       Table.getBuiltin(ID, TokenCode);
+  }
 }
 
 /// AddPredefineds - Add all predefined identifiers to the symbol tables.

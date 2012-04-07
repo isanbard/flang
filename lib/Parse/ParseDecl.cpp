@@ -297,7 +297,7 @@ ExprResult Parser::ParseSelector(bool IsKindSel) {
 ///     type-param-spec :=
 ///         [ keyword = ] type-param-value
 bool Parser::ParseDerivedTypeSpec(DeclSpec &DS) {
-  llvm::SMLoc Loc = Tok.getLocation();
+  //  llvm::SMLoc Loc = Tok.getLocation();
   //  const IdentifierInfo *IDInfo = Tok.getIdentifierInfo();
   Lex();
 

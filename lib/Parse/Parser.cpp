@@ -728,7 +728,6 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   }
 
   const IdentifierInfo *ModuleName = Tok.getIdentifierInfo();
-  SMLoc ModuleNameLoc = Tok.getLocation();
   Lex();
 
   if (!EatIfPresent(tok::comma)) {
@@ -742,7 +741,6 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   }
 
   bool OnlyUse = false;
-  llvm::SMLoc OnlyLoc = Tok.getLocation();
   IdentifierInfo *UseListFirstVar = 0;
   if (Tok.is(tok::kw_ONLY)) {
     UseListFirstVar = Tok.getIdentifierInfo();
@@ -780,12 +778,10 @@ Parser::StmtResult Parser::ParseUSEStmt() {
   while (!Tok.isAtStartOfStatement()) {
     const IdentifierInfo *LocalName = Tok.getIdentifierInfo();
     const IdentifierInfo *UseName = 0;
-    SMLoc LocalLoc = Tok.getLocation();
     Lex();
 
     if (EatIfPresent(tok::equalgreater)) {
       UseName = Tok.getIdentifierInfo();
-      SMLoc UseNameLoc = Tok.getLocation();
       Lex();
     }
 
