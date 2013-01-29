@@ -577,29 +577,29 @@ void Lexer::FormDefinedOperatorTokenWithChars(Token &Result) {
 
   tok::TokenKind Kind = tok::defined_operator;
 
-  if (Op.compare_upper(".TRUE.") == 0 || Op.compare_upper(".FALSE.") == 0)
+  if (Op.compare_lower(".TRUE.") == 0 || Op.compare_lower(".FALSE.") == 0)
     Kind = tok::logical_literal_constant;
-  else if (Op.compare_upper(".EQ.") == 0)
+  else if (Op.compare_lower(".EQ.") == 0)
     Kind = tok::kw_EQ;
-  else if (Op.compare_upper(".NE.") == 0)
+  else if (Op.compare_lower(".NE.") == 0)
     Kind = tok::kw_NE;
-  else if (Op.compare_upper(".LT.") == 0)
+  else if (Op.compare_lower(".LT.") == 0)
     Kind = tok::kw_LT;
-  else if (Op.compare_upper(".LE.") == 0)
+  else if (Op.compare_lower(".LE.") == 0)
     Kind = tok::kw_LE;
-  else if (Op.compare_upper(".GT.") == 0)
+  else if (Op.compare_lower(".GT.") == 0)
     Kind = tok::kw_GT;
-  else if (Op.compare_upper(".GE.") == 0)
+  else if (Op.compare_lower(".GE.") == 0)
     Kind = tok::kw_GE;
-  else if (Op.compare_upper(".NOT.") == 0)
+  else if (Op.compare_lower(".NOT.") == 0)
     Kind = tok::kw_NOT;
-  else if (Op.compare_upper(".AND.") == 0)
+  else if (Op.compare_lower(".AND.") == 0)
     Kind = tok::kw_AND;
-  else if (Op.compare_upper(".OR.") == 0)
+  else if (Op.compare_lower(".OR.") == 0)
     Kind = tok::kw_OR;
-  else if (Op.compare_upper(".EQV.") == 0)
+  else if (Op.compare_lower(".EQV.") == 0)
     Kind = tok::kw_EQV;
-  else if (Op.compare_upper(".NEQV.") == 0)
+  else if (Op.compare_lower(".NEQV.") == 0)
     Kind = tok::kw_NEQV;
 
   return FormTokenWithChars(Result, Kind);
