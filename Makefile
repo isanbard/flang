@@ -14,7 +14,7 @@ ifndef FLANG_LEVEL
 
 IS_TOP_LEVEL := 1
 FLANG_LEVEL := .
-DIRS := include lib tools
+DIRS := utils/TableGen include lib tools
 
 PARALLEL_DIRS :=
 
@@ -55,15 +55,15 @@ endif
 # We can revisit this when LLVM/Flang support it.
 CXX.Flags += -fno-strict-aliasing
 
-# Set up Clang's tblgen.
-ifndef CLANG_TBLGEN
+# Set up Flang's tblgen.
+ifndef FLANG_TBLGEN
   ifeq ($(LLVM_CROSS_COMPILING),1)
-    CLANG_TBLGEN := $(BuildLLVMToolDir)/clang-tblgen$(BUILD_EXEEXT)
+    FLANG_TBLGEN := $(BuildLLVMToolDir)/flang-tblgen$(BUILD_EXEEXT)
   else
-    CLANG_TBLGEN := $(LLVMToolDir)/clang-tblgen$(EXEEXT)
+    FLANG_TBLGEN := $(LLVMToolDir)/flang-tblgen$(EXEEXT)
   endif
 endif
-ClangTableGen = $(CLANG_TBLGEN) $(TableGen.Flags)
+FlangTableGen = $(FLANG_TBLGEN) $(TableGen.Flags)
 
 ###
 # Flang Top Level specific stuff.
