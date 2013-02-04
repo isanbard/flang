@@ -135,9 +135,25 @@ public:
   void setValue(ASTContext &C, const llvm::APInt &Val) { setIntValue(C, Val); }
 };
 
-class APFloatStorage : public APNumericStorage {
-public:  
-  llvm::APFloat getValue() const { return llvm::APFloat(getIntValue()); } 
+static inline const llvm::fltSemantics &
+GetIEEEFloatSemantics(const llvm::APInt &api) {
+  if (api.getBitWidth() == 16)
+    return llvm::APFloat::IEEEhalf;
+  else if (api.getBitWidth() == 32)
+    return llvm::APFloat::IEEEsingle;
+  else if (api.getBitWidth()==64)
+    return llvm::APFloat::IEEEdouble;
+  else if (api.getBitWidth()==128)
+    return llvm::APFloat::IEEEquad;
+  llvm_unreachable("Unknown float semantic.");
+}
+
+class APFloatStorage : public APNumericStorage {  
+public:
+  llvm::APFloat getValue() const {
+    llvm::APInt Int = getIntValue();
+    return llvm::APFloat(GetIEEEFloatSemantics(Int), Int);
+  } 
   void setValue(ASTContext &C, const llvm::APFloat &Val) {
     setIntValue(C, Val.bitcastToAPInt());
   }

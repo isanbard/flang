@@ -103,7 +103,7 @@ BOZConstantExpr *BOZConstantExpr::Create(ASTContext &C, SMLoc Loc,
 LogicalConstantExpr::LogicalConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
   : ConstantExpr(LogicalConstant, C.LogicalTy, Loc) {
-  Val = (Data.compare_upper(".TRUE.") == 0);
+  Val = (Data.compare_lower(".TRUE.") == 0);
 }
 
 LogicalConstantExpr *LogicalConstantExpr::Create(ASTContext &C, SMLoc Loc,
